@@ -1,0 +1,37 @@
+# CLAUDE.md Example
+
+This is an example CLAUDE.md configuration that works well with these skills.
+
+## Installation
+
+Copy this file to your global Claude configuration:
+
+```bash
+cp CLAUDE.md.example ~/.claude/CLAUDE.md
+```
+
+## Customization
+
+This example includes:
+- Interaction style preferences
+- Code philosophy and decision framework
+- TDD requirements
+- Skills auto-invoke configuration
+- Git workflow rules (including NO auto-push)
+- Tool preferences (ast-grep mandated)
+- Problem-solving principles
+
+**Customize it** to match your preferences:
+- Adjust interaction style
+- Modify decision framework thresholds
+- Add/remove language skills based on your stack
+- Update git workflow to match your team's process
+
+## Key Sections
+
+- **Skills**: Lists all installed skills for auto-invoke
+- **Git Workflow**: NO auto-push, pre-commit hook protocol
+- **Tool Preferences**: MUST use ast-grep for code search
+- **Testing**: TDD process and requirements
+
+Refer to README.md for skills overview and installation instructions.
