@@ -513,6 +513,242 @@ end
 
 ---
 
+## Testing Heuristics
+
+These cross-language principles ensure tests remain maintainable and valuable as codebases evolve.
+
+### Observable Design Heuristic
+
+**Principle:** Make small production changes to improve testability when test code becomes overcomplicated. These changes often simultaneously improve user experience.
+
+**Example (all languages):**
+
+❌ **Before - Fragile test:**
+```python
+# Test relies on complex DOM traversal
+assert page.find("div.header > span:nth-child(3)").text == "Max"
+```
+
+✅ **After - Simple production change + robust test:**
+```python
+# Production: Add data-testid or visible indicator
+<span data-testid="username">Max</span>
+# Or better: "Logged in as: Max" (helps users too!)
+
+# Test becomes:
+assert page.find("[data-testid='username']").text == "Max"
+# Or: assert "Logged in as: Max" in page.text
+```
+
+**Benefits:**
+- Tests are more maintainable
+- Often improves UX (visible feedback)
+- Reduces test brittleness
+
+---
+
+### Multiple Test Cases Heuristic
+
+**Principle:** Good tests check for more than one behavior in the code under test.
+
+**Application:** If you only have one test for a feature, you've likely missed interesting behavior. Interesting code has multiple behaviors worth testing.
+
+**Example (Go):**
+
+❌ **Insufficient coverage:**
+```go
+func TestCalculateDiscount(t *testing.T) {
+    result := CalculateDiscount(100, "SUMMER10")
+    assert.Equal(t, 90, result)
+}
+```
+
+✅ **Multiple behaviors tested:**
+```go
+func TestCalculateDiscount(t *testing.T) {
+    tests := []struct {
+        name     string
+        price    int
+        code     string
+        expected int
+    }{
+        {"valid code", 100, "SUMMER10", 90},
+        {"invalid code", 100, "INVALID", 100},
+        {"expired code", 100, "EXPIRED", 100},
+        {"zero price", 0, "SUMMER10", 0},
+        {"empty code", 100, "", 100},
+        {"case insensitive", 100, "summer10", 90},
+    }
+    
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            got := CalculateDiscount(tt.price, tt.code)
+            assert.Equal(t, tt.expected, got)
+        })
+    }
+}
+```
+
+---
+
+### Testing Important Things Heuristic
+
+**Principle:** Tests should focus on business outcomes and important behavior, not implementation details.
+
+**Red flags:**
+- Tests mirroring production code structure
+- Using mocks to verify method calls
+- Tests breaking on valid refactorings
+
+**Example (Python):**
+
+❌ **Testing implementation (change detector):**
+```python
+def test_create_order(mock_repo, mock_email):
+    service = OrderService(repo=mock_repo, email=mock_email)
+    
+    service.create_order(user_id="123", items=["item1"])
+    
+    # Testing HOW it's done, not WHAT it achieves
+    mock_repo.save.assert_called_once()
+    mock_email.send.assert_called_once()
+    assert mock_email.send.call_args[0][0] == "order@example.com"
+```
+
+✅ **Testing business outcomes:**
+```python
+def test_create_order(db_session, email_outbox):
+    service = OrderService(db=db_session, email=email_outbox)
+    
+    order = service.create_order(user_id="123", items=["item1"])
+    
+    # Test WHAT happened, not HOW
+    assert order.status == "pending"
+    assert order.total > 0
+    
+    # Verify actual state changes
+    saved_order = db_session.query(Order).filter_by(id=order.id).first()
+    assert saved_order is not None
+    
+    # Verify actual email was queued
+    assert len(email_outbox) == 1
+    assert "Order confirmation" in email_outbox[0].subject
+```
+
+**Benefits:**
+- Tests survive refactoring
+- Focus on user value
+- Catch real regressions
+
+---
+
+### Avoid Change Detector Test Heuristic
+
+**Principle:** Tests should detect behavioral changes, not implementation changes.
+
+**Pattern recognition - A test is a change detector if:**
+- It breaks when any implementation detail changes
+- It couples to internal call sequences
+- It prevents safe refactoring
+
+**Remedy strategies:**
+
+1. **Refactor production code for loose coupling**
+
+**Example (Rails - Before):**
+```ruby
+# Tightly coupled - hard to test without change detectors
+class OrderService
+  def create_order(user, items)
+    order = Order.create!(user: user, items: items)
+    InventoryService.new.reserve(items)  # Hard-coded dependency
+    EmailService.new.send_confirmation(order)  # Another hard-coded dependency
+    order
+  end
+end
+
+# Change detector test
+RSpec.describe OrderService do
+  it 'creates order and calls services' do
+    inventory = instance_double(InventoryService)
+    email = instance_double(EmailService)
+    
+    expect(InventoryService).to receive(:new).and_return(inventory)
+    expect(inventory).to receive(:reserve).with(items)
+    expect(EmailService).to receive(:new).and_return(email)
+    expect(email).to receive(:send_confirmation)
+    
+    # Brittle - breaks if we change HOW we call these services
+    service.create_order(user, items)
+  end
+end
+```
+
+**Example (Rails - After - Domain Events):**
+```ruby
+# Decoupled with domain events
+class OrderService
+  def create_order(user, items)
+    order = Order.create!(user: user, items: items)
+    
+    # Return events instead of calling services directly
+    events = [
+      OrderCreated.new(order_id: order.id),
+      InventoryReservationRequested.new(items: items),
+      OrderConfirmationRequested.new(order_id: order.id)
+    ]
+    
+    EventBus.publish(events)
+    order
+  end
+end
+
+# Business outcome test
+RSpec.describe OrderService do
+  it 'creates order and publishes appropriate events' do
+    events = []
+    allow(EventBus).to receive(:publish) { |e| events.concat(e) }
+    
+    order = service.create_order(user, items)
+    
+    # Test business outcomes, not implementation
+    expect(order).to be_persisted
+    expect(events).to include(an_instance_of(OrderCreated))
+    expect(events).to include(an_instance_of(InventoryReservationRequested))
+    expect(events).to include(an_instance_of(OrderConfirmationRequested))
+  end
+end
+```
+
+2. **Use real dependencies instead of mocks when possible**
+
+**Example (Go):**
+```go
+// Instead of mocking the database
+func TestUserService(t *testing.T) {
+    // Use in-memory database or test database
+    db := setupTestDB(t)
+    defer db.Close()
+    
+    service := NewUserService(db)
+    
+    // Test actual behavior
+    user, err := service.CreateUser("Max", "max@example.com")
+    assert.NoError(t, err)
+    
+    // Verify actual state
+    found, err := service.FindUser(user.ID)
+    assert.NoError(t, err)
+    assert.Equal(t, "Max", found.Name)
+}
+```
+
+3. **Integration tests over unit tests with mocks**
+
+When business logic requires multiple collaborators, prefer integration tests that use real (test) implementations over heavily-mocked unit tests.
+
+---
+
 ## Common Anti-Patterns to Avoid
 
 ### All Languages

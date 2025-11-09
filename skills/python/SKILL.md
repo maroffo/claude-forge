@@ -380,6 +380,83 @@ echo "✓ All checks passed"
 chmod +x .git/hooks/pre-commit
 ```
 
+### Makefile Heuristic
+
+Provide standardized commands via Makefile to prevent AI (and humans) from guessing or using ineffective shortcuts.
+
+```makefile
+# Makefile
+.PHONY: install test lint typecheck fmt clean run dev docker-rebuild
+
+# Default target
+all: fmt lint typecheck test
+
+# Install dependencies
+install:
+	uv sync
+
+# Format code
+fmt:
+	uv run ruff format .
+
+# Lint
+lint:
+	uv run ruff check .
+
+# Type check
+typecheck:
+	uvx ty check
+
+# Run tests
+test:
+	uv run pytest -v
+
+# Run tests with coverage
+test-cov:
+	uv run pytest --cov=. --cov-report=html
+
+# Run application
+run:
+	uv run python -m app
+
+# Development mode (watch for changes)
+dev:
+	uv run python -m app --reload
+
+# Clean build artifacts
+clean:
+	find . -type d -name __pycache__ -exec rm -rf {} +
+	find . -type f -name "*.pyc" -delete
+	rm -rf .pytest_cache htmlcov .coverage
+
+# Docker rebuild
+docker-rebuild:
+	docker-compose down
+	docker-compose build --no-cache
+	docker-compose up -d
+
+# Lambda package (if using AWS Lambda)
+package:
+	uv export --no-dev --frozen > requirements.txt
+	pip install -r requirements.txt -t package/
+	cd package && zip -r ../lambda.zip .
+	zip -g lambda.zip app/*.py
+```
+
+**Benefits:**
+- Prevents AI from using ineffective commands (e.g., `docker-compose restart` when rebuild needed)
+- Documents canonical development workflow
+- Consistent commands across team and CI/CD
+- Self-documenting (run `make` to see targets)
+
+**Usage examples:**
+```bash
+make install        # Install all dependencies
+make test          # Run tests
+make               # Run all quality checks (default)
+make docker-rebuild # Rebuild and restart Docker containers
+```
+
 ---
 
 ## § Docker Deployment

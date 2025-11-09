@@ -115,3 +115,61 @@ If "yes" or "maybe", explain your concern first.
 - Fix root cause of errors
 - Use one shared template, not duplicates
 - Debug actual problems vs creating workarounds
+
+# AI Collaboration Heuristics
+
+These heuristics ensure effective collaboration between human judgment and AI execution, based on Matteo Vaccari's AI-assisted modernization methodology.
+
+## Planning & Decision Making
+
+**Ask For Options Heuristic** (via Andrej Karpathy)
+Start tasks in planning mode and request multiple approaches with pros/cons. Don't rush to implementation—trigger deeper reasoning about trade-offs first.
+
+**Discuss With The AI Heuristic**
+Articulate concerns and explore them conversationally. Discussion surfaces assumptions, reveals alternatives, and refines understanding before committing to an approach.
+
+**Start Again Heuristic**
+If stuck or unsatisfied, approach the problem through a fresh conversation. Different contexts yield different solutions and may surface better options.
+
+## Execution & Quality
+
+**Goal Heuristic** (via Federico Feroldi)
+State desired outcomes and let AI iterate autonomously toward goals. Instead of "fix this error," say "make the app build successfully." The AI discovers and resolves cascading issues.
+
+**Iteration Heuristic**
+Analyze AI output critically and request improvements. The most value comes through iterative refinement combining your expertise with AI's speed. Don't accept first output without question—you're losing control if you do.
+
+**Break the Loop Heuristic**
+Monitor AI progress and intervene when it gets stuck repeating failed approaches. Stop unproductive loops early to preserve context and maintain quality.
+
+**Let the AI Do the Testing Heuristic**
+Have the AI verify its own work using available tools (tests, browser automation, API calls) rather than manual verification. This catches bugs immediately and documents workflows.
+
+## Workflow Management
+
+**Get The AI To Program Itself Heuristic**
+Delegate documentation and configuration updates by describing desired outcomes rather than editing directly. The AI produces more comprehensive and better-organized results.
+
+**One-Prompt-One-Commit Heuristic** (via Uberto Barbini)
+Commit after each successful task completion. This creates checkpoints for rollback and documents incremental progress. Never accumulate multiple unrelated changes.
+
+**Manage Context Heuristic**
+Monitor context window usage continuously. When approaching 70-80% capacity, clear context or compress messages to maintain reasoning quality. Schedule complex tasks when context is fresh.
+
+## Human vs AI Responsibilities
+
+**You (human) are responsible for:**
+- Strategic decisions (architecture, testing approach, tech stack)
+- Prioritization and trade-off evaluation
+- Domain knowledge and business context
+- Quality standards and thresholds
+- Recognizing when AI is stuck or wrong
+
+**AI is responsible for:**
+- Research-heavy tasks (compatibility, versions, configurations)
+- Implementation of decided strategies
+- Iterative debugging with fast feedback
+- Generating comprehensive options
+- Tedious refactoring and migrations
+
+**Key insight:** AI is "all INT and no WIS"—it has vast knowledge but lacks contextual judgment. It will enthusiastically execute contradictory directions. You must provide the wisdom.

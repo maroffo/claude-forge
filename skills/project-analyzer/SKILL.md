@@ -311,6 +311,98 @@ The agent will:
 
 ---
 
+## § Project Modernization Heuristics
+
+When working on modernization or migration projects, apply these heuristics from Matteo Vaccari's AI-assisted methodology:
+
+### Plan-Before-You-Code Heuristic
+
+**Principle:** Ask the AI to develop plans and clarifying questions before implementation.
+
+**Application:**
+```
+Instead of: "Migrate this to Spring Boot"
+Better: "Analyze this codebase and provide 2-3 migration strategies with pros/cons"
+```
+
+Start in planning mode to ensure informed decisions rather than rushing into potentially problematic approaches.
+
+### Goal Heuristic
+
+**Principle:** State desired outcomes and let the AI iterate toward them autonomously.
+
+**Application:**
+```
+Instead of: "Fix the MySQL driver error"
+Better: "Make the application build and run successfully"
+```
+
+The AI will debug and adapt until succeeding, often finding unexpected solutions and cascading issues.
+
+### Run-Locally Heuristic
+
+**Principle:** First compile the legacy codebase, then ensure it runs locally.
+
+**Why:** Fast feedback loops enable rapid iteration without cloud deployment overhead.
+
+**Workflow:**
+1. Get it to compile
+2. Get it to run locally (docker-compose if needed)
+3. Verify core functionality
+4. Then modernize incrementally
+
+### Value First Heuristic
+
+**Principle:** Prioritize porting the most valuable user journeys first, not infrastructure.
+
+**Application:**
+- Identify highest-value features (e.g., purchase flow over admin panel)
+- Port those first to deliver business value early
+- Maintain stakeholder engagement with visible progress
+- Skip "logical" prerequisites when demonstrating value
+
+**Example:**
+```
+❌ Wrong priority: Authentication → Profile → Search → Purchase
+✅ Value-first: Purchase (with pre-populated test users) → then Authentication
+```
+
+### Team Sport Heuristic
+
+**Principle:** Involve people who work with the system regularly.
+
+**Why:** Domain knowledge and organizational context aren't in the codebase.
+
+**Actions:**
+- Interview developers familiar with the legacy system
+- Understand business priorities from stakeholders
+- Document tribal knowledge that code doesn't reveal
+- Validate AI-generated analysis with domain experts
+
+### Keep CLAUDE.md Up To Date Heuristic
+
+**Principle:** Periodically review and update project documentation to reflect current state.
+
+**Workflow:**
+1. After major milestones, review CLAUDE.md
+2. Let AI update it (use "Get The AI To Program Itself" heuristic)
+3. Remove duplications and inconsistencies
+4. Verify accuracy against actual codebase
+
+**Trigger points:**
+- After completing a major feature
+- Before switching to a different part of the codebase
+- When onboarding new team members
+- After architectural changes
+
+**Example prompt:**
+```
+"Review CLAUDE.md for accuracy and remove any duplications or outdated information. 
+Update it to reflect the current state after migrating the purchase flow to Spring Boot."
+```
+
+---
+
 ## § Common Patterns by Language
 
 ### Go Projects

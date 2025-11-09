@@ -399,6 +399,63 @@ func main() {
 - ❌ `/models` - Organize by feature, not type
 - ❌ `/utils`, `/common`, `/helpers` - Non-descriptive
 
+**Makefile Heuristic:**
+
+Provide standardized commands via Makefile to prevent AI (and humans) from guessing or using ineffective shortcuts.
+
+```makefile
+# Makefile
+.PHONY: test build run clean lint fmt
+
+# Default target
+all: fmt lint test build
+
+# Format code
+fmt:
+	goimports -w .
+	gofmt -w .
+
+# Lint
+lint:
+	golangci-lint run
+	go vet ./...
+
+# Test
+test:
+	go test -v -race -cover ./...
+
+# Test with integration tests
+test-integration:
+	go test -v -race -tags=integration ./...
+
+# Build
+build:
+	go build -o bin/app ./cmd/app
+
+# Run locally
+run:
+	go run ./cmd/app
+
+# Clean
+clean:
+	rm -rf bin/
+
+# Development - build and restart
+dev: build
+	./bin/app
+
+# Docker rebuild
+docker-rebuild:
+	docker-compose down
+	docker-compose up -d --build
+```
+
+**Benefits:**
+- Prevents AI from using ineffective commands (e.g., `docker-compose restart` when rebuild needed)
+- Documents canonical development workflow
+- Consistent commands across team and CI/CD
+- Self-documenting (run `make` to see targets)
+
 ### Package Organization
 
 **Organize by feature/domain, NOT by technical layer.**
