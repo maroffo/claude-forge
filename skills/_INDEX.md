@@ -7,10 +7,27 @@
 
 | Language   | Skill File        | Coverage                                          |
 |------------|-------------------|---------------------------------------------------|
-| Go         | `golang/*`        | Code, design, concurrency, review                 |
+| Go         | `golang/*`        | Code, design, concurrency, performance, review    |
+| Kotlin/Android | `android-kotlin/*` | Compose, MVVM, Hilt/Koin, testing, performance |
+| Swift/Apple | `apple-swift/*`   | SwiftUI, Swift 6, async/await, TCA, SwiftData    |
 | Python     | `python/*`        | uv, type checking, linting, Docker                |
+| Ruby (gem) | `ruby/SKILL.md`   | Gem development, RSpec, RuboCop, publishing       |
 | Ruby/Rails | `rails/SKILL.md`  | Services, forms, contracts, Sidekiq, architecture |
-| Terraform  | `terraform/SKILL.md` | HCL, Terragrunt, modules, state                |
+| Terraform  | `terraform/SKILL.md` | HCL, Terragrunt, modules, state, OpenTofu      |
+| React/Next | `react-nextjs/SKILL.md` | Next.js 16, App Router, Server Components, Zustand |
+
+## By Cloud/Infrastructure
+
+| Platform   | Skill File                    | Coverage                                          |
+|------------|-------------------------------|---------------------------------------------------|
+| AWS/GCP    | `cloud-infrastructure/*`      | Well-Architected, ECS/EKS, security, FinOps       |
+| IaC        | `terraform/SKILL.md`          | Terraform, OpenTofu, Terragrunt, state mgmt       |
+
+## By Integration
+
+| Integration | Skill File          | Coverage                                          |
+|-------------|---------------------|---------------------------------------------------|
+| ClickUp     | `clickup/SKILL.md`  | Tasks, comments, time tracking, workspace, search |
 
 ## By Task
 
@@ -26,6 +43,13 @@
 | Background jobs               | `rails`, `python`       | `_PATTERNS.md`                    |
 | Concurrency                   | `golang/concurrency`    | `python` (async)                  |
 | Testing                       | Language-specific       | `_PATTERNS.md`                    |
+| Task management               | `clickup`               | `source-control`                  |
+| Time tracking                 | `clickup`               | -                                 |
+| AWS infrastructure            | `cloud-infrastructure`  | `terraform`                       |
+| GCP infrastructure            | `cloud-infrastructure`  | `terraform`                       |
+| Security scanning (IaC)       | `terraform`             | `cloud-infrastructure`            |
+| Cost optimization             | `cloud-infrastructure`  | `terraform` (Infracost)           |
+| Observability                 | `cloud-infrastructure`  | -                                 |
 
 ## By Development Phase
 
@@ -59,9 +83,33 @@
 | "Go formatting?"              | `golang` → Formatting section   |
 | "Python package management?"  | `python` → uv section           |
 | "Rails validation?"           | `rails` → Forms & Contracts     |
+| "Ruby gem structure?"         | `ruby` → Gem Structure          |
+| "Publish gem?"                | `ruby` → Publishing             |
+| "RuboCop config?"             | `ruby` → RuboCop Configuration  |
 | "Background jobs?"            | `rails` (Sidekiq), `python`     |
 | "Goroutine leaks?"            | `golang` → Concurrency section  |
 | "Terraform modules?"          | `terraform`                     |
+| "Jetpack Compose?"            | `android-kotlin` → Compose      |
+| "Android ViewModel?"          | `android-kotlin` → Architecture |
+| "Kotlin coroutines?"          | `android-kotlin` → State        |
+| "Baseline Profiles?"          | `android-kotlin` → Performance  |
+| "SwiftUI @Observable?"        | `apple-swift` → SwiftUI         |
+| "Swift concurrency?"          | `apple-swift` → Concurrency     |
+| "SwiftData models?"           | `apple-swift` → SwiftUI         |
+| "iOS NavigationStack?"        | `apple-swift` → SwiftUI         |
+| "TCA architecture?"           | `apple-swift` → Architecture    |
+| "Update ClickUp task?"        | `clickup` → Task Management     |
+| "Track time on task?"         | `clickup` → Time Tracking       |
+| "Find ClickUp task?"          | `clickup` → Searching Tasks     |
+| "ECS vs EKS?"                 | `cloud-infrastructure` → Compute|
+| "AWS security?"               | `cloud-infrastructure` → Security|
+| "GuardDuty/Security Hub?"     | `cloud-infrastructure` → Security|
+| "Cloud Run?"                  | `cloud-infrastructure` → GCP    |
+| "Cost optimization?"          | `cloud-infrastructure` → FinOps |
+| "OpenTelemetry?"              | `cloud-infrastructure` → Observability|
+| "Checkov/TFLint?"             | `terraform` → Testing           |
+| "Infracost?"                  | `terraform` → Testing           |
+| "OpenTofu?"                   | `terraform` → What's New        |
 
 ## Quick Command Reference
 
@@ -105,6 +153,9 @@ _INDEX.md (you are here)
 ├── _AST_GREP.md (code search foundation)
 ├── _PATTERNS.md (cross-language patterns)
 │
+├── clickup/ (task management)
+│   └── Git workflow → source-control
+│
 ├── golang/ (Go development)
 │   ├── Code section → _AST_GREP.md
 │   ├── Design section → _PATTERNS.md
@@ -118,8 +169,17 @@ _INDEX.md (you are here)
 │   ├── Services → _PATTERNS.md
 │   └── Testing → _PATTERNS.md
 │
-├── terraform/ (Infrastructure)
-│   └── HCL → _AST_GREP.md
+├── ruby/ (Ruby gem development)
+│   ├── RSpec → _PATTERNS.md
+│   └── Gems → source-control
+│
+├── terraform/ (Infrastructure as Code)
+│   ├── HCL → _AST_GREP.md
+│   └── IaC testing → cloud-infrastructure
+│
+├── cloud-infrastructure/ (AWS/GCP)
+│   ├── Security → terraform
+│   └── IaC → terraform
 │
 ├── project-analyzer (codebase analysis)
 ├── source-control (git workflow)
@@ -142,13 +202,25 @@ All skills are in: `~/.claude/skills/`
 ├── _INDEX.md           ← You are here
 ├── _AST_GREP.md        ← Code search guide
 ├── _PATTERNS.md        ← Common patterns
+├── android-kotlin/
+│   └── SKILL.md        ← Kotlin, Compose, Android
+├── apple-swift/
+│   └── SKILL.md        ← Swift, SwiftUI, iOS/macOS
+├── clickup/
+│   └── SKILL.md        ← ClickUp MCP integration
+├── cloud-infrastructure/
+│   └── SKILL.md        ← AWS/GCP infrastructure
 ├── golang/
 │   └── SKILL.md
 ├── python/
 │   └── SKILL.md
 ├── rails/
 │   └── SKILL.md
+├── ruby/
+│   └── SKILL.md        ← Ruby gems (NOT Rails)
 ├── terraform/
+│   └── SKILL.md
+├── react-nextjs/
 │   └── SKILL.md
 ├── project-analyzer/
 │   └── SKILL.md
