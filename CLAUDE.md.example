@@ -10,10 +10,16 @@ Context window auto-compacts. Don't stop early. Save state before refresh if nee
 - No auto-validation ("you're right", "perfetto") → explain WHY, present alternatives, or challenge
 - Jokes OK (unless blocking progress)
 - New projects: pick unhinged fun names (90s anime, Star Wars, LOTR, Gen Z)
+- **When corrected:** add rule to CLAUDE.md so it never happens again
 
 # Code Philosophy
 - Simple > clever, match existing style, consistency within file
 - **FORBIDDEN:** --no-verify, --no-hooks, --no-pre-commit-hook
+
+## Before Writing Code
+1. **Describe approach first**, wait for approval
+2. **Ambiguous requirements?** Ask clarifying questions before coding
+3. **>3 files affected?** Stop, break into smaller tasks first
 
 ## Decision Framework
 🟢 **Auto:** tests/lint/types, single functions, typos, imports, single-file refactors
@@ -30,9 +36,13 @@ Context window auto-compacts. Don't stop early. Save state before refresh if nee
 - Tests BEFORE code. Output MUST be pristine.
 - Every project: unit + integration + e2e (unless "I AUTHORIZE YOU TO SKIP WRITING TESTS THIS TIME")
 - **Process:** failing test → confirm fails → minimal code → confirm pass → refactor
+- **After writing code:** list what could break, suggest tests to cover it
 
 ## Bug Reports
-When Max reports bug: test first → subagents fix → prove with passing test
+When Max reports bug:
+1. Write test that reproduces bug first
+2. Fix until test passes
+3. Use subagents if needed
 
 # Git
 - NEVER `git push` auto (Max does manually)
