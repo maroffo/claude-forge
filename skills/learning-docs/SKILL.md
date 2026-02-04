@@ -87,3 +87,70 @@ git diff --stat HEAD~5
 3. **Ask** what was learned, what was tricky, what decisions were made
 4. **Append** new lessons in conversational style
 5. **Keep** entries dated and searchable
+
+## Session Analysis
+
+Analyze past sessions to identify improvement opportunities. Session files live in `~/.claude/projects/` (project paths: slashes→dashes).
+
+### CRITICAL Rules
+
+- **NEVER read raw session files** (100k+ lines, token killer)
+- **ALWAYS use jq** to extract summaries
+- Focus on patterns, not individual messages
+
+### What to Look For
+
+| Pattern | Example | Fix |
+|---------|---------|-----|
+| Token waste | Read same file 5+ times | Cache key info, update CLAUDE.md |
+| Wrong paths | Built feature, then found existing code | Better initial search, architecture docs |
+| Repeated mistakes | Same lint error 3 sessions | Pre-commit hook, CLAUDE.md note |
+| Missing automation | Manual steps every session | Script it, add to workflow |
+| Context loss | Re-learn after compaction | Save state to LEARNING.md before limit |
+
+### Analysis Commands
+
+```bash
+# List project sessions
+ls ~/.claude/projects/
+
+# Count tool calls by type (find most used)
+jq '[.messages[].content[]? | select(.type=="tool_use") | .name] | group_by(.) | map({tool: .[0], count: length}) | sort_by(-.count)' \
+  ~/.claude/projects/PROJECT_NAME/session_*.json
+
+# Find repeated file reads (>3 times)
+jq -r '.messages[].content[]? | select(.type=="tool_use" and .name=="Read") | .input.file_path' \
+  ~/.claude/projects/PROJECT_NAME/session_*.json | sort | uniq -c | sort -rn | head -20
+
+# Extract error patterns
+jq -r '.messages[].content[]? | select(.type=="tool_result" and (.content | tostring | test("error|Error|ERROR"))) | .content' \
+  ~/.claude/projects/PROJECT_NAME/session_*.json | head -50
+
+# Summarize session themes (tool uses + key phrases)
+jq -r '.messages[] | select(.role=="assistant") | .content[]? | select(.type=="text") | .text' \
+  ~/.claude/projects/PROJECT_NAME/session_*.json | grep -E "^(Let me|I'll|Looking at|The issue)" | head -30
+```
+
+### Propose Improvements As
+
+1. **CLAUDE.md updates** - Workflow rules, decision frameworks
+2. **New skills** - Repeated patterns → automation
+3. **Scripts** - Multi-step commands done often
+4. **LEARNING.md entries** - Project-specific gotchas
+5. **Pre-commit hooks** - Catch issues earlier
+
+### Example Analysis
+
+```bash
+# Session shows Read tool called 15 times on same config file
+# → Add key config values to CLAUDE.md project file
+# → Create "config summary" script
+
+# Multiple sessions fixing same linting error
+# → Add to CLAUDE.md "Common Issues" section
+# → Strengthen pre-commit hook
+
+# Context loss after compaction, re-learned architecture
+# → Update LEARNING.md Architecture section
+# → Add mermaid diagram for quick re-orientation
+```
