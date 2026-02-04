@@ -39,6 +39,17 @@ cp claude-forge/CLAUDE.md.example ~/.claude/CLAUDE.md
 | `apple-swift/` | Swift 6, SwiftUI, async/await, TCA |
 | `cloud-infrastructure/` | AWS/GCP Well-Architected, security, cost, observability |
 
+### iOS/Swift Specialized
+
+| Skill | Description |
+|-------|-------------|
+| `swift-concurrency/` | Swift 6.2+ actor isolation, Sendable, @MainActor |
+| `swiftui-performance/` | View invalidation, layout thrash, debugging |
+| `swiftui-refactor/` | View structure, MV patterns, property ordering |
+| `swiftui-liquid-glass/` | iOS 26+ Liquid Glass API |
+| `native-app-performance/` | CLI-only Instruments/xctrace profiling |
+| `ios-debugger/` | XcodeBuildMCP simulator workflow |
+
 ### Utilities (cross-cutting)
 
 | File | Description |
@@ -53,7 +64,8 @@ cp claude-forge/CLAUDE.md.example ~/.claude/CLAUDE.md
 |-------|-------------|
 | `source-control/` | Conventional commits, git workflow, hooks |
 | `project-analyzer/` | Generate CLAUDE.md for new codebases |
-| `learning-docs/` | LEARNING.md retrospectives - architecture, bugs, lessons |
+| `learning-docs/` | LEARNING.md retrospectives, session analysis |
+| `releasing-software/` | Pre-release checklist, no-tag-without-green-CI |
 | `clickup/` | Task management via MCP |
 | `gemini-review/` | Local code review with Gemini CLI |
 
