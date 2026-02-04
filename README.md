@@ -1,74 +1,89 @@
-# Claude Code Skills
+# Claude Forge
 
-Token-optimized, modular skills for Claude Code. Language-specific best practices, architectural patterns, and workflows that auto-invoke when relevant.
+Token-optimized skills for Claude Code. Language-specific best practices, architectural patterns, and workflows that auto-invoke when relevant.
 
 ## Quick Start
 
-**Install skills:**
+**Option 1: Symlink (recommended)**
+```bash
+git clone https://github.com/maroffo/claude-forge.git ~/Development/claude-forge
+
+# Backup and symlink
+mv ~/.claude/skills ~/.claude/skills.backup
+ln -s ~/Development/claude-forge/skills ~/.claude/skills
+
+mv ~/.claude/CLAUDE.md ~/.claude/CLAUDE.md.backup
+ln -s ~/Development/claude-forge/CLAUDE.md.example ~/.claude/CLAUDE.md
+```
+
+**Option 2: Copy**
 ```bash
 git clone https://github.com/maroffo/claude-forge.git
 cp -r claude-forge/skills/* ~/.claude/skills/
+cp claude-forge/CLAUDE.md.example ~/.claude/CLAUDE.md
 ```
-
-**Add to your global `~/.claude/CLAUDE.md`:**
-```markdown
-# Skills
-**Core:** golang, python, rails, terraform
-**Utilities:** _INDEX.md, _AST_GREP.md, _PATTERNS.md
-**Support:** source-control, project-analyzer
-```
-
-See `CLAUDE.md.example` for a complete global configuration template.
-
-## Why Skills?
-
-**Modular** - Load only relevant expertise per project (Go skills don't load in Rails projects)
-
-**Token-efficient** - Smaller, focused files vs monolithic global config
-
-**Discoverable** - `_INDEX.md` routes Claude to the right skill fast
-
-**Cross-referenced** - `_PATTERNS.md` shows same pattern across languages; `_AST_GREP.md` mandates proper code search
-
-**Real-world tested** - Evolved through production use across Go, Python, Rails, and Terraform projects
 
 ## Skills
 
-### Languages
-- **`golang/`** - Code conventions, architecture, concurrency, code review
-- **`python/`** - uv package manager, type checking, linting, Docker deployment
-- **`rails/`** - Service-oriented architecture, forms, contracts, Sidekiq, RSpec
-- **`terraform/`** - IaC patterns, modules, state management, Terragrunt
+### Languages & Frameworks
+
+| Skill | Description |
+|-------|-------------|
+| `golang/` | Code conventions, architecture, concurrency, performance |
+| `python/` | uv, type checking, ruff, pytest, Docker |
+| `rails/` | Service-oriented architecture, Dry-validation, Sidekiq |
+| `ruby/` | Gem development, RSpec, RuboCop, publishing |
+| `terraform/` | IaC patterns, modules, Terragrunt, OpenTofu |
+| `react-nextjs/` | React 19, Next.js 16, App Router, Server Components |
+| `android-kotlin/` | Kotlin 2.x, Jetpack Compose, Clean Architecture |
+| `apple-swift/` | Swift 6, SwiftUI, async/await, TCA |
+| `cloud-infrastructure/` | AWS/GCP Well-Architected, security, cost, observability |
 
 ### Utilities (cross-cutting)
-- **`_AST_GREP.md`** - Structural code search patterns (mandates ast-grep over grep/ripgrep)
-- **`_INDEX.md`** - Quick skill lookup by language/task/problem domain
-- **`_PATTERNS.md`** - Cross-language patterns (DI, error handling, testing, background jobs)
 
-### Support
-- **`source-control/`** - Conventional commits, git workflow, branch strategies, hook protocols
-- **`project-analyzer/`** - Generate CLAUDE.md for new codebases
+| File | Description |
+|------|-------------|
+| `_AST_GREP.md` | Structural code search (mandates ast-grep over grep) |
+| `_INDEX.md` | Quick skill lookup by language/task |
+| `_PATTERNS.md` | Cross-language patterns (DI, errors, testing, jobs) |
+
+### Support & Integrations
+
+| Skill | Description |
+|-------|-------------|
+| `source-control/` | Conventional commits, git workflow, hooks |
+| `project-analyzer/` | Generate CLAUDE.md for new codebases |
+| `clickup/` | Task management via MCP |
+| `gemini-review/` | Local code review with Gemini CLI |
+
+### Personal Workflows
+
+| Skill | Description |
+|-------|-------------|
+| `inbox-triage/` | Gmail inbox review and prioritization |
+| `email-cleanup/` | Archive old emails, manage storage |
+| `newsletter-digest/` | Process newsletters into Second Brain |
+| `process-clippings/` | Web clippings to Second Brain |
+| `process-email-bookmarks/` | Gmail bookmarks processing |
 
 ## How It Works
 
-Skills auto-invoke based on your project context. When working in a Go project, `golang/` skill loads automatically. When Claude needs to search code, `_AST_GREP.md` enforces ast-grep usage.
+Skills auto-invoke based on project context. Working in Go? `golang/` loads. Need code search? `_AST_GREP.md` enforces ast-grep.
 
-**Global `~/.claude/CLAUDE.md`** handles:
-- Interaction style and personality
-- Cross-project code philosophy
-- Universal git workflow rules
-- TDD requirements
+**Global `CLAUDE.md`** → Interaction style, code philosophy, git rules, TDD
+**Skills** → Language idioms, framework patterns, tool workflows
 
-**Skills** handle:
-- Language-specific idioms and patterns
-- Framework-specific best practices
-- Tool-specific workflows
+## Token Optimization
 
-Both work together: global config sets the foundation, skills provide domain expertise.
+Skills are aggressively optimized:
+- Tables over verbose lists
+- Condensed code examples
+- No redundancy across files
+- Essential patterns only
 
 ## Inspiration
 
-Evolved from [Harper Reed's dotfiles](https://github.com/harperreed/dotfiles/tree/master/.claude) and [Matteo Vaccari's AI-assisted modernization series](https://matteo.vaccari.name/posts/plants-by-websphere/), refined through production use.
+Evolved from [Harper Reed's dotfiles](https://github.com/harperreed/dotfiles/tree/master/.claude) and [Matteo Vaccari's AI-assisted modernization series](https://matteo.vaccari.name/posts/plants-by-websphere/).
 
 ## License
 
