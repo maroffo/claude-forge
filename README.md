@@ -53,6 +53,7 @@ cp claude-forge/CLAUDE.md.example ~/.claude/CLAUDE.md
 |-------|-------------|
 | `source-control/` | Conventional commits, git workflow, hooks |
 | `project-analyzer/` | Generate CLAUDE.md for new codebases |
+| `learning-docs/` | LEARNING.md retrospectives - architecture, bugs, lessons |
 | `clickup/` | Task management via MCP |
 | `gemini-review/` | Local code review with Gemini CLI |
 
