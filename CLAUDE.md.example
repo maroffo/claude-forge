@@ -56,6 +56,11 @@ Non-code/paths/docs → grep/glob
 | ClickUp | `clickup` (English only) |
 | Codebase analysis | `project-analyzer` |
 | Code review | `gemini-review` |
+| Project retrospective | `learning-docs` |
+
+## Knowledge Capture
+Run `learning-docs` frequently during project work to update LEARNING.md with:
+- Bugs fixed & how, architectural decisions, lessons learned, pitfalls discovered
 
 # Problem-Solving
 FIX root cause, don't workaround. No disabling functionality. No duplicate templates.
