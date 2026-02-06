@@ -36,7 +36,7 @@
 | Setup new project             | `project-analyzer`      | Language-specific skill           |
 | Write code                    | Language-specific       | `_PATTERNS.md`, `_AST_GREP.md`    |
 | Review code                   | Language `review`       | `source-control`                  |
-| Commit changes                | `source-control`        | Language-specific                 |
+| Commit changes                | `commit`                | `source-control`                  |
 | Search/refactor code          | `_AST_GREP.md`          | Language-specific                 |
 | Deploy/containerize           | Language `docker`       | `docker-uv` (Python)              |
 | Architecture design           | Language `design`       | `_PATTERNS.md`                    |
@@ -78,7 +78,7 @@
 |-------------------------------|---------------------------------|
 | "How do I search code?"       | `_AST_GREP.md`                  |
 | "What's the pattern for X?"   | `_PATTERNS.md`                  |
-| "How to commit?"              | `source-control`                |
+| "How to commit?"              | `commit`                        |
 | "Project structure?"          | `project-analyzer`              |
 | "Go formatting?"              | `golang` → Formatting section   |
 | "Python package management?"  | `python` → uv section           |
@@ -210,6 +210,8 @@ All skills are in: `~/.claude/skills/`
 │   └── SKILL.md        ← ClickUp MCP integration
 ├── cloud-infrastructure/
 │   └── SKILL.md        ← AWS/GCP infrastructure
+├── commit/
+│   └── SKILL.md        ← Git commit (conventional)
 ├── golang/
 │   └── SKILL.md
 ├── python/

@@ -46,6 +46,8 @@ When Max reports bug:
 
 # Git
 - NEVER `git push` auto (Max does manually)
+- **NEVER work on main/master** unless explicitly authorized
+- Default flow: feature branch → MR/PR → dev → main
 - Hooks fail? Fix systematically, don't bypass. Pressure ≠ justification.
 
 # Code Search
@@ -55,6 +57,7 @@ Non-code/paths/docs → grep/glob
 # Skills (`~/.claude/skills/`)
 | Domain | Skill |
 |--------|-------|
+| Git commit | `commit` |
 | Go | `golang` |
 | Android/Kotlin | `android-kotlin` |
 | Swift/Apple | `apple-swift` |
