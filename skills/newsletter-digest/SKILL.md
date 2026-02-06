@@ -8,10 +8,7 @@ tools: Bash, Read, Write, Edit, WebFetch
 
 Process unread newsletters, extract actionable content for Second Brain, archive processed emails.
 
-## Gmail Configuration
-
-- **Account**: maroffo@gmail.com
-- **Tool**: `gog` CLI
+**Gmail:** See `_GMAIL.md` | **Integration:** See `_SECOND_BRAIN.md` for category routing, content template, and rules.
 
 ## Newsletter Sources
 
@@ -80,53 +77,10 @@ gog gmail thread get <threadId> --account=maroffo@gmail.com --json
    - **News/opinions** → Reference only (skip or brief note)
    - **Tutorials/guides** → Extract key steps
 
-4. **Categorize destination** (ALL newsletters get processed):
-   - AI, LLM, agents, prompts → `Second Brain - AI Agents and Tools.md`
-   - Dev tools, libraries, languages → `Second Brain - Development.md`
-   - DevOps, cloud, infrastructure → `Second Brain - DevOps and Cloud.md`
-   - Leadership, productivity, team practices → `Second Brain - Engineering Management.md`
-   - Politics, economics, geopolitics → `Second Brain - Politics and Economics.md`
-   - Marketing, business strategy → `Second Brain - Marketing.md`
-   - Media, culture, literature → `Second Brain - Media and Culture.md`
-   - Health, science, medicine → `Second Brain - Health and Science.md`
-
-### Step 3: Extract & Integrate
-
-For actionable content, add to Second Brain:
-
-```markdown
-### [Tool/Topic Name]
-
-Brief description from newsletter.
-
-| Aspect | Detail |
-|--------|--------|
-| **What** | Core functionality |
-| **Why** | Key benefit |
-
-- Source: [Newsletter Name](gmail-url) - YYYY-MM-DD
-```
-
-For links in newsletter that need deeper dive:
-```bash
-# Fetch linked page for more context
-# Use WebFetch tool
-```
-
-### Step 4: Update Timeline
-
-Add entry to `Second Brain - Timeline.md`:
-
-```markdown
-- **YYYY-MM-DD** | [Topic] | Source: [Newsletter Name] | → Second Brain - [File].md
-```
-
-### Step 5: Archive Email
-
-```bash
-# Remove from inbox (archive)
-gog gmail thread modify <threadId> --account=maroffo@gmail.com --remove=INBOX,UNREAD
-```
+4. **Categorize** per `_SECOND_BRAIN.md` routing table
+5. **Extract & integrate** per `_SECOND_BRAIN.md` content template
+6. **Update Timeline** per `_SECOND_BRAIN.md`
+7. **Archive email** (see `_GMAIL.md` for archive command)
 
 ## Output Format
 
@@ -182,28 +136,8 @@ After processing batch:
 - Mixed content (some actionable, some not)
 - Topics outside usual categories
 
-## Quick Commands
-
-```bash
-# Count unread newsletters
-gog gmail search "is:unread (from:substack.com OR from:beehiiv.com)" --account=maroffo@gmail.com --json | jq '.resultSizeEstimate'
-
-# Get specific newsletter content (body is base64 encoded)
-gog gmail thread get <threadId> --account=maroffo@gmail.com --json | jq -r '.thread.messages[0].payload.parts[0].body.data' | base64 -d
-
-# Archive thread
-gog gmail thread modify <threadId> --account=maroffo@gmail.com --remove=INBOX,UNREAD
-
-# Open in browser to read full
-gog gmail url <threadId>
-```
-
 ## Rules
 
-1. **Quality over quantity** - only actionable content goes to Second Brain
-2. **Be concise** - distill to key insights, not full summaries
-3. **Always archive** - processed = archived, no exceptions
-4. **Preserve sources** - include newsletter name and date
-5. **Update Timeline** - every Second Brain addition gets logged
-6. **Batch process** - handle multiple newsletters in one session
-7. **Ask if ambiguous** - unclear categorization → ask user
+See `_SECOND_BRAIN.md` for shared rules. Additional:
+- **Always archive** - processed = archived, no exceptions
+- **Batch process** - handle multiple newsletters in one session

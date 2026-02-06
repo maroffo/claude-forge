@@ -43,15 +43,6 @@ uv run ruff check . && uv run ruff format --check . && uvx ty check && uv run py
 
 **UV is the ONLY way. Do NOT use pip/poetry/pipenv.** 10-100x faster, universal lockfile.
 
-```bash
-uv init myproject                  # Create project
-uv add pkg && uv add --dev pkg     # Add deps
-uv sync --locked                   # CI-safe sync
-uv run python main.py
-uvx ruff check .                   # Ephemeral tool run
-uv python install 3.13             # Install Python version
-```
-
 ### pyproject.toml
 ```toml
 [project]
@@ -184,16 +175,6 @@ jobs:
       - run: uv sync --locked
       - run: uv run ruff format --check . && uv run ruff check . && uvx ty check && uv run pytest --cov
 ```
-
----
-
-## Best Practices
-
-**DO**: uv for everything, Python 3.13, quality pipeline before commits, `--locked` in CI, Pydantic
-
-**DON'T**: pip/poetry/pipenv, commit without tests, ignore type errors
-
-**Quality order**: `ruff format --check` → `ruff check` → `ty check` → `pytest`
 
 ---
 

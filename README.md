@@ -36,33 +36,27 @@ cp claude-forge/CLAUDE.md.example ~/.claude/CLAUDE.md
 | `terraform/` | IaC patterns, modules, Terragrunt, OpenTofu |
 | `react-nextjs/` | React 19, Next.js 16, App Router, Server Components |
 | `android-kotlin/` | Kotlin 2.x, Jetpack Compose, Clean Architecture |
-| `apple-swift/` | Swift 6, SwiftUI, async/await, TCA |
+| `apple-swift/` | Swift 6, SwiftUI, async/await, TCA, concurrency, performance |
+| `swiftui-liquid-glass/` | iOS 26+ Liquid Glass API |
+| `ios-debugger/` | XcodeBuildMCP simulator workflow |
 | `cloud-infrastructure/` | AWS/GCP Well-Architected, security, cost, observability |
 
-### iOS/Swift Specialized
-
-| Skill | Description |
-|-------|-------------|
-| `swift-concurrency/` | Swift 6.2+ actor isolation, Sendable, @MainActor |
-| `swiftui-performance/` | View invalidation, layout thrash, debugging |
-| `swiftui-refactor/` | View structure, MV patterns, property ordering |
-| `swiftui-liquid-glass/` | iOS 26+ Liquid Glass API |
-| `native-app-performance/` | CLI-only Instruments/xctrace profiling |
-| `ios-debugger/` | XcodeBuildMCP simulator workflow |
-
-### Utilities (cross-cutting)
+### Shared Reference Files
 
 | File | Description |
 |------|-------------|
 | `_AST_GREP.md` | Structural code search (mandates ast-grep over grep) |
 | `_INDEX.md` | Quick skill lookup by language/task |
 | `_PATTERNS.md` | Cross-language patterns (DI, errors, testing, jobs) |
+| `_GMAIL.md` | Gmail account config, gog CLI commands |
+| `_SECOND_BRAIN.md` | Category routing, content templates, rules |
 
 ### Support & Integrations
 
 | Skill | Description |
 |-------|-------------|
-| `source-control/` | Conventional commits, git workflow, hooks |
+| `source-control/` | Conventional commits, git workflow, hooks (includes commit process) |
+| `commit/` | Redirects to `source-control/` |
 | `project-analyzer/` | Generate CLAUDE.md for new codebases |
 | `learning-docs/` | LEARNING.md retrospectives, session analysis |
 | `releasing-software/` | Pre-release checklist, no-tag-without-green-CI |

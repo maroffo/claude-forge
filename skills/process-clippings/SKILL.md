@@ -33,48 +33,11 @@ Path: /Users/maroffo/Library/Mobile Documents/iCloud~md~obsidian/Documents/Clipp
 ### Step 2: For Each Clipping
 
 1. **Read the clipping** - understand the content
-2. **Categorize** - determine which Second Brain file it belongs to:
-   - AI, LLM, agents, context engineering → `Second Brain - AI Agents and Tools.md`
-   - Claude Code, skills, subagents, MCP → `Second Brain - Claude Code.md`
-   - Go, Python, Java, CLI, data tools, APIs → `Second Brain - Development.md`
-   - Docker, K8s, Terraform, cloud, monitoring, security → `Second Brain - DevOps and Cloud.md`
-   - Productivity, tech debt, leadership, management → `Second Brain - Engineering Management.md`
+2. **Categorize** per `_SECOND_BRAIN.md` routing table
+3. **Decide**: Actionable (tutorials, patterns, code) -> Second Brain | Reference only -> Bookmarks
+4. **Extract & integrate** per `_SECOND_BRAIN.md` content template
 
-3. **Decide content type**:
-   - **Actionable knowledge** (tutorials, patterns, code examples, frameworks) → Extract and add to Second Brain
-   - **Reference only** (product announcements, news, opinion pieces) → Add link to Bookmarks
-
-4. **Extract key insights** - distill into:
-   - Tool/library name and description (1 line)
-   - Key features or patterns (bullet points)
-   - Code snippet if relevant (keep minimal)
-   - Link to source
-
-### Step 3: Integration
-
-**For Second Brain** - find the appropriate section and add:
-```markdown
-### [Tool/Concept Name]
-
-Brief description of what it does.
-
-| Feature | Description |
-|---------|-------------|
-| **Feature 1** | What it does |
-
-```go/python/etc
-// Minimal useful code example
-```
-
-- [Source](url)
-```
-
-**For Bookmarks** - add to appropriate file:
-```markdown
-- [Title](url) - Brief description
-```
-
-### Step 4: Archive Clipping
+### Step 3: Archive Clipping
 
 After successful integration:
 ```bash
@@ -131,8 +94,5 @@ service.Up(ctx, project, api.UpOptions{})
 
 ## Rules
 
-1. **Be concise** - Second Brain should be scannable, not verbose
-2. **Preserve links** - always include source URL
-3. **Code examples** - only if genuinely useful, keep minimal
-4. **No duplication** - check if topic already exists before adding
-5. **Ask if unclear** - if categorization is ambiguous, ask user
+See `_SECOND_BRAIN.md` for shared rules. Additional:
+- **Code examples** - only if genuinely useful, keep minimal

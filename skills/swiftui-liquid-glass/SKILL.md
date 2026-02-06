@@ -79,74 +79,12 @@ struct InteractiveGlassButton: View {
 
 ## GlassEffectContainer
 
-```swift
-@available(iOS 26, *)
-struct LayeredGlass: View {
-    var body: some View {
-        GlassEffectContainer {
-            ZStack {
-                // Background content
-                Image("background")
-                    .resizable()
-                    .scaledToFill()
-
-                // Foreground glass UI
-                VStack {
-                    Text("Title")
-                        .font(.largeTitle)
-                    Text("Subtitle")
-                }
-                .padding()
-                .glassEffect()
-            }
-        }
-    }
-}
-```
+Wrap content in `GlassEffectContainer { ZStack { background; foreground.glassEffect() } }` for layered glass over images/content.
 
 ## Common Patterns
 
 ```swift
-// Card with glass background
-@available(iOS 26, *)
-struct GlassCard: View {
-    var body: some View {
-        VStack(alignment: .leading) {
-            Text("Card Title")
-                .font(.headline)
-            Text("Card content")
-        }
-        .padding()
-        .glassEffect(intensity: 0.75, tint: .blue.opacity(0.1))
-        .cornerRadius(16)
-    }
-}
-
-// Toolbar with glass
-@available(iOS 26, *)
-struct GlassToolbar: View {
-    var body: some View {
-        HStack {
-            Button(action: {}) { Image(systemName: "plus") }
-            Spacer()
-            Button(action: {}) { Image(systemName: "gear") }
-        }
-        .padding()
-        .glassEffect(style: .adaptive)
-    }
-}
-```
-
-## Migration from Material
-
-```swift
-// Before (iOS 15+)
-.background(.ultraThinMaterial)
-
-// After (iOS 26+)
-if #available(iOS 26, *) {
-    .glassEffect()
-} else {
-    .background(.ultraThinMaterial)
-}
+// Card: .glassEffect(intensity: 0.75, tint: .blue.opacity(0.1)).cornerRadius(16)
+// Toolbar: .glassEffect(style: .adaptive)
+// Migration: see "With Fallbacks" above (.ultraThinMaterial → .glassEffect())
 ```

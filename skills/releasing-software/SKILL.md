@@ -27,7 +27,7 @@ Run full verification locally → Fix everything → THEN tag. Never tag before 
 **Only after ALL checks pass:**
 
 1. Commit: `git add -A && git commit -m "release: prepare vX.Y.Z"`
-2. Wait for pre-commit hooks (NEVER use --no-verify)
+2. Wait for pre-commit hooks
 3. Push and WAIT: `git push origin main`
 4. Check CI: `gh run list --limit 2`
 5. **Only after green:** `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z`
@@ -38,7 +38,6 @@ Run full verification locally → Fix everything → THEN tag. Never tag before 
 - "CI will probably pass"
 - Deleting/recreating tags
 - Force-pushing tags
-- Skipping pre-commit hooks
 
 ## Common Failures
 

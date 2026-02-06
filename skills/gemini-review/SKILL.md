@@ -95,28 +95,6 @@ Gemini's output will appear in the terminal. Summarize key findings for the user
 3. **Large diffs** - For very large diffs (>10000 lines), suggest `--branch` with specific files
 4. **Exit codes** - Gemini CLI returns 0 on success, non-zero on error
 
-## Example Invocations
-
-```
-# Review staged changes with default prompt
-/gemini-review
-
-# Review all uncommitted changes
-/gemini-review --all
-
-# Review branch against main
-/gemini-review --branch main
-
-# Review branch against develop
-/gemini-review --branch develop
-
-# Use CI-style detailed prompt
-/gemini-review --prompt ci-style
-
-# Use Gemini's built-in extension
-/gemini-review --extension
-```
-
 ## Troubleshooting
 
 | Issue | Solution |

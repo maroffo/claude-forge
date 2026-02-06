@@ -132,6 +132,26 @@ struct ProfileEditor: View {
 | `@StateObject` | View-owned ObservableObject (legacy) | Yes |
 | `@ObservedObject` | Passed-in ObservableObject (legacy) | Yes |
 
+### View Property Ordering
+
+1. `@Environment` values
+2. `let` (immutable dependencies)
+3. `@State` / `@Binding` (mutable state)
+4. Computed properties
+5. `init` (if needed)
+6. `body`
+7. Methods (private)
+
+### View Size Decision Tree
+
+| Condition | Action |
+|-----------|--------|
+| <100 lines, simple state | Single view with @State |
+| 100-200 lines | Extract private subviews |
+| >200 lines | Multiple files, shared state |
+| Business logic needed | @Observable ViewModel |
+| Network/DB access | Repository pattern |
+
 ### NavigationStack (iOS 16+)
 
 ```swift
@@ -177,6 +197,16 @@ struct TaskListView: View {
 
 ## Concurrency
 
+### Common Fixes
+
+| Error | Fix | Example |
+|-------|-----|---------|
+| Main actor isolation | Add `@MainActor` to class/func | `@MainActor class ViewModel` |
+| Non-isolated access | Mark `nonisolated` | `nonisolated func helper()` |
+| Sendable violation | Add `@unchecked Sendable` or fix | `class VM: @unchecked Sendable` |
+| Protocol async | Require `async` in protocol | `protocol P { func load() async }` |
+| Closure capture | Use `@Sendable` closure | `Task { @Sendable in ... }` |
+
 ### async/await
 
 ```swift
@@ -210,22 +240,6 @@ func fetchAll(ids: [String]) async throws -> [User] {
     func load() async {
         isLoading = true; defer { isLoading = false }
         items = (try? await itemService.fetchItems()) ?? []
-    }
-}
-```
-
-### Actors
-
-```swift
-actor ImageCache {
-    private var cache: [URL: UIImage] = []; private var inProgress: [URL: Task<UIImage, Error>] = [:]
-    func image(for url: URL) async throws -> UIImage {
-        if let c = cache[url] { return c }
-        if let t = inProgress[url] { return try await t.value }
-        let task = Task { let (d, _) = try await URLSession.shared.data(from: url); return UIImage(data: d)! }
-        inProgress[url] = task
-        do { let img = try await task.value; cache[url] = img; inProgress[url] = nil; return img }
-        catch { inProgress[url] = nil; throw error }
     }
 }
 ```
@@ -305,18 +319,43 @@ import Testing
 
 ## Performance
 
-### Instruments
-- **Time Profiler**: CPU, hot paths
-- **Allocations/Leaks**: Memory, cycles
-- **SwiftUI View Body**: Recomposition
+### Common Performance Killers
+
+| Issue | Impact | Fix |
+|-------|--------|-----|
+| Unstable identity | List jumps/flickers | Use `.id()` or stable Identifiable |
+| Observing everything | Over-invalidation | Fine-grained `@Observable` tracking |
+| Deep nesting | Slow layout | Split into child views |
+
+### Debug: `let _ = Self._printChanges()` in body to trace recomputations.
 
 ### SwiftUI Optimization
 
 ```swift
-// ✅ @Observable tracks accessed properties only
-// ✅ LazyVStack for long lists (not VStack)
+// @Observable tracks accessed properties only
+// LazyVStack for long lists (not VStack)
 ScrollView { LazyVStack { ForEach(items) { ItemRow(item: $0) } } }
 ```
+
+### Instruments (CLI via xctrace)
+
+| Template | Use Case |
+|----------|----------|
+| Time Profiler | CPU hotspots, slow functions |
+| Allocations | Memory usage, leaks |
+| System Trace | I/O, system calls |
+| Leaks | Memory leak detection |
+
+```bash
+xctrace list templates
+xctrace record --template "Time Profiler" --attach "MyApp" --output ~/profile.trace --time-limit 30s
+xctrace record --template "Time Profiler" --device "iPhone 16 Pro" --attach "MyApp" --output ~/profile.trace
+xctrace record --template "Time Profiler" --launch com.example.myapp --output ~/profile.trace --time-limit 60s
+xctrace export --input profile.trace --output profile.xml
+xctrace symbolicate --input profile.trace --output symbolicated.trace
+```
+
+**Tips:** Profile Release builds. Use `--time-limit` to auto-stop. Warm up app first.
 
 ---
 

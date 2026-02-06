@@ -4,14 +4,12 @@ description: Review and prioritize Gmail inbox. Use when user wants to check ema
 tools: Bash, Read, Write, Edit
 ---
 
+# ABOUTME: Gmail inbox triage - categorize unread by priority, suggest actions
+# ABOUTME: P1-P4 priority system with batch operations
+
 # Inbox Triage Skill
 
-Review unread emails, categorize by priority, and help decide what needs attention.
-
-## Gmail Configuration
-
-- **Account**: maroffo@gmail.com
-- **Tool**: `gog` CLI
+**Gmail:** See `_GMAIL.md` for account config and commands.
 
 ## Workflow
 
@@ -77,42 +75,12 @@ Format output as:
 
 ### Step 4: Handle User Actions
 
-When user says to handle emails:
+See `_GMAIL.md` for modify commands (mark read, archive, star, trash).
 
-**Mark as read:**
+**Useful filters:**
 ```bash
-gog gmail thread modify <threadId> --account=maroffo@gmail.com --remove-labels=UNREAD
-```
-
-**Archive:**
-```bash
-gog gmail thread modify <threadId> --account=maroffo@gmail.com --remove-labels=INBOX
-```
-
-**Star for later:**
-```bash
-gog gmail thread modify <threadId> --account=maroffo@gmail.com --add-labels=STARRED
-```
-
-**Trash:**
-```bash
-gog gmail thread modify <threadId> --account=maroffo@gmail.com --add-labels=TRASH --remove-labels=INBOX
-```
-
-## Quick Commands
-
-```bash
-# Inbox stats
-gog gmail labels get INBOX --account=maroffo@gmail.com
-
-# Unread from real people
-gog gmail search "is:unread -category:{promotions social updates forums}" --account=maroffo@gmail.com --json
-
-# Starred unread
-gog gmail search "is:unread is:starred" --account=maroffo@gmail.com --json
-
-# Needs reply (sent to me directly)
-gog gmail search "is:unread to:me -category:promotions" --account=maroffo@gmail.com --json
+gog gmail search "is:unread -category:{promotions social updates forums}" --account=maroffo@gmail.com --json  # Real people
+gog gmail search "is:unread to:me -category:promotions" --account=maroffo@gmail.com --json                   # Needs reply
 ```
 
 ## Rules

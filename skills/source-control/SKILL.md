@@ -9,8 +9,6 @@ allowed-tools: [mcp__acp__Bash]
 
 # Source Control
 
-## CRITICAL: Never run `git push` automatically. Push is ALWAYS done manually by Max.
-
 ## Quick Reference
 
 ```bash
@@ -54,6 +52,27 @@ git commit -m "Feat: Add thing"  # Capital letter
 
 ---
 
+## Commit Process
+
+1. **Check state:**
+   ```bash
+   git status && git diff HEAD && git branch --show-current && git log --oneline -5
+   ```
+
+2. **Verify NOT on main/master** (abort if so, unless authorized)
+
+3. **Stage specific files** (never `git add -A`):
+   ```bash
+   git add <specific-files>
+   ```
+
+4. **Commit with conventional format:**
+   ```bash
+   git commit -m "<type>(<scope>): <subject>"
+   ```
+
+---
+
 ## Branch Naming
 
 | Type | Pattern |
@@ -80,8 +99,6 @@ git checkout main && git pull
 git branch -d feat/user-auth
 ```
 
-### Rebase vs Merge
-
 | Use | When |
 |-----|------|
 | **Rebase** | Keep feature branch current, clean linear history |
@@ -91,58 +108,28 @@ git branch -d feat/user-auth
 
 ## Recovery
 
-```bash
-# Amend last commit
-git commit --amend -m "new message"
-git add file && git commit --amend --no-edit
-
-# Undo commit (keep changes)
-git reset --soft HEAD~1
-
-# Undo commit (discard)
-git reset --hard HEAD~1
-
-# Revert pushed commit
-git revert abc1234
-
-# Recover lost commit
-git reflog
-git checkout -b recovery abc1234
-```
+| Situation | Command |
+|---|---|
+| Undo last commit (keep changes) | `git reset --soft HEAD~1` |
+| Undo staged files | `git reset HEAD <file>` |
+| Discard file changes | `git checkout -- <file>` |
+| Recover deleted branch | `git reflog` then `git checkout -b <branch> <sha>` |
+| Amend last commit | `git commit --amend -m "new message"` |
+| Revert pushed commit | `git revert <sha>` |
 
 ---
 
 ## Conflicts
 
-```bash
-git status                    # See conflicts
-# Edit files, remove markers
-git add resolved_file
-git rebase --continue         # or merge --continue
-git rebase --abort            # if needed
-```
+Resolve: `git status` to see conflicts, edit files to remove markers, `git add <resolved>`, then `git rebase --continue` (or `git merge --continue`). Use `git rebase --abort` to bail out.
 
 ---
 
 ## Hooks
 
-**Pre-commit:** `.git/hooks/pre-commit`
-```bash
-#!/bin/bash
-set -e
-# Go: goimports -w . && go vet ./... && go test -race ./...
-# Python: uv run ruff check . && uvx ty check && uv run pytest -q
-# Rails: bundle exec lefthook run all
-```
+**Pre-commit:** `.git/hooks/pre-commit` -- run linters, formatters, tests per language.
 
-**Commit-msg:** Validate conventional format
-```bash
-#!/bin/bash
-if ! grep -qE "^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\(.+\))?: .+" "$1"; then
-    echo "Error: Use conventional commit format"
-    exit 1
-fi
-```
+**Commit-msg:** Validate conventional format (commitlint, husky, lefthook).
 
 ---
 
@@ -155,7 +142,6 @@ fi
 | Run tests before commit | Push broken code |
 | Use branches | Commit to main directly |
 | `--force-with-lease` | `--force` on shared branches |
-| Never `--no-verify` | Skip pre-commit hooks |
 
 ---
 

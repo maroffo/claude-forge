@@ -27,10 +27,9 @@ terraform init|plan|apply|destroy
 terragrunt run-all apply
 terraform fmt -recursive && terraform validate
 terraform state list|show|rm|mv <resource>
-
-# ast-grep
-sg --pattern 'resource "$TYPE" "$NAME" { $$$ }' --lang hcl
 ```
+
+**See:** `_AST_GREP.md` (sg patterns for HCL)
 
 ---
 
@@ -43,26 +42,6 @@ sg --pattern 'resource "$TYPE" "$NAME" { $$$ }' --lang hcl
 terraform/
 ├── modules/{vpc,eks}/
 └── environments/{dev,staging,prod}/
-```
-
-## Basic Syntax
-
-```hcl
-resource "aws_instance" "web" {
-  ami           = var.ami_id
-  instance_type = "t3.micro"
-  tags = { Name = "web", Environment = var.environment }
-}
-
-variable "environment" {
-  type = string
-  validation {
-    condition     = contains(["dev", "staging", "prod"], var.environment)
-    error_message = "Must be dev, staging, or prod"
-  }
-}
-
-output "instance_id" { value = aws_instance.web.id }
 ```
 
 ## TF 1.5+ Blocks

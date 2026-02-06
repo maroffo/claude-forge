@@ -16,18 +16,9 @@ gofmt -w . && goimports -w . && go vet ./...     # Format & Vet
 go test ./... && go test -race ./... && go test -cover ./...  # Tests
 go build -pgo=cpu.pprof -o bin/app ./cmd/app     # Build with PGO
 golangci-lint run                                 # Lint
-
-# ast-grep patterns
-sg --pattern 'func $NAME($$$) $$$' --lang go              # Functions
-sg --pattern 'if err != nil { $$$ }' --lang go            # Error handling
-sg --pattern 'go $FUNC($$$)' --lang go                    # Goroutines
-sg --pattern '$VAR, _ := $EXPR' --lang go                 # Ignored errors
-sg --pattern 'make([]$TYPE)' --lang go                    # Slices w/o capacity
 ```
 
-**Nav:** [Conventions](#-code-conventions) | [Architecture](#-architecture--design) | [Concurrency](#-concurrency) | [Performance](#-performance) | [Profiling](#-profiling) | [Review](#-code-review)
-
-**See also:** `_AST_GREP.md`, `_PATTERNS.md`, `source-control`
+**See also:** `_AST_GREP.md` (sg patterns), `_PATTERNS.md`, `source-control`
 
 ---
 
@@ -263,13 +254,6 @@ func BenchmarkX(b *testing.B) {
 
 ## § Code Review
 
-### Automated Checks
-
-```bash
-gofmt -w . && goimports -w . && go vet ./... && golangci-lint run && nilaway ./...
-go test ./... && go test -race ./... && go test -cover ./...
-```
-
 ### Checklists
 
 **Errors:** All handled, wrapped with %w, has context, no panic in libs, not both logging AND returning.
@@ -289,10 +273,4 @@ go test ./... && go test -race ./... && go test -cover ./...
 
 ## § Resources
 
-**Official:** [Effective Go](https://go.dev/doc/effective_go) | [Code Review Comments](https://go.dev/wiki/CodeReviewComments) | [1.22](https://go.dev/doc/go1.22) | [1.23](https://go.dev/doc/go1.23) | [1.25](https://go.dev/doc/go1.25) | [1.26](https://go.dev/doc/go1.26)
-
-**Performance:** [goperf.dev](https://goperf.dev/) | [go-perfbook](https://github.com/dgryski/go-perfbook) | [fgprof](https://github.com/felixge/fgprof) | [Go 1.26 tour](https://antonz.org/go-1-26/)
-
-**Libraries:** [easyjson](https://github.com/mailru/easyjson) | [ristretto](https://github.com/dgraph-io/ristretto) | [pgx](https://github.com/jackc/pgx) | [sqlc](https://sqlc.dev/)
-
-**Tools:** gofmt, goimports, go vet, golangci-lint, nilaway, staticcheck
+[Effective Go](https://go.dev/doc/effective_go) | [Code Review Comments](https://go.dev/wiki/CodeReviewComments) | [Release Notes](https://go.dev/doc/) | [goperf.dev](https://goperf.dev/) | [fgprof](https://github.com/felixge/fgprof)

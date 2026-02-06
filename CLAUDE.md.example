@@ -57,18 +57,20 @@ Non-code/paths/docs → grep/glob
 # Skills (`~/.claude/skills/`)
 | Domain | Skill |
 |--------|-------|
-| Git commit | `commit` |
+| Git commit/workflow | `source-control` (`commit` redirects here) |
 | Go | `golang` |
 | Android/Kotlin | `android-kotlin` |
 | Swift/Apple | `apple-swift` |
 | Python | `python` |
 | Rails | `rails` |
+| Ruby gems | `ruby` |
+| React/Next.js | `react-nextjs` |
 | Terraform/IaC | `terraform` |
 | AWS/GCP | `cloud-infrastructure` |
-| Git | `source-control` |
 | ClickUp | `clickup` (English only) |
 | Codebase analysis | `project-analyzer` |
 | Code review | `gemini-review` |
+| Release/tag | `releasing-software` |
 | Project retrospective | `learning-docs` |
 
 ## Knowledge Capture

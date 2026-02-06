@@ -16,11 +16,9 @@ bundle exec lefthook run all    # Quality checks
 bundle exec rspec               # Tests
 rails s / bin/dev               # Server (bin/dev for Hotwire)
 bin/jobs                        # Solid Queue workers
-
-# ast-grep patterns
-sg --pattern 'class $NAME < ApplicationService' --lang ruby
-sg --pattern 'include Sidekiq::Job' --lang ruby
 ```
+
+**See also:** `_AST_GREP.md` (sg patterns), `_PATTERNS.md`, `source-control`
 
 **Architecture calls:**
 ```ruby
@@ -179,8 +177,6 @@ class ProcessJob
   end
 end
 ```
-
-**Job rules:** Idempotent, pass IDs not objects, handle missing records, keep fast
 
 ---
 

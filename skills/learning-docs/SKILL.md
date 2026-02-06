@@ -22,34 +22,7 @@ Capture project knowledge in `LEARNING.md` - a living document that grows with t
 
 ## Structure
 
-```markdown
-# LEARNING.md
-
-## Project Overview
-What this project does, why it exists, who it's for.
-
-## Architecture
-How the pieces fit together. Use diagrams (mermaid) where helpful.
-Explain the "why" behind structural decisions.
-
-## Tech Stack & Decisions
-| Technology | Why We Chose It | Trade-offs |
-|------------|-----------------|------------|
-
-## Lessons Learned
-
-### [Date] Title of Lesson
-**Context:** What we were trying to do
-**Problem:** What went wrong or was tricky
-**Solution:** How we fixed it
-**Takeaway:** What to remember for next time
-
-## Pitfalls & Gotchas
-Things that bit us. Save future-you from repeating mistakes.
-
-## Best Practices Discovered
-Patterns that worked well in this codebase.
-```
+Sections: **Project Overview**, **Architecture** (mermaid diagrams), **Tech Stack & Decisions** (table: Technology | Why | Trade-offs), **Lessons Learned** (dated: Context → Problem → Solution → Takeaway), **Pitfalls & Gotchas**, **Best Practices Discovered**
 
 ## Writing Style
 
@@ -69,24 +42,12 @@ Patterns that worked well in this codebase.
 **Bad:**
 > Webhook reliability was improved by adjusting Redis configuration parameters.
 
-## Commands
-
-```bash
-# Check if LEARNING.md exists
-ls -la LEARNING.md
-
-# Show recent git activity for context
-git log --oneline -10
-git diff --stat HEAD~5
-```
-
 ## Workflow
 
 1. **Read** existing LEARNING.md (or create if missing)
-2. **Review** recent work (git log, changed files)
-3. **Ask** what was learned, what was tricky, what decisions were made
-4. **Append** new lessons in conversational style
-5. **Keep** entries dated and searchable
+2. **Review** recent work (`git log --oneline -10`)
+3. **Ask** what was learned, what was tricky
+4. **Append** new lessons in conversational style (dated, searchable)
 
 ## Session Analysis
 
@@ -139,18 +100,3 @@ jq -r '.messages[] | select(.role=="assistant") | .content[]? | select(.type=="t
 4. **LEARNING.md entries** - Project-specific gotchas
 5. **Pre-commit hooks** - Catch issues earlier
 
-### Example Analysis
-
-```bash
-# Session shows Read tool called 15 times on same config file
-# → Add key config values to CLAUDE.md project file
-# → Create "config summary" script
-
-# Multiple sessions fixing same linting error
-# → Add to CLAUDE.md "Common Issues" section
-# → Strengthen pre-commit hook
-
-# Context loss after compaction, re-learned architecture
-# → Update LEARNING.md Architecture section
-# → Add mermaid diagram for quick re-orientation
-```

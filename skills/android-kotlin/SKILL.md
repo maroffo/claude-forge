@@ -13,14 +13,9 @@ allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ```bash
 ./gradlew assembleDebug|assembleRelease|test|connectedAndroidTest|lint|ktlintFormat
 ./gradlew :feature:home:build                    # Module-specific
-
-# ast-grep
-sg --pattern 'class $NAME : ViewModel()' --lang kotlin
-sg --pattern '@Composable fun $NAME($$$)' --lang kotlin
-sg --pattern 'suspend fun $NAME($$$)|Flow<$TYPE>|StateFlow<$TYPE>' --lang kotlin
 ```
 
-**See:** `_AST_GREP.md` | `_PATTERNS.md` | `source-control`
+**See:** `_AST_GREP.md` (sg patterns) | `_PATTERNS.md` | `source-control`
 
 ---
 
@@ -223,28 +218,6 @@ val client = HttpClient(OkHttp) {
 val Context.dataStore by preferencesDataStore(name = "settings")
 val darkModeFlow: Flow<Boolean> = context.dataStore.data.map { it[booleanPreferencesKey("dark_mode")] ?: false }
 suspend fun setDarkMode(enabled: Boolean) { context.dataStore.edit { it[booleanPreferencesKey("dark_mode")] = enabled } }
-```
-
----
-
-## State Management
-
-```kotlin
-// Private mutable, public immutable
-private val _uiState = MutableStateFlow(UserUiState())
-val uiState = _uiState.asStateFlow()
-_uiState.update { it.copy(isLoading = true) }  // Atomic update
-
-// Lifecycle-aware collection
-val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-// SharedFlow for one-time events (no replay)
-private val _events = MutableSharedFlow<LoginEvent>()
-val events = _events.asSharedFlow()
-
-// Channel for guaranteed delivery
-private val _sideEffects = Channel<SideEffect>(Channel.BUFFERED)
-val sideEffects = _sideEffects.receiveAsFlow()
 ```
 
 ---

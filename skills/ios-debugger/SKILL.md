@@ -76,44 +76,6 @@ xcrun simctl spawn booted log stream \
 
 ## Common Workflows
 
-### Launch and Test
-```bash
-#!/bin/bash
-set -e
-
-# Build
-xcodebuild -workspace App.xcworkspace \
-    -scheme App \
-    -sdk iphonesimulator \
-    -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
-    build
-
-# Install
-xcrun simctl install booted build/Debug-iphonesimulator/App.app
-
-# Launch and capture logs
-xcrun simctl spawn booted log stream \
-    --predicate 'processImagePath CONTAINS "App"' \
-    > app.log &
-LOG_PID=$!
-
-xcrun simctl launch booted com.example.app
-
-# Wait for app to stabilize
-sleep 5
-
-# Interact
-xcrun simctl io booted tap 200 400
-sleep 1
-xcrun simctl io booted type "test input"
-
-# Stop logging
-kill $LOG_PID
-
-# Analyze logs
-grep "ERROR" app.log
-```
-
 ### Reset Simulator
 ```bash
 # Erase all data

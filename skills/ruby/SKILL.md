@@ -28,7 +28,7 @@ gem build my_gem.gemspec
 gem push my_gem-1.0.0.gem --attestation
 ```
 
-**Target: Ruby 3.3+** | For Rails apps → use `rails` skill
+**Target: Ruby 3.3+** | For Rails apps → use `rails` skill | **See also:** `_AST_GREP.md`, `_PATTERNS.md`
 
 ---
 
@@ -180,75 +180,22 @@ jobs:
 
 ## Thread Safety
 
-```ruby
-# frozen_string_literal: true
-
-module MyGem
-  class Queue
-    def initialize(max_size:)
-      @items, @mutex = [], Mutex.new
-      @max_size = max_size
-    end
-
-    def push(item)
-      @mutex.synchronize { @items << item if @items.size < @max_size }
-    end
-
-    def pop
-      @mutex.synchronize { @items.shift }
-    end
-  end
-end
-```
+Use `Mutex.new` + `@mutex.synchronize { ... }` for shared state. All public methods that touch mutable state must synchronize.
 
 ---
 
 ## HTTP Client (stdlib)
 
-```ruby
-# frozen_string_literal: true
-
-require "net/http"
-require "json"
-
-module MyGem
-  class Client
-    def initialize(base_url:, token:, timeout: 10)
-      @uri = URI.parse(base_url)
-      @token, @timeout = token, timeout
-    end
-
-    def get(path)
-      request = Net::HTTP::Get.new(path)
-      execute(request)
-    end
-
-    private
-
-    def execute(request)
-      request["Authorization"] = "Bearer #{@token}"
-      http = Net::HTTP.new(@uri.host, @uri.port)
-      http.use_ssl = @uri.scheme == "https"
-      http.open_timeout = http.read_timeout = @timeout
-      JSON.parse(http.request(request).body)
-    end
-  end
-end
-```
+Pattern: `Net::HTTP` + `JSON.parse`, set `use_ssl`, `open_timeout`, `read_timeout`. Auth via `request["Authorization"] = "Bearer #{@token}"`. Keep client class with `initialize(base_url:, token:, timeout:)` + private `execute(request)` method.
 
 ---
 
 ## Publishing
 
 ```bash
-# Pre-release
-bundle exec rspec && bundle exec rubocop
-gem build my_gem.gemspec
-gem install ./my_gem-X.Y.Z.gem  # Test locally
-
-# Publish
-gem push my_gem-1.0.0.gem --attestation
-bundle lock --add-checksums  # Supply chain security
+bundle exec rspec && bundle exec rubocop && gem build my_gem.gemspec
+gem install ./my_gem-X.Y.Z.gem    # Test locally
+gem push my_gem-X.Y.Z.gem --attestation && bundle lock --add-checksums
 ```
 
 ---
@@ -262,17 +209,6 @@ bundle lock --add-checksums  # Supply chain security
 | Testing | RSpec expect syntax, SimpleCov ≥90%, WebMock, no real HTTP |
 | Quality | RuboCop passes, thread-safe if async, custom error classes |
 | CI | Ruby 3.3+3.4, `ruby/setup-ruby`, bundler-cache |
-
----
-
-## ast-grep Patterns
-
-```bash
-sg --pattern 'class $NAME' --lang ruby
-sg --pattern 'def $NAME($$$)' --lang ruby
-sg --pattern 'require $PATH' --lang ruby
-sg --pattern 'rescue $TYPE => $VAR' --lang ruby
-```
 
 ---
 
