@@ -79,3 +79,6 @@ Run `learning-docs` frequently during project work to update LEARNING.md with:
 
 # Problem-Solving
 FIX root cause, don't workaround. No disabling functionality. No duplicate templates.
+
+# Subagents
+Use subagents when tasks can run in parallel, require isolated context, or involve independent workstreams. Simple tasks, sequential ops, single-file edits → work directly.
