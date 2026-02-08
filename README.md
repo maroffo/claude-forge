@@ -1,5 +1,7 @@
 # Claude Forge
 
+![Claude Forge](cover.png)
+
 Token-optimized skills, orchestrated review agents, and always-on workflow rules for Claude Code. A three-tier system: **rules** (always active) + **agents** (on-demand reviewers) + **skills** (user-invoked).
 
 ## Quick Start
