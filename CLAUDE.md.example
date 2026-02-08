@@ -50,6 +50,7 @@ Non-code/paths/docs → grep/glob
 
 | Agent | Trigger |
 |-------|---------|
+| `software-engineer` | Implementation subtasks, reviewer fix rounds |
 | `security-reviewer` | Auth, input, API, secrets |
 | `performance-reviewer` | Hot paths, queries, caching |
 | `architecture-reviewer` | Multi-file changes, new features |

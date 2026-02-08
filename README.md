@@ -62,6 +62,7 @@ Launched by the orchestrator based on file patterns. All review agents are **rea
 
 | Agent | Trigger | Role |
 |-------|---------|------|
+| `software-engineer` | Implementation subtasks, fix rounds | Scoped read-write, acts on reviewer findings |
 | `security-reviewer` | Auth, input, API, secrets | OWASP, injection, credentials |
 | `performance-reviewer` | Hot paths, queries, caching | N+1, memory, allocations |
 | `architecture-reviewer` | Multi-file, new features | SOLID, coupling, API design |
