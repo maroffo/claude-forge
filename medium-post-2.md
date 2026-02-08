@@ -6,7 +6,7 @@
 
 ---
 
-A follow-up to my previous article on building modular AI skills for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (Anthropic's CLI tool for agentic coding), where I discovered that teaching an AI your patterns is only half the battle: the other half is fitting those patterns into a finite context window — and then making them *do something*.
+A follow-up to my previous article on building modular AI skills for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (Anthropic's CLI tool for agentic coding), where I discovered that teaching an AI your patterns is only half the battle: the other half is fitting those patterns into a finite context window, and then making them *do something*.
 
 ![Skills optimization: 28 files, +352/-2009 lines](https://via.placeholder.com/800x400?text=Skills+Optimization+352+added+2009+deleted)
 
@@ -42,7 +42,7 @@ The key insight in that prompt: I explicitly told Claude to look for content red
 
 The approach was surgical. Claude Code has a `Task` tool that launches specialized subagent processes: lightweight, focused agents that run in parallel, each with access to the filesystem but scoped to a specific job. I used these to analyze clusters of skills simultaneously: one subagent on the Swift family, another on email workflows, a third on language skills. Each returned a duplication report. Then I reviewed the reports, approved the plan, and let Claude execute a 5-phase optimization.
 
-This is *not* multiple Claude Code sessions or some orchestration layer. It's a single conversation using Claude Code's built-in `Task` tool — which spawns lightweight subprocesses that can read, write, and search the filesystem independently — to parallelize the analysis. Think of it like spawning goroutines for the research phase, then serializing for the execution phase.
+This is *not* multiple Claude Code sessions or some orchestration layer. It's a single conversation using Claude Code's built-in `Task` tool (which spawns lightweight subprocesses that can read, write, and search the filesystem independently) to parallelize the analysis. Think of it like spawning goroutines for the research phase, then serializing for the execution phase.
 
 **Phase 1: The Swift Mega-Merge**
 
@@ -72,7 +72,7 @@ This is just the DRY principle applied to AI instructions. We've known this for 
 
 The ClickUp skill had 155 lines. Seventy of those were tables describing MCP tool parameters: what `clickup_create_task` accepts, what `clickup_get_task` returns. Useful documentation, except Claude already has access to the MCP tool schemas. It literally receives them in every conversation. Those 70 lines were telling Claude things it already knew.
 
-Stripped them. Replaced with: `All tools available via MCP: clickup_* prefix. See tool schemas for parameters.` ([MCP](https://modelcontextprotocol.io/) — Model Context Protocol — is the standard through which Claude Code discovers external tools and their schemas at runtime.)
+Stripped them. Replaced with: `All tools available via MCP: clickup_* prefix. See tool schemas for parameters.` ([MCP](https://modelcontextprotocol.io/), Model Context Protocol, is the standard through which Claude Code discovers external tools and their schemas at runtime.)
 
 Similarly, the `commit/` skill was a 59-line wrapper around conventions that already existed in `source-control/`. Merged the commit process into source-control, reduced commit to a 10-line redirect.
 
@@ -194,21 +194,21 @@ But verify the output. In one case, the analysis flagged a "contradictory" archi
 
 The optimization left me with a lean, token-efficient skills library. But it also exposed a fundamental limitation: **skills are passive**. They load knowledge into context. They don't *do* anything with it.
 
-Skills tell Claude *what to know*. But nothing tells it *how to behave* across a development session — when to plan, when to test, when to review, when to stop and score the work. I was still manually driving every step: "now run the tests," "now review this for security," "now check the architecture."
+Skills tell Claude *what to know*. But nothing tells it *how to behave* across a development session: when to plan, when to test, when to review, when to stop and score the work. I was still manually driving every step: "now run the tests," "now review this for security," "now check the architecture."
 
 The missing piece wasn't more knowledge. It was orchestration.
 
 ### The Inspiration
 
-I stumbled on [Pedro Santanna's claude-code-my-workflow](https://github.com/pedrohcgs/claude-code-my-workflow), a repo from a professor who'd built an orchestrated Claude Code workflow for academic slide development. LaTeX, R, Quarto — not my stack. But the architecture was immediately recognizable.
+I stumbled on [Pedro Santanna's claude-code-my-workflow](https://github.com/pedrohcgs/claude-code-my-workflow), a repo from a professor who'd built an orchestrated Claude Code workflow for academic slide development. LaTeX, R, Quarto: not my stack. But the architecture was immediately recognizable.
 
 He had a three-tier system:
 
 - **Rules** (`~/.claude/rules/`): Always-on guardrails that auto-load every conversation. No invocation needed.
-- **Agents** (`~/.claude/agents/`): Specialized reviewers launched on demand. Each focused on one thing — proofreading, pedagogy, visual layout, TikZ diagrams.
+- **Agents** (`~/.claude/agents/`): Specialized reviewers launched on demand. Each focused on one thing: proofreading, pedagogy, visual layout, TikZ diagrams.
 - **Skills** (`~/.claude/skills/`): User-invoked commands. What I already had.
 
-The key innovation was an **orchestrator rule** — an always-active protocol that defined an autonomous development loop: implement, verify, review with parallel agents, fix findings, re-verify, score against quality gates, loop until done. He called it "contractor mode."
+The key innovation was an **orchestrator rule**: an always-active protocol that defined an autonomous development loop: implement, verify, review with parallel agents, fix findings, re-verify, score against quality gates, loop until done. He called it "contractor mode."
 
 For his academic workflow, this meant: translate Beamer slides to Quarto, compile, launch proofreader + slide-auditor + pedagogy-reviewer in parallel, fix their findings, re-compile, score, repeat until 90/100.
 
@@ -262,7 +262,7 @@ The **orchestrator protocol** defines the autonomous loop:
 8. PRESENT   → Structured summary
 ```
 
-The **plan-first workflow** mandates planning before implementation and — critically — saves plans to disk. Plans in context evaporate when the window auto-compresses. Plans on disk survive.
+The **plan-first workflow** mandates planning before implementation and, critically, saves plans to disk. Plans in context evaporate when the window auto-compresses. Plans on disk survive.
 
 The **verification protocol** formalizes TDD as an always-on rule, not a suggestion in CLAUDE.md that gets ignored when things get busy.
 
@@ -283,9 +283,9 @@ The routing table:
 | `migrations/`, `schema.rb` | database-reviewer |
 | `docs/`, `README*`, `ADR/` | dx-reviewer |
 
-Seven review agents, all **read-only**. They report findings ranked by severity (CRITICAL / MAJOR / MINOR), with exact file locations and proposed fixes. They never edit files — more on why in Lesson 8 below.
+Seven review agents, all **read-only**. They report findings ranked by severity (CRITICAL / MAJOR / MINOR), with exact file locations and proposed fixes. They never edit files (more on why in Lesson 8 below).
 
-Then there's the odd one out: `tech-writer`. Not a reviewer — a content creator. It reads project context (commits, decisions, code changes) and produces blog posts, changelogs, release notes. Different pattern, same agent system.
+Then there's the odd one out: `tech-writer`. Not a reviewer, a content creator. It reads project context (commits, decisions, code changes) and produces blog posts, changelogs, release notes. Different pattern, same agent system.
 
 ### The Software Engineer Agent
 
@@ -295,9 +295,9 @@ My first instinct was to create `backend-engineer` and `frontend-engineer` agent
 
 I talked myself out of it. The backend/frontend split is too rigid. Consider:
 
-- "Add auth middleware + rate limiting" — both backend, but independent workstreams
-- "Refactor package ordering + package catalog" — both backend, parallelizable
-- "Migrate endpoint from REST to gRPC" — backend, but not parallelizable
+- "Add auth middleware + rate limiting": both backend, but independent workstreams
+- "Refactor package ordering + package catalog": both backend, parallelizable
+- "Migrate endpoint from REST to gRPC": backend, but not parallelizable
 
 The real dimension isn't technology stack. It's **independence of the workstream**.
 
@@ -326,11 +326,11 @@ This closes the loop. Reviewers find issues. The engineer fixes them. Reviewers 
 Pedro's repo had a `MEMORY.md` concept: a lightweight file for persistent corrections across sessions. Format:
 
 ```
-[LEARN:docker] Alpine needs musl, not glibc — use bookworm-slim
+[LEARN:docker] Alpine needs musl, not glibc: use bookworm-slim
 [LEARN:postgres] pgx v5 uses pgxpool, not pgx.Connect directly
 ```
 
-I already had `learning-docs`, a skill that maintains full LEARNING.md retrospectives — architectural decisions, bugs fixed, lessons learned. That's great for deep knowledge capture. But it's heavy for quick corrections.
+I already had `learning-docs`, a skill that maintains full LEARNING.md retrospectives: architectural decisions, bugs fixed, lessons learned. That's great for deep knowledge capture. But it's heavy for quick corrections.
 
 MEMORY.md is the complement: one-line corrections that accumulate over sessions. Claude makes a wrong assumption about your stack? Append a `[LEARN:x]` entry. Next session, it loads automatically and the mistake doesn't repeat.
 
@@ -340,7 +340,7 @@ Think of LEARNING.md as your engineering journal. MEMORY.md is your sticky notes
 
 The same session where I built the orchestrated workflow, I also evolved individual skills. The Go skill got 5 new patterns from a talk on "mechanical sympathy" in embedded Go:
 
-- **Synchronous libraries**: don't launch goroutines from library code — let the caller decide concurrency
+- **Synchronous libraries**: don't launch goroutines from library code; let the caller decide concurrency
 - **Useful zero values**: uninitialized structs should be safe to use or obviously invalid
 - **Stack-friendly hot paths**: `var s MyStruct` over `&MyStruct{}` in loops to avoid heap allocations
 - **Struct composition by value**: embed structs directly for data locality and nil safety
@@ -429,7 +429,7 @@ Saving plans to `quality_reports/plans/YYYY-MM-DD_description.md` solves this. T
 
 ## Part 3: Stealing from the Competition (Selectively)
 
-Before publishing this article, I found [Every's compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin): a massive Claude Code configuration with 29 agents, 25 commands, and 16 skills. Their tagline: "compound engineering" — the idea that solved problems should compound into organizational knowledge, not vanish when the session ends.
+Before publishing this article, I found [Every's compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin): a massive Claude Code configuration with 29 agents, 25 commands, and 16 skills. Their tagline: "compound engineering", the idea that solved problems should compound into organizational knowledge, not vanish when the session ends.
 
 It's the largest Claude Code configuration I've seen. And it taught me something about the difference between comprehensive and effective.
 
@@ -445,7 +445,7 @@ It's impressive engineering. But it's also 29 agents where most projects need 5-
 
 Their `compound-docs` system (`/workflows:compound`) launches parallel subagents that document solved problems in `docs/solutions/[category]/`. This is their best idea. Most knowledge capture is either too heavy (full retrospective documents) or too light (one-line notes). A categorized directory of solved problems hits the sweet spot: searchable, specific, low-friction.
 
-I already had `LEARNING.md` (deep retrospectives) and `MEMORY.md` (one-line corrections). The solutions directory fills the gap between them. The agents are trained to create and search a `docs/solutions/` structure in the *target project* — not in claude-forge itself. Each project accumulates its own knowledge base: "We solved this specific problem. Here's the problem, the fix, and why it works."
+I already had `LEARNING.md` (deep retrospectives) and `MEMORY.md` (one-line corrections). The solutions directory fills the gap between them. The agents are trained to create and search a `docs/solutions/` structure in the *target project*, not in claude-forge itself. Each project accumulates its own knowledge base: "We solved this specific problem. Here's the problem, the fix, and why it works."
 
 ```
 docs/solutions/
@@ -460,7 +460,7 @@ Each file is a problem-solution-rationale triple. When the research agent (more 
 
 **2. The Research Agent**
 
-Their setup includes several research agents: best-practices-researcher, framework-docs-researcher, learnings-researcher. Our workflow was all implementation and review — no structured research step.
+Their setup includes several research agents: best-practices-researcher, framework-docs-researcher, learnings-researcher. Our workflow was all implementation and review, no structured research step.
 
 The gap was obvious once I saw it. The orchestrator loop starts with IMPLEMENT. But what happens when the plan involves a technology the team hasn't used before? Or when there are three valid approaches and no clear winner?
 
@@ -486,7 +486,7 @@ Now the agent commits after each coherent unit of work: one endpoint, one compon
 
 ### The Takeaway
 
-When evaluating other people's configurations, don't count features. Count the ones that solve a problem you actually have. Out of 29 agents and 25 commands, exactly three architectural patterns were worth adopting. That's not a criticism of their work — it's a reminder that more isn't better. **Signal per token is what matters.**
+When evaluating other people's configurations, don't count features. Count the ones that solve a problem you actually have. Out of 29 agents and 25 commands, exactly three architectural patterns were worth adopting. That's not a criticism of their work: it's a reminder that more isn't better. **Signal per token is what matters.**
 
 ## The Bigger Picture
 
@@ -494,12 +494,12 @@ Six months into this experiment, the skills library has evolved from a flat coll
 
 The progression was:
 
-1. **Skills** — teach Claude your patterns (passive knowledge)
-2. **Optimization** — compress skills to fit the context window (same knowledge, fewer tokens)
-3. **Rules** — define always-on behavior (active process)
-4. **Agents** — specialized reviewers and implementers (active delegation)
-5. **Orchestrator** — autonomous development loop (active workflow)
-6. **Knowledge compounding** — solutions directory, research agent, incremental commits (active learning)
+1. **Skills**: teach Claude your patterns (passive knowledge)
+2. **Optimization**: compress skills to fit the context window (same knowledge, fewer tokens)
+3. **Rules**: define always-on behavior (active process)
+4. **Agents**: specialized reviewers and implementers (active delegation)
+5. **Orchestrator**: autonomous development loop (active workflow)
+6. **Knowledge compounding**: solutions directory, research agent, incremental commits (active learning)
 
 Each step built on the previous. You can't orchestrate bloated skills (step 2 enables step 5). You can't route agents without rules (step 3 enables step 4). And none of it works if you haven't first encoded your actual development patterns (step 1).
 
