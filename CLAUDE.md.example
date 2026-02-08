@@ -65,6 +65,7 @@ Rules in `rules/` auto-load: orchestrator (contractor mode), plan-first, TDD ver
 # Knowledge Capture
 - **Quick corrections:** Append `[LEARN:category]` to `MEMORY.md`
 - **Deep retrospectives:** Run `learning-docs` to update LEARNING.md
+- **Solved problems:** Capture in `docs/solutions/[category]/` for searchable reuse
 
 # Problem-Solving
 FIX root cause, don't workaround. No disabling functionality. No duplicate templates.

@@ -48,6 +48,37 @@ Sections: **Project Overview**, **Architecture** (mermaid diagrams), **Tech Stac
 2. **Review** recent work (`git log --oneline -10`)
 3. **Ask** what was learned, what was tricky
 4. **Append** new lessons in conversational style (dated, searchable)
+5. **Capture solutions** in `docs/solutions/[category]/` for searchable reuse
+
+## Solutions Directory
+
+For solved problems worth referencing again, create files in `docs/solutions/`:
+
+```
+docs/solutions/
+├── auth/           → Authentication, authorization, sessions
+├── performance/    → Profiling, caching, optimization
+├── infrastructure/ → CI/CD, Docker, deployment
+├── database/       → Migrations, queries, indexing
+├── testing/        → Patterns, fixtures, flaky test fixes
+└── debugging/      → Hard bugs, investigation techniques
+```
+
+**Format:** `docs/solutions/[category]/YYYY-MM-DD_short-description.md`
+
+Each solution file:
+```markdown
+# Problem
+[What broke / what we needed]
+
+# Solution
+[What fixed it, with code if relevant]
+
+# Why It Works
+[Root cause or design rationale — 1-3 sentences]
+```
+
+**When to use LEARNING.md vs solutions/**: LEARNING.md for narrative retrospectives, architectural decisions, broad lessons. Solutions/ for specific, searchable, reusable fixes — "how did we solve X?" answers.
 
 ## Session Analysis
 

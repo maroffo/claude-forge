@@ -39,8 +39,9 @@ cp claude-forge/MEMORY.md ~/.claude/MEMORY.md
 ├── CLAUDE.md           → Identity, philosophy, routing tables
 ├── MEMORY.md           → Persistent [LEARN:x] corrections
 ├── rules/              → Always-on workflow guardrails (auto-loaded)
-├── agents/             → On-demand review agents (launched by orchestrator)
-└── skills/             → User-invoked language/tool skills
+├── agents/             → On-demand agents (launched by orchestrator)
+├── skills/             → User-invoked language/tool skills
+└── docs/solutions/     → Categorized solved problems (searchable knowledge base)
 ```
 
 **Rules** auto-load every conversation — no invocation needed.
@@ -51,7 +52,7 @@ cp claude-forge/MEMORY.md ~/.claude/MEMORY.md
 
 | Rule | Purpose |
 |------|---------|
-| `orchestrator-protocol` | Contractor mode: implement → verify → review → fix → score → loop |
+| `orchestrator-protocol` | Contractor mode: research → implement → verify → review → fix → score → loop |
 | `plan-first-workflow` | Plan before build, save plans to disk, session logging |
 | `verification-protocol` | TDD process, mandatory test/lint/build cycle |
 | `quality-gates` | Scoring: 80 commit, 90 PR, 95 excellence |
@@ -62,7 +63,8 @@ Launched by the orchestrator based on file patterns. All review agents are **rea
 
 | Agent | Trigger | Role |
 |-------|---------|------|
-| `software-engineer` | Implementation subtasks, fix rounds | Scoped read-write, acts on reviewer findings |
+| `software-engineer` | Implementation subtasks, fix rounds | Scoped read-write, incremental commits, acts on reviewer findings |
+| `research-analyst` | Pre-plan unknowns, tech evaluation | Best practices, external repos, docs, prior art |
 | `security-reviewer` | Auth, input, API, secrets | OWASP, injection, credentials |
 | `performance-reviewer` | Hot paths, queries, caching | N+1, memory, allocations |
 | `architecture-reviewer` | Multi-file, new features | SOLID, coupling, API design |
@@ -107,7 +109,7 @@ Launched by the orchestrator based on file patterns. All review agents are **rea
 |-------|-------------|
 | `source-control/` | Conventional commits, git workflow, hooks |
 | `commit/` | Redirects to `source-control/` |
-| `learning-docs/` | LEARNING.md retrospectives, session analysis |
+| `learning-docs/` | LEARNING.md retrospectives, session analysis, docs/solutions/ capture |
 | `releasing-software/` | Pre-release checklist, no-tag-without-green-CI |
 | `clickup/` | Task management via MCP |
 | `gemini-review/` | Local code review with Gemini CLI |
@@ -132,7 +134,7 @@ Everything is aggressively optimized:
 
 ## Inspiration
 
-Evolved from [Harper Reed's dotfiles](https://github.com/harperreed/dotfiles/tree/master/.claude), [Matteo Vaccari's AI-assisted modernization series](https://matteo.vaccari.name/posts/plants-by-websphere/), and [Pedro Santanna's orchestrated workflow](https://github.com/pedrohcgs/claude-code-my-workflow).
+Evolved from [Harper Reed's dotfiles](https://github.com/harperreed/dotfiles/tree/master/.claude), [Matteo Vaccari's AI-assisted modernization series](https://matteo.vaccari.name/posts/plants-by-websphere/), [Pedro Santanna's orchestrated workflow](https://github.com/pedrohcgs/claude-code-my-workflow), and [Every's compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin) (solutions directory, research agent, incremental commits).
 
 ## License
 

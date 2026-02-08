@@ -8,6 +8,7 @@ After plan approval, execute autonomously until quality gates pass.
 ## Loop
 
 ```
+0. RESEARCH  → (optional) Launch research-analyst for unknowns before planning
 1. IMPLEMENT → Launch software-engineer(s) with scoped subtasks (parallel if independent)
 2. VERIFY    → Run tests, lint, build (max 2 retries)
 3. REVIEW    → Launch review agents by file pattern
@@ -17,6 +18,10 @@ After plan approval, execute autonomously until quality gates pass.
 7. LOOP      → Repeat 3-7 until score ≥ threshold or max 5 rounds
 8. PRESENT   → Summary: files changed, issues found/fixed, score, open items
 ```
+
+## Research (Step 0)
+
+Launch `research-analyst` when the plan involves unfamiliar tech, multiple valid approaches, or no internal prior art. The agent searches `docs/solutions/`, `LEARNING.md`, `MEMORY.md`, then external sources. Returns a comparison table + recommendation. Skip for well-understood tasks.
 
 ## Implementation (Step 1)
 

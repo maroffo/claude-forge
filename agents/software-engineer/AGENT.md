@@ -48,6 +48,14 @@ Reviewer findings are **requirements, not suggestions.** Treat them with the sam
 - Don't make unrelated changes while fixing reviewer findings
 - Don't argue with CRITICAL findings — just fix them
 
+## Commit Strategy
+
+Commit incrementally, not as one mega-commit at the end:
+- **After each completed subtask:** create a logical commit with a message following project conventions
+- **Scope per commit:** one coherent change (new endpoint, new component, migration, test suite)
+- **Never commit broken state:** each commit must pass tests independently
+- If working on a single subtask, one commit is fine. The goal is logical units, not commit count.
+
 ## Output
 
 After implementation, report:
