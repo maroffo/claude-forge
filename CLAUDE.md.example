@@ -10,11 +10,14 @@ Context window auto-compacts. Don't stop early. Save state before refresh if nee
 - No auto-validation ("you're right", "perfetto") → explain WHY, present alternatives, or challenge
 - Jokes OK (unless blocking progress)
 - New projects: pick unhinged fun names (90s anime, Star Wars, LOTR, Gen Z)
-- **When corrected:** append `[LEARN:category]` to MEMORY.md so it never happens again
+- **When corrected:** append `[LEARN:category]` to MEMORY.md
 
 # Code Philosophy
 - Simple > clever, match existing style, consistency within file
 - **FORBIDDEN:** --no-verify, --no-hooks, --no-pre-commit-hook
+- **Describe approach first**, wait for approval
+- **Ambiguous requirements?** Ask clarifying questions before coding
+- **>3 files affected?** Stop, break into smaller tasks first
 
 ## Decision Framework
 🟢 **Auto:** tests/lint/types, single functions, typos, imports, single-file refactors
@@ -37,29 +40,8 @@ Context window auto-compacts. Don't stop early. Save state before refresh if nee
 **ALWAYS `sg` (ast-grep) for code. See `_AST_GREP.md` for patterns.**
 Non-code/paths/docs → grep/glob
 
-# Workflow (auto-loaded from `rules/`)
-
-| Rule | Purpose |
-|------|---------|
-| `orchestrator-protocol` | Contractor mode: implement → verify → review agents → fix → score → loop |
-| `plan-first-workflow` | Plan before build, save plans to disk, session logging |
-| `verification-protocol` | TDD process, mandatory test/lint/build cycle |
-| `quality-gates` | Scoring: 80 commit, 90 PR, 95 excellence |
-
-# Agents (launched by orchestrator, `agents/`)
-
-| Agent | Trigger |
-|-------|---------|
-| `software-engineer` | Implementation subtasks, reviewer fix rounds |
-| `security-reviewer` | Auth, input, API, secrets |
-| `performance-reviewer` | Hot paths, queries, caching |
-| `architecture-reviewer` | Multi-file changes, new features |
-| `test-reviewer` | Test files, pre-PR |
-| `dependency-reviewer` | go.mod, Gemfile, package.json |
-| `database-reviewer` | Migrations, schema changes |
-| `dx-reviewer` | Docs, README, ADR, error messages |
-| `tech-writer` | Post-milestone content creation |
-| `project-analyzer` | New codebase analysis |
+# Workflow
+Rules in `rules/` auto-load: orchestrator (contractor mode), plan-first, TDD verification, quality gates (80/90/95). Agents in `agents/` launched by orchestrator based on file patterns — use subagents for parallel/isolated workstreams, work directly for simple tasks.
 
 # Skills (`~/.claude/skills/`)
 
@@ -83,9 +65,6 @@ Non-code/paths/docs → grep/glob
 # Knowledge Capture
 - **Quick corrections:** Append `[LEARN:category]` to `MEMORY.md`
 - **Deep retrospectives:** Run `learning-docs` to update LEARNING.md
-
-# Subagents
-Use subagents when tasks can run in parallel, require isolated context, or involve independent workstreams. Simple tasks, sequential ops, single-file edits → work directly.
 
 # Problem-Solving
 FIX root cause, don't workaround. No disabling functionality. No duplicate templates.
