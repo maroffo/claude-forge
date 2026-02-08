@@ -8,7 +8,7 @@
 
 A follow-up to my previous article on building modular AI skills for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (Anthropic's CLI tool for agentic coding), where I discovered that teaching an AI your patterns is only half the battle: the other half is fitting those patterns into a finite context window, and then making them *do something*.
 
-![Skills optimization: 28 files, +352/-2009 lines](https://via.placeholder.com/800x400?text=Skills+Optimization+352+added+2009+deleted)
+![Skills optimization: 28 files, +352/-2009 lines](medium-post-2-cover.png)
 
 *The final diff: 352 lines added, 2,009 deleted. Sometimes the best code you write is the code you delete.*
 
@@ -71,13 +71,7 @@ Same architectural decision. One-thirtieth the tokens. Claude knows the Ruby std
 
 ### The Numbers
 
-| Metric | Before | After | Change |
-|--------|--------|-------|--------|
-| Total skill files | 31 | 27 | -4 (merged) |
-| New shared files | 0 | 2 | `_GMAIL.md`, `_SECOND_BRAIN.md` |
-| Total lines | ~6,050 | ~4,050 | -33% |
-| Lines added | - | 352 | New content |
-| Lines deleted | - | 2,009 | Redundancy eliminated |
+![Optimization metrics](medium-post-2-table-metrics.png)
 
 **Nothing was lost.** Every pattern, convention, and workflow is still there: compressed, deduplicated, or deleted because Claude already knew it.
 
@@ -89,29 +83,7 @@ The optimization left me with a lean skills library. But it exposed a fundamenta
 
 Inspired by [Pedro Santanna's orchestrated academic workflow](https://github.com/pedrohcgs/claude-code-my-workflow), I adapted his three-tier architecture (Rules, Agents, Skills) for software engineering:
 
-```
-~/.claude/
-├── CLAUDE.md           → Identity, philosophy, routing tables (71 lines)
-├── MEMORY.md           → Persistent [LEARN:x] corrections
-├── rules/              → Always-on workflow guardrails
-│   ├── orchestrator-protocol.md
-│   ├── plan-first-workflow.md
-│   ├── verification-protocol.md
-│   └── quality-gates.md
-├── agents/             → On-demand agents (launched by orchestrator)
-│   ├── software-engineer/
-│   ├── research-analyst/
-│   ├── security-reviewer/
-│   ├── performance-reviewer/
-│   ├── architecture-reviewer/
-│   ├── test-reviewer/
-│   ├── dependency-reviewer/
-│   ├── database-reviewer/
-│   ├── dx-reviewer/
-│   ├── tech-writer/
-│   └── project-analyzer/
-└── skills/             → User-invoked (unchanged from Part 1)
-```
+![Three-tier architecture](medium-post-2-architecture.png)
 
 ### Rules: The Always-On Layer
 
@@ -119,17 +91,7 @@ Rules auto-load every conversation. They replaced process content that was bloat
 
 The **orchestrator protocol** defines the autonomous development loop:
 
-```
-0. RESEARCH  → (optional) Launch research-analyst for unknowns
-1. IMPLEMENT → Launch software-engineer(s) with scoped subtasks
-2. VERIFY    → Run tests, lint, build
-3. REVIEW    → Launch review agents by file pattern
-4. FIX       → Pass findings to software-engineer (findings are requirements)
-5. RE-VERIFY → Rebuild, retest
-6. SCORE     → Apply quality-gates thresholds
-7. LOOP      → Repeat 3-7 until score ≥ threshold or max 5 rounds
-8. PRESENT   → Structured summary
-```
+![Orchestrator loop](medium-post-2-orchestrator-loop.png)
 
 The **plan-first workflow** saves plans to disk (plans in context evaporate during auto-compression). The **verification protocol** formalizes TDD as an always-on rule. The **quality gates** create numeric thresholds: 80/100 to commit, 90/100 to open a PR. A CRITICAL finding auto-fails to 0.
 
@@ -137,14 +99,7 @@ The **plan-first workflow** saves plans to disk (plans in context evaporate duri
 
 Agents are launched by the orchestrator **based on which files changed**, not manually selected:
 
-| File pattern | Agents launched |
-|-------------|----------------|
-| `*.go`, `*.rb`, `*.py`, `*.ts` | architecture-reviewer + security-reviewer |
-| Hot paths, queries, caching | + performance-reviewer |
-| `*_test.go`, `*_spec.rb` | + test-reviewer |
-| `go.mod`, `Gemfile`, `package.json` | dependency-reviewer |
-| `migrations/`, `schema.rb` | database-reviewer |
-| `docs/`, `README*`, `ADR/` | dx-reviewer |
+![Agent routing by file pattern](medium-post-2-table-agents.png)
 
 All review agents are **read-only**: they report findings with severity rankings, file locations, and proposed fixes, but never edit code. This forces separation of concerns: finding problems is separate from fixing them. A reviewer that can "fix" things bypasses your approval loop; it might "fix" a security issue by deleting the test that caught it. Read-only agents can't break your code. They can only make you think harder about it.
 
