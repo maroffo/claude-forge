@@ -10,16 +10,11 @@ Context window auto-compacts. Don't stop early. Save state before refresh if nee
 - No auto-validation ("you're right", "perfetto") → explain WHY, present alternatives, or challenge
 - Jokes OK (unless blocking progress)
 - New projects: pick unhinged fun names (90s anime, Star Wars, LOTR, Gen Z)
-- **When corrected:** add rule to CLAUDE.md so it never happens again
+- **When corrected:** append `[LEARN:category]` to MEMORY.md so it never happens again
 
 # Code Philosophy
 - Simple > clever, match existing style, consistency within file
 - **FORBIDDEN:** --no-verify, --no-hooks, --no-pre-commit-hook
-
-## Before Writing Code
-1. **Describe approach first**, wait for approval
-2. **Ambiguous requirements?** Ask clarifying questions before coding
-3. **>3 files affected?** Stop, break into smaller tasks first
 
 ## Decision Framework
 🟢 **Auto:** tests/lint/types, single functions, typos, imports, single-file refactors
@@ -32,18 +27,6 @@ Context window auto-compacts. Don't stop early. Save state before refresh if nee
 - All files: 2-line `ABOUTME:` header
 - Comments: evergreen (no "after refactor")
 
-# Testing (TDD)
-- Tests BEFORE code. Output MUST be pristine.
-- Every project: unit + integration + e2e (unless "I AUTHORIZE YOU TO SKIP WRITING TESTS THIS TIME")
-- **Process:** failing test → confirm fails → minimal code → confirm pass → refactor
-- **After writing code:** list what could break, suggest tests to cover it
-
-## Bug Reports
-When Max reports bug:
-1. Write test that reproduces bug first
-2. Fix until test passes
-3. Use subagents if needed
-
 # Git
 - NEVER `git push` auto (Max does manually)
 - **NEVER work on main/master** unless explicitly authorized
@@ -54,7 +37,31 @@ When Max reports bug:
 **ALWAYS `sg` (ast-grep) for code. See `_AST_GREP.md` for patterns.**
 Non-code/paths/docs → grep/glob
 
+# Workflow (auto-loaded from `rules/`)
+
+| Rule | Purpose |
+|------|---------|
+| `orchestrator-protocol` | Contractor mode: implement → verify → review agents → fix → score → loop |
+| `plan-first-workflow` | Plan before build, save plans to disk, session logging |
+| `verification-protocol` | TDD process, mandatory test/lint/build cycle |
+| `quality-gates` | Scoring: 80 commit, 90 PR, 95 excellence |
+
+# Agents (launched by orchestrator, `agents/`)
+
+| Agent | Trigger |
+|-------|---------|
+| `security-reviewer` | Auth, input, API, secrets |
+| `performance-reviewer` | Hot paths, queries, caching |
+| `architecture-reviewer` | Multi-file changes, new features |
+| `test-reviewer` | Test files, pre-PR |
+| `dependency-reviewer` | go.mod, Gemfile, package.json |
+| `database-reviewer` | Migrations, schema changes |
+| `dx-reviewer` | Docs, README, ADR, error messages |
+| `tech-writer` | Post-milestone content creation |
+| `project-analyzer` | New codebase analysis |
+
 # Skills (`~/.claude/skills/`)
+
 | Domain | Skill |
 |--------|-------|
 | Git commit/workflow | `source-control` (`commit` redirects here) |
@@ -68,17 +75,16 @@ Non-code/paths/docs → grep/glob
 | Terraform/IaC | `terraform` |
 | AWS/GCP | `cloud-infrastructure` |
 | ClickUp | `clickup` (English only) |
-| Codebase analysis | `project-analyzer` |
 | Code review | `gemini-review` |
 | Release/tag | `releasing-software` |
 | Project retrospective | `learning-docs` |
 
-## Knowledge Capture
-Run `learning-docs` frequently during project work to update LEARNING.md with:
-- Bugs fixed & how, architectural decisions, lessons learned, pitfalls discovered
-
-# Problem-Solving
-FIX root cause, don't workaround. No disabling functionality. No duplicate templates.
+# Knowledge Capture
+- **Quick corrections:** Append `[LEARN:category]` to `MEMORY.md`
+- **Deep retrospectives:** Run `learning-docs` to update LEARNING.md
 
 # Subagents
 Use subagents when tasks can run in parallel, require isolated context, or involve independent workstreams. Simple tasks, sequential ops, single-file edits → work directly.
+
+# Problem-Solving
+FIX root cause, don't workaround. No disabling functionality. No duplicate templates.
