@@ -124,7 +124,7 @@ The critical design decision: **reviewer findings are requirements, not suggesti
 [LEARN:postgres] pgx v5 uses pgxpool, not pgx.Connect directly
 ```
 
-Think of `LEARNING.md` (full retrospectives via the `learning-docs` skill) as your engineering journal. `MEMORY.md` is your sticky notes. And `CLAUDE.md`, freed from process instructions that now live in rules, became what it should have been all along: **identity and philosophy** (71 lines).
+Think of `LEARNING.md` (full retrospectives via the `learning-docs` skill) as your engineering journal. `MEMORY.md` is your sticky notes. And `CLAUDE.md`, freed from process instructions that now live in rules, became what it should have been all along: **identity and philosophy** (under 80 lines).
 
 ---
 
@@ -167,9 +167,9 @@ Each step built on the previous. You can't orchestrate bloated skills (step 2 en
 
 **Your skills should contain the delta, not the baseline.** Don't document what the AI already knows. The test: "Would a senior developer who knows this language need this information to follow our conventions?" If yes, keep it. If it's just teaching the language, cut it.
 
-**Let the AI optimize itself, but verify.** Claude finds duplication patterns across files that humans miss because we don't hold 27 files in memory simultaneously. But in one case, it flagged a "contradictory" architecture recommendation (MVVM vs MV in Swift) that was actually intentional: MVVM for UIKit legacy, MV for modern SwiftUI.
+**Let the AI optimize itself, but verify.** Claude finds duplication patterns across files that humans miss because we don't hold 30+ files in memory simultaneously. But in one case, it flagged a "contradictory" architecture recommendation (MVVM vs MV in Swift) that was actually intentional: MVVM for UIKit legacy, MV for modern SwiftUI.
 
-**Signal per token is what matters.** Not having less, but having more value per token. I added Go mechanical sympathy patterns (5 new concepts) and reduced the Go skill from 410 to 189 lines in the same pass. The token count is lower than when I started with 9 skills, despite covering 11 languages, 11 agents, 4 rules, and 5 productivity workflows.
+**Signal per token is what matters.** Not having less, but having more value per token. I added Go mechanical sympathy patterns (5 new concepts) and reduced the Go skill from 410 to 189 lines in the same pass. The token count is lower than when I started with 9 skills, despite covering over 10 languages, 11 agents, 4 rules, and half a dozen productivity workflows.
 
 **Treat your AI instructions with the same engineering rigor you apply to your code.** Refactor. Deduplicate. Compress. Architect. Iterate.
 
