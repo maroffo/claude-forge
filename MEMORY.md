@@ -14,3 +14,4 @@ Corrections and learnings that persist across sessions. When Claude makes a mist
 ## Entries
 
 <!-- Append new learnings below this line -->
+[LEARN:writing] Never use em dashes (—) → use Italian punctuation: commas, colons, semicolons, parentheses

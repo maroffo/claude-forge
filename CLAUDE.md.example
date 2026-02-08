@@ -68,5 +68,8 @@ Rules in `rules/` auto-load: orchestrator (contractor mode), plan-first, TDD ver
 - **Deep retrospectives:** Run `learning-docs` to update LEARNING.md
 - **Solved problems:** Capture in `docs/solutions/[category]/` for searchable reuse
 
+# Writing
+- **NEVER use em dashes (—).** Use Italian punctuation: commas, colons, semicolons, or parentheses.
+
 # Problem-Solving
 FIX root cause, don't workaround. No disabling functionality. No duplicate templates.
