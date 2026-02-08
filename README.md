@@ -22,6 +22,9 @@ ln -s ~/Development/claude-forge/rules ~/.claude/rules
 
 mv ~/.claude/CLAUDE.md ~/.claude/CLAUDE.md.backup
 ln -s ~/Development/claude-forge/CLAUDE.md.example ~/.claude/CLAUDE.md
+
+mv ~/.claude/MEMORY.md ~/.claude/MEMORY.md.backup 2>/dev/null
+ln -s ~/Development/claude-forge/MEMORY.md ~/.claude/MEMORY.md
 ```
 
 **Option 2: Copy**
