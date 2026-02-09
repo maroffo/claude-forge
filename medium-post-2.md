@@ -81,13 +81,22 @@ Same architectural decision. One-thirtieth the tokens. Claude knows the Ruby std
 
 The optimization left me with a lean skills library. But it exposed a fundamental limitation: **skills are passive**. They load knowledge into context. They don't *do* anything with it. Nothing tells Claude *how to behave* across a development session: when to plan, when to test, when to review, when to stop and score the work.
 
-Inspired by [Pedro Santanna's orchestrated academic workflow](https://github.com/pedrohcgs/claude-code-my-workflow), I adapted his three-tier architecture (Rules, Agents, Skills) for software engineering:
+Inspired by [Pedro Santanna's orchestrated academic workflow](https://github.com/pedrohcgs/claude-code-my-workflow), I adapted his three-tier architecture (Rules, Agents, Skills) for software engineering. Think of it as a virtual engineering team:
+
+- **Rules** are the engineering manager: always-on process guardrails that define when to plan, test, review, and score.
+- **Agents** are the specialists: on-demand experts for implementation and review, launched by the orchestrator.
+- **Skills** are the team wiki: the passive knowledge base that agents draw from.
+- **MEMORY.md** is the team's shared notebook: corrections and lessons that persist across sessions.
+
+The **orchestrator** is the protocol that makes these layers work together. Here's the full picture:
 
 ![Three-tier architecture](medium-post-2-architecture.png)
 
+Let's walk through each layer and how it plugs into the orchestration.
+
 ### Rules: The Always-On Layer
 
-Rules auto-load every conversation. They replaced process content that was bloating `CLAUDE.md`.
+Rules are the backbone of the orchestrator: they define *how* Claude behaves across an entire development session. They auto-load every conversation, replacing process content that was bloating `CLAUDE.md`.
 
 The **orchestrator protocol** defines the autonomous development loop:
 
@@ -97,7 +106,7 @@ The **plan-first workflow** saves plans to disk (plans in context evaporate duri
 
 ### Agents: The On-Demand Specialists
 
-Agents are launched by the orchestrator **based on which files changed**, not manually selected:
+Rules define the loop; agents are the workers inside it. Steps 1 and 4 (IMPLEMENT, FIX) use the software-engineer agent. Step 3 (REVIEW) launches specialized reviewers. The orchestrator picks which agents to launch **based on which files changed**, not manually selected:
 
 ![Agent routing by file pattern](medium-post-2-table-agents.png)
 
@@ -105,7 +114,7 @@ All review agents are **read-only**: they report findings with severity rankings
 
 ### The Software Engineer Agent
 
-My first instinct was `backend-engineer` and `frontend-engineer`. I talked myself out of it. The real dimension isn't technology stack, it's **independence of the workstream**:
+The software-engineer is the only agent that writes code. It handles Step 1 (IMPLEMENT) and Step 4 (FIX) of the orchestrator loop. My first instinct was to split it into `backend-engineer` and `frontend-engineer`. I talked myself out of it. The real dimension isn't technology stack, it's **independence of the workstream**:
 
 - "Add auth middleware + rate limiting": both backend, but independent workstreams
 - "Refactor package ordering + package catalog": both backend, parallelizable
@@ -117,7 +126,7 @@ The critical design decision: **reviewer findings are requirements, not suggesti
 
 ### MEMORY.md and Knowledge Persistence
 
-`MEMORY.md` holds one-line corrections that persist across sessions:
+The orchestrator loop runs within a single session. But what about learning *across* sessions? `MEMORY.md` holds one-line corrections that persist:
 
 ```
 [LEARN:docker] Alpine needs musl, not glibc: use bookworm-slim
@@ -163,7 +172,7 @@ Each step built on the previous. You can't orchestrate bloated skills (step 2 en
 
 ### The Engineering Principles
 
-**Skills are your wiki. Rules are your engineering manager. Agents are your senior engineers. CLAUDE.md is your team culture doc.** This three-tier separation is the single most important architectural insight. Before, everything was either in CLAUDE.md (bloated, always loaded, mixing identity with process) or in skills (passive, knowledge-only).
+**The three-tier separation is the single most important architectural insight.** The manager (rules), the specialists (agents), and the wiki (skills) each have a clear boundary. Before, everything was either in CLAUDE.md (bloated, always loaded, mixing identity with process) or in skills (passive, knowledge-only). Separating *process* from *knowledge* from *execution* is what made orchestration possible.
 
 **Your skills should contain the delta, not the baseline.** Don't document what the AI already knows. The test: "Would a senior developer who knows this language need this information to follow our conventions?" If yes, keep it. If it's just teaching the language, cut it.
 
