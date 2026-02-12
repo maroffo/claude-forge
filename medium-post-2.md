@@ -220,6 +220,8 @@ Your context window will thank you. And then it will start writing your code.
 
 **The complete system is at [github.com/maroffo/claude-forge](https://github.com/maroffo/claude-forge). Key commits: [496aa4d](https://github.com/maroffo/claude-forge/commit/496aa4d) (optimization: +352/-2,009), [599572c](https://github.com/maroffo/claude-forge/commit/599572c) (orchestrated workflow: +766), [da51731](https://github.com/maroffo/claude-forge/commit/da51731) (final token optimization: +53/-189). The compound-engineering-inspired additions (research agent, solutions directory, incremental commits) came last.**
 
+*Thanks to [Mauro Medda](https://github.com/mauromedda), [Federico Scanu](https://www.linkedin.com/in/federicoscanu), and [Luca Bonetti](https://www.linkedin.com/in/lb-luca-bonetti/) for the ideas, inspiration, and review.*
+
 ---
 
 *Massimiliano Aroffo is a Cloud Engineer and Architect at Wishew, where he builds infrastructure automation and occasionally uses AI to optimize AI instructions about AI that orchestrate other AI. The turtles are getting recursive.*
