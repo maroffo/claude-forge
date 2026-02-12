@@ -157,6 +157,37 @@ We rejected their file-based todos (we have ClickUp), swarm mode (coordination o
 
 ---
 
+## Part 4: The Annotation Cycle, or How to Stop Wasting Implementation Rounds
+
+The orchestrator loop was working. But on complex tasks (new integrations, cross-cutting refactors, unfamiliar tech), I kept hitting the same pattern: Claude would produce a solid plan, I'd approve it, implementation would start, and three files in I'd realize the plan had a wrong assumption baked into its foundation. Revert. Re-plan. Re-implement. Tokens burned, time wasted.
+
+The insight came from [Boris Tane's workflow](https://boristane.com/blog/how-i-use-claude-code/), where he annotates plan documents inline with terse corrections ("not optional", "use drizzle:generate", "remove this section") and iterates 1-6 times before any code gets written. The idea is simple: **the plan is a shared mutable document, not a proposal you accept or reject.**
+
+But Boris applies this to *every* task. That's overhead I don't want on a three-file bugfix. The question became: when does the annotation cycle pay for itself?
+
+### Adaptive Complexity
+
+The answer was already in the system. The research-analyst (Step 0 of the orchestrator) already evaluates unknowns before planning. It just wasn't classifying them. Now it ends every research report with a complexity verdict:
+
+- **simple/moderate**: standard flow (plan → approve → implement)
+- **complex**: extended flow (plan → annotate → iterate → approve → implement)
+
+The criteria are concrete: unfamiliar tech, more than 5 files, multiple valid approaches, no prior art in `docs/solutions/`, cross-cutting concerns. Not a gut feeling: a checklist.
+
+### What Changes for Complex Tasks
+
+Two things happen that don't happen for simpler work:
+
+**1. The research artifact persists.** Instead of research findings living only in context (where they evaporate during auto-compression), the research-analyst writes them to `quality_reports/research/`. On a complex task, losing research context mid-implementation is how you end up with an agent that contradicts its own earlier analysis.
+
+**2. The plan enters an annotation loop.** I open the plan file, add inline notes where I see problems ("this table already exists", "use the existing auth middleware, don't create a new one", "priority order is wrong here"), and Claude addresses every annotation without implementing. One to four rounds, usually. By the time I type "approved", the plan has been pressure-tested against my knowledge of the codebase. The cost of those annotation rounds is tiny compared to the cost of reverting a wrong implementation.
+
+The key design decision: **the research-analyst decides, not the developer.** I don't want to manually classify complexity for every task, and I'd be biased toward "just ship it" anyway. The agent has already done the research; it knows whether there's prior art, how many files are involved, whether the tech is well-understood. Let the informed party make the call.
+
+For simple tasks, nothing changes. The overhead is zero. For complex tasks, the overhead is 5-15 minutes of annotation, which prevents hours of wasted implementation. The system got smarter about when to be careful, and that's the whole game.
+
+---
+
 ## The Bigger Picture
 
 Six months into this experiment, the skills library has evolved from a flat collection of markdown files into a three-tier system with orchestrated agents, quality gates, and persistent memory:
@@ -167,6 +198,7 @@ Six months into this experiment, the skills library has evolved from a flat coll
 4. **Agents**: specialized reviewers and implementers (active delegation)
 5. **Orchestrator**: autonomous development loop (active workflow)
 6. **Knowledge compounding**: solutions directory, research agent, incremental commits (active learning)
+7. **Adaptive depth**: complexity-aware research and annotation cycles (active calibration)
 
 Each step built on the previous. You can't orchestrate bloated skills (step 2 enables step 5). You can't route agents without rules (step 3 enables step 4).
 
