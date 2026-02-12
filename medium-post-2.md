@@ -199,8 +199,9 @@ Six months into this experiment, the skills library has evolved from a flat coll
 5. **Orchestrator**: autonomous development loop (active workflow)
 6. **Knowledge compounding**: solutions directory, research agent, incremental commits (active learning)
 7. **Adaptive depth**: complexity-aware research and annotation cycles (active calibration)
+8. **Periodic re-evaluation**: ask the model to audit its own instructions as capabilities evolve (active maintenance)
 
-Each step built on the previous. You can't orchestrate bloated skills (step 2 enables step 5). You can't route agents without rules (step 3 enables step 4).
+Each step built on the previous. You can't orchestrate bloated skills (step 2 enables step 5). You can't route agents without rules (step 3 enables step 4). And step 8 loops back to step 2: as models improve, yesterday's essential guidance becomes today's redundant tokens, and the cycle restarts.
 
 ### The Engineering Principles
 
@@ -210,9 +211,11 @@ Each step built on the previous. You can't orchestrate bloated skills (step 2 en
 
 **Let the AI optimize itself, but verify.** Claude finds duplication patterns across files that humans miss because we don't hold 30+ files in memory simultaneously. But in one case, it flagged a "contradictory" architecture recommendation (MVVM vs MV in Swift) that was actually intentional: MVVM for UIKit legacy, MV for modern SwiftUI.
 
+**Your instructions are coupled to model capabilities, and capabilities move fast.** When I first wrote the Go skill on Sonnet 4.5, those 299 lines of idiomatic patterns were genuinely useful: the model needed explicit guidance on error handling conventions, interface design, mechanical sympathy. Months later, when I asked Opus 4.6 to optimize the same skills, it told me it already knew most of those patterns and suggested cutting them. The skill that was essential for one model was token tax for its successor. This isn't a one-time optimization: it's a recurring practice. Every few months (or when you upgrade models), ask the model to audit its own instruction set: "What here is redundant with your training? What do you still need?" Treat your AI like a team member who's been taking courses: periodically check what they've learned and stop explaining things they already know.
+
 **Signal per token is what matters.** Not having less, but having more value per token. I added Go mechanical sympathy patterns (5 new concepts) and reduced the Go skill from 410 to 189 lines in the same pass. The token count is lower than when I started with 9 skills, despite covering over 10 languages, 11 agents, 4 rules, and half a dozen productivity workflows.
 
-**Treat your AI instructions with the same engineering rigor you apply to your code.** Refactor. Deduplicate. Compress. Architect. Iterate.
+**Treat your AI instructions with the same engineering rigor you apply to your code.** Refactor. Deduplicate. Compress. Architect. Iterate. And accept that what you wrote today may be obsolete in three months, not because it was wrong, but because the model caught up.
 
 Your context window will thank you. And then it will start writing your code.
 
