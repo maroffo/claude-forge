@@ -23,6 +23,7 @@
 
 | Task | Primary Skill | Related |
 |------|---------------|---------|
+| Refine requirements | `refine-requirements` | plan-first-workflow rule |
 | Write code | Language-specific | `_PATTERNS.md`, `_AST_GREP.md` |
 | Search/refactor code | `_AST_GREP.md` | Language-specific |
 | Commit changes | `source-control` | (`commit` redirects here) |

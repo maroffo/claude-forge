@@ -46,6 +46,7 @@ Rules in `rules/` auto-load: orchestrator (contractor mode), plan-first, TDD ver
 
 | Domain | Skill |
 |--------|-------|
+| Requirements refinement | `refine-requirements` (auto-triggered for 🟡/🔴) |
 | Git commit/workflow | `source-control` (`commit` redirects here) |
 | Go | `golang` |
 | Android/Kotlin | `android-kotlin` |

@@ -8,7 +8,8 @@ After plan approval, execute autonomously until quality gates pass.
 ## Loop
 
 ```
-0. RESEARCH  → (optional) research-analyst for unknowns before planning
+0. REFINE    → requirements refinement (see plan-first-workflow) if request is ambiguous
+0b. RESEARCH → (optional) research-analyst for unknowns before planning
 1. IMPLEMENT → software-engineer(s) with scoped subtasks (parallel if independent)
 2. VERIFY    → tests, lint, build (max 2 retries)
 3. REVIEW    → review agents by file pattern
@@ -32,6 +33,8 @@ research-analyst searches `docs/solutions/`, `LEARNING.md`, `MEMORY.md`, then ex
 ## Implementation (Step 1)
 
 Split into independent workstreams. Each software-engineer gets: **scope** (files), **plan** (subtask + criteria), **context** (lang/framework). Max 3 parallel. Single-scope → implement directly.
+
+**Checkpoints:** If plan contains `<!-- checkpoint:verify -->` or `<!-- checkpoint:decide -->` markers, software-engineer stops at those points for human input. Between checkpoints, execution is autonomous. Engineers apply deviation rules (R1-R4) for unplanned discoveries.
 
 ## Review Routing (Step 3)
 
