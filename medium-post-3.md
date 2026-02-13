@@ -66,13 +66,7 @@ The key design decisions, borrowed from GSD's `questioning.md` and `discuss-phas
 
 Here's what the plan-first workflow looks like now:
 
-```
-user request → refine requirements → plan → approve → implement
-                    ↓
-          AskUserQuestion with concrete options
-          capture decisions in plan file
-          scope guard: HOW, never expand WHAT
-```
+![Workflow after: user request → refine requirements → plan → approve → implement](medium-post-3-workflow-after.png)
 
 The decisions feed directly into a `## Decisions` section in the plan file. The software-engineer agent reads them and never has to guess whether you meant JWT or sessions.
 
