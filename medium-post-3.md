@@ -14,7 +14,7 @@ A follow-up to my previous articles on building [claude-forge](https://github.co
 
 ## The Hint
 
-My colleague Andrea Catozzi had been looking at [Get Shit Done](https://github.com/gsd-build/get-shit-done), a popular meta-prompting system for Claude Code. His observation was specific: "The thing where GSD really excels is the initial requirements gathering using `AskUserQuestion`. You could use something like that too, to refine requirements before building the execution plan."
+My colleague (let's call him the Pointy Haired Boss, for reasons he'll appreciate) had been looking at [Get Shit Done](https://github.com/gsd-build/get-shit-done), a popular meta-prompting system for Claude Code. His observation was specific: "The thing where GSD really excels is the initial requirements gathering using `AskUserQuestion`. You could use something like that too, to refine requirements before building the execution plan."
 
 Five words that mattered: *before building the execution plan.*
 
@@ -34,7 +34,7 @@ The plan wasn't wrong. It was *uninformed*. Nobody asked: "JWT or sessions? OAut
 
 GSD asks those questions. Before any planning happens, it runs a structured questioning flow that identifies gray areas, presents concrete options via `AskUserQuestion`, and captures decisions. The planner never has to guess.
 
-Andrea didn't say "adopt GSD." He pointed at one specific thing it does well. That's the kind of feedback that's actually useful.
+PHB didn't say "adopt GSD." He pointed at one specific thing it does well. That's the kind of feedback that's actually useful.
 
 ## What GSD Does (and What It Doesn't)
 
@@ -50,7 +50,7 @@ The principle from [Part 3 of the previous article](https://medium.com/@maroffo)
 
 ## What We Borrowed
 
-### 1. Requirements Refinement (the Andrea insight)
+### 1. Requirements Refinement (the PHB insight)
 
 The biggest change. Before drafting a plan, the workflow now identifies gray areas in the request and clarifies them with structured questions.
 
@@ -169,7 +169,7 @@ Each borrowed concept addresses a different failure mode:
 - Context preservation prevents **lost state** across sessions
 - Checkpoints prevent **unverified outcomes** in human-dependent steps
 
-None of these are revolutionary ideas. They're table stakes in human engineering processes. The insight, the one Andrea triggered, was that our AI workflow was missing them.
+None of these are revolutionary ideas. They're table stakes in human engineering processes. The insight, the one PHB triggered, was that our AI workflow was missing them.
 
 ## The Principle
 
@@ -177,13 +177,13 @@ Three articles in, a pattern emerges in how this system evolves: someone points 
 
 The instinct is always to adopt the whole system. The discipline is to ask: "Which specific problem does this solve that we actually have?" and then write the minimum lines to solve it.
 
-Andrea said five words. They turned into 100 lines of markdown and one new skill. The plans are better now.
+PHB said five words. They turned into 100 lines of markdown and one new skill. The plans are better now.
 
 ---
 
 **The updated system is at [github.com/maroffo/claude-forge](https://github.com/maroffo/claude-forge). Key changes: requirements refinement in `rules/plan-first-workflow.md` and `skills/refine-requirements/`, deviation rules in `agents/software-engineer/AGENT.md`, checkpoint support in `rules/orchestrator-protocol.md`.**
 
-*Thanks to [Andrea Catozzi](https://www.linkedin.com/in/andrea-catozzi/) for the hint that started this, and to TACHES (GSD's creator) for building a system worth reading carefully.*
+*Thanks to the Pointy Haired Boss for the hint that started this, and to TACHES (GSD's creator) for building a system worth reading carefully.*
 
 ---
 
