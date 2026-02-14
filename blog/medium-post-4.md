@@ -2,7 +2,7 @@
 ## Three Layers of Knowledge Integration Between Obsidian and Claude Code
 
 **Massimiliano Aroffo**
-*8 min read*
+*10 min read*
 
 ---
 
@@ -122,6 +122,24 @@ The human gate is non-negotiable. Skills are loaded into every session's context
 
 **Local fallbacks are mandatory.** Every vault operation has a local equivalent. If Obsidian isn't running, the system degrades gracefully to `quality_reports/` paths. The vault is preferred, not required.
 
+## Bonus: The Skills Got Better Too
+
+While building the vault integration, a parallel question kept coming up: are the skills themselves well-structured? If knowledge-sync is going to propose additions to skill files, those files better be solid.
+
+Anthropic published a [Complete Guide to Building Skills for Claude](https://www.anthropic.com/engineering/claude-code-best-practices): 33 pages of best practices for the very thing claude-forge is built on. We audited all 28 skills against it. The results were humbling.
+
+**Two skills were broken.** `ios-debugger` and `swiftui-liquid-glass` had no YAML frontmatter at all: Claude couldn't even match them to user requests. They existed in the skills directory, invisible to the routing system.
+
+**Eleven skills had weak descriptions.** The description field is what Claude uses to decide *when* to load a skill. "Go development conventions" doesn't tell Claude that you want this skill when someone says "how do I handle goroutine errors." Adding trigger phrases ("Use when working with .go files, go.mod, or user asks about goroutines, channels, error handling, interfaces") made the difference between a skill that activates and one that sits there.
+
+**Six overlapping skills had no disambiguation.** `rails` and `ruby` both match Ruby-related requests. Without negative triggers ("Not for Rails apps, use rails skill" in the ruby description), Claude had to guess. Same for `source-control` vs `commit`, and the three email-processing skills.
+
+**Three skills were too large.** `apple-swift` at 383 lines, `android-kotlin` at 321, `rails` at 238. Anthropic's guide recommends progressive disclosure: keep SKILL.md under ~150 lines with core patterns, move detailed content to a `references/` subdirectory that Claude reads on demand. We split all three.
+
+We touched 37 files to fix this, but the meta-lesson led to something more lasting: a `/skill-forge` skill that encodes both Anthropic's guide and our conventions as a validation checklist. Creating a new skill? `skill-forge create <name>` walks through the template. Auditing existing ones? `skill-forge review all` scores every skill on structure, description quality, content specificity, and conventions. Score 90+ ships, 70-89 needs fixes, below 70 is a rewrite.
+
+This matters for the feedback loop. Layer 3 proposes additions to skills. If those skills are poorly structured, the additions land in the wrong place or get lost in noise. Clean skills make the whole pipeline more reliable.
+
 ## The Compound Effect
 
 Here's what happens when all three layers work together.
@@ -150,15 +168,15 @@ The always-on cost is 10 lines across two rules. Everything else is conditional:
 
 Four articles in, the system's evolution follows a consistent pattern: each iteration adds a layer that makes the previous layers more valuable.
 
-Skills alone were useful but static. The orchestrator made skills more useful by routing them intelligently. Requirements refinement made plans more accurate. And now the vault turns accumulated experience into skill improvements.
+Skills alone were useful but static. The orchestrator made skills more useful by routing them intelligently. Requirements refinement made plans more accurate. The vault turns accumulated experience into skill improvements. And the skills guide alignment makes the skills themselves better containers for that accumulated knowledge.
 
-The key insight: **knowledge compounds when it has structure.** An unstructured pile of solution files is searchable but not actionable. A signal-tracked table of patterns that feeds into a human-gated promotion workflow turns "we solved this before" into "the system knows how to solve this."
+The key insight: **knowledge compounds when it has structure.** An unstructured pile of solution files is searchable but not actionable. A signal-tracked table of patterns that feeds into a human-gated promotion workflow turns "we solved this before" into "the system knows how to solve this." And a quality checklist for the skills themselves ensures the destination is worth writing to.
 
-The recursion from the previous article's bio line? It's now three levels deep. The system that helps build infrastructure has developed infrastructure for improving itself.
+The recursion from the previous article's bio line? It's now three levels deep. The system that helps build infrastructure has developed infrastructure for improving itself, and then used an external guide to improve the infrastructure of the infrastructure.
 
 ---
 
-**The updated system is at [github.com/maroffo/claude-forge](https://github.com/maroffo/claude-forge). Key changes: vault storage in `rules/plan-first-workflow.md` and `rules/orchestrator-protocol.md`, context injection and project onboarding in `skills/_VAULT_CONTEXT.md`, knowledge sync in `skills/knowledge-sync/`.**
+**The updated system is at [github.com/maroffo/claude-forge](https://github.com/maroffo/claude-forge). Key changes: vault storage in `rules/plan-first-workflow.md` and `rules/orchestrator-protocol.md`, context injection and project onboarding in `skills/_VAULT_CONTEXT.md`, knowledge sync in `skills/knowledge-sync/`, skill quality in `skills/skill-forge/`.**
 
 ---
 

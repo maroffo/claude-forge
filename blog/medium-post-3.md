@@ -2,7 +2,7 @@
 ## Structured Requirements, Deviation Rules, and the Art of Selective Theft
 
 **Massimiliano Aroffo**
-*7 min read*
+*8 min read*
 
 ---
 
@@ -10,7 +10,7 @@ A follow-up to my previous articles on building [claude-forge](https://github.co
 
 ![Selective theft: borrowing the right ideas from GSD](medium-post-3-cover.png)
 
-*Four concepts borrowed. Twenty rejected. Sometimes the best feature is the one you don't build.*
+*Five concepts borrowed. Twenty rejected. Sometimes the best feature is the one you don't build.*
 
 ## The Hint
 
@@ -44,7 +44,7 @@ The comparison was instructive:
 
 ![GSD vs claude-forge comparison](medium-post-3-table-comparison.png)
 
-Four gaps. Everything else was either already covered or not worth the token cost. GSD's XML task format, model profiles, progress bars, STATE.md living document, project initialization ceremony: all interesting, none solving problems we actually have. We're developers who use plan mode, not vibecoding a product description into existence.
+Five gaps. Everything else was either already covered or not worth the token cost. GSD's XML task format, model profiles, progress bars, STATE.md living document, project initialization ceremony: all interesting, none solving problems we actually have. We're developers who use plan mode, not vibecoding a product description into existence.
 
 The principle from [Part 3 of the previous article](https://medium.com/@maroffo) applied again: out of a large system, a handful of architectural patterns are worth adopting. The rest is token tax.
 
@@ -137,6 +137,20 @@ Between checkpoints, execution is autonomous. The software-engineer knows to sto
 
 **Token cost:** ~10 lines across the plan-first workflow and orchestrator protocol.
 
+### 5. Goal-Backward UAT (the late addition)
+
+This one came later. A different colleague, Andrea, pointed out that GSD's `/gsd:verify-work` phase was something we'd missed entirely.
+
+Our quality gates verify that *code* is good: tests pass, lint clean, review agents find no critical issues. Score 80+, commit. Score 90+, PR. But none of that answers: "does the feature actually work?" A search endpoint can have 100% test coverage and still return results in the wrong format because the tests were written against the same wrong assumption as the code.
+
+GSD's UAT is elaborate: it derives "must-be-true" observable behaviors from the original goal (goal-backward), walks through them conversationally, and spawns debug agents with hypothesis-driven investigation when something fails. Full state tracking, persistent UAT files, the works.
+
+We took the core idea and compressed it. After the orchestrator presents results (step 8), it now derives 3-7 must-be-true behaviors from the original goal and walks through them one at a time with `AskUserQuestion`. Pass, fail, or skip. On failure, the existing fix loop handles diagnosis and repair, then re-UATs only the failed items.
+
+The critical design choice: **when to skip.** UAT adds overhead, and not every change has user-facing behavior. Docs-only changes, config, pure refactors, single-function fixes with passing tests: skip it. Everything else: run it. When in doubt, run it.
+
+**Token cost:** ~13 lines in the orchestrator protocol, no new files. The fix loop already existed; UAT just feeds it user-reported failures instead of only review-agent findings.
+
 ## What We Didn't Borrow
 
 The selective part matters as much as the theft.
@@ -155,9 +169,9 @@ Six concepts rejected. In each case, the reasoning was the same: either we alrea
 
 ## The Compound Effect
 
-These four changes are small individually. Requirements refinement is ~25 lines in the rule plus a 27-line skill. Deviation rules are ~20 lines. Context preservation is ~15 lines. Checkpoints are ~10 lines. About 100 lines total, spread across four files.
+These five changes are small individually. Requirements refinement is ~25 lines in the rule plus a 27-line skill. Deviation rules are ~20 lines. Context preservation is ~15 lines. Checkpoints are ~10 lines. UAT is ~13 lines. About 115 lines total, spread across four files.
 
-But they close a loop. Before: the orchestrator could plan, implement, review, and score, but it couldn't *ask the right questions* before planning, couldn't *handle surprises* during implementation, couldn't *preserve state* when pausing, and couldn't *stop for human judgment* when it mattered.
+But they close a loop. Before: the orchestrator could plan, implement, review, and score, but it couldn't *ask the right questions* before planning, couldn't *handle surprises* during implementation, couldn't *preserve state* when pausing, couldn't *stop for human judgment* when it mattered, and couldn't *verify the result actually works* from the user's perspective.
 
 The workflow now looks like this:
 
@@ -168,22 +182,23 @@ Each borrowed concept addresses a different failure mode:
 - Deviation rules prevent **silent workarounds** during implementation
 - Context preservation prevents **lost state** across sessions
 - Checkpoints prevent **unverified outcomes** in human-dependent steps
+- UAT prevents **false confidence** when tests pass but the feature doesn't work
 
 None of these are revolutionary ideas. They're table stakes in human engineering processes. The insight, the one PHB triggered, was that our AI workflow was missing them.
 
 ## The Principle
 
-Three articles in, a pattern emerges in how this system evolves: someone points at something, I read the source, I take 10-20% of it, and I compress it to fit our token budget. The compound-engineering-plugin gave us the research agent and solutions directory. Boris Tane gave us the annotation cycle. GSD gave us requirements refinement and deviation rules.
+Three articles in, a pattern emerges in how this system evolves: someone points at something, I read the source, I take 10-20% of it, and I compress it to fit our token budget. The compound-engineering-plugin gave us the research agent and solutions directory. Boris Tane gave us the annotation cycle. GSD gave us requirements refinement, deviation rules, and goal-backward UAT.
 
 The instinct is always to adopt the whole system. The discipline is to ask: "Which specific problem does this solve that we actually have?" and then write the minimum lines to solve it.
 
-PHB said five words. They turned into 100 lines of markdown and one new skill. The plans are better now.
+PHB said five words. Andrea said three ("what about UAT?"). They turned into 115 lines of markdown and one new skill. The plans are better now, and the results get verified.
 
 ---
 
-**The updated system is at [github.com/maroffo/claude-forge](https://github.com/maroffo/claude-forge). Key changes: requirements refinement in `rules/plan-first-workflow.md` and `skills/refine-requirements/`, deviation rules in `agents/software-engineer/AGENT.md`, checkpoint support in `rules/orchestrator-protocol.md`.**
+**The updated system is at [github.com/maroffo/claude-forge](https://github.com/maroffo/claude-forge). Key changes: requirements refinement in `rules/plan-first-workflow.md` and `skills/refine-requirements/`, deviation rules in `agents/software-engineer/AGENT.md`, checkpoint and UAT support in `rules/orchestrator-protocol.md`.**
 
-*Thanks to the Pointy Haired Boss for the hint that started this, and to TACHES (GSD's creator) for building a system worth reading carefully.*
+*Thanks to the Pointy Haired Boss for the hint that started this, to Andrea for the UAT nudge that finished it, and to TACHES (GSD's creator) for building a system worth reading carefully.*
 
 ---
 
