@@ -74,7 +74,7 @@ Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes 
 - **Solved problems:** Capture in `docs/solutions/[category]/` + vault copy (`<project> - Solutions`)
 - **Plans:** Vault-first (`Plans/YYYY-MM-DD - description`), fallback `quality_reports/plans/`
 - **Session logs:** Vault-first (`<project> - Log`), fallback `quality_reports/session_logs/`
-- **Vault-to-skills sync:** Run `knowledge-sync` monthly to promote recurring patterns
+- **Vault-to-skills sync:** Run `knowledge-sync` weekly to promote recurring patterns
 
 # Writing
 - **NEVER use em dashes (—).** Use Italian punctuation: commas, colons, semicolons, or parentheses.
