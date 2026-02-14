@@ -31,9 +31,11 @@
 | Setup/analyze project | `project-analyzer` | Language-specific |
 | Release/tag | `releasing-software` | `source-control` |
 | Document learnings | `learning-docs` | - |
+| Sync vault knowledge to skills | `knowledge-sync` | `_VAULT_CONTEXT.md`, `learning-docs` |
 | Task management | `clickup` | `source-control` |
 | AWS/GCP infra | `cloud-infrastructure` | `terraform` |
 | Obsidian vault ops | `obsidian` | `_OBSIDIAN.md`, `_SECOND_BRAIN.md` |
+| Save project artifacts | vault (see plan-first-workflow) | `_OBSIDIAN.md` |
 | Check email | `inbox-triage` | `_GMAIL.md` |
 | Process newsletters | `newsletter-digest` | `_GMAIL.md`, `_OBSIDIAN.md`, `_SECOND_BRAIN.md` |
 | Process clippings | `process-clippings` | `_OBSIDIAN.md`, `_SECOND_BRAIN.md` |
@@ -51,4 +53,5 @@
 | `_GMAIL.md` | Gmail account config, gog CLI commands |
 | `_OBSIDIAN.md` | Obsidian CLI config, vault commands |
 | `_SECOND_BRAIN.md` | Category routing, content templates, rules |
+| `_VAULT_CONTEXT.md` | Vault context injection, token budget, breadcrumbs |
 | `_generate_image.py` | Gemini image generation (used by cover-image, table-image) |

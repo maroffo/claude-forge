@@ -58,6 +58,13 @@ obsidian append file="Second Brain - <Topic>" content="<extracted>"
 obsidian append file="Second Brain - Timeline" content="- **YYYY-MM-DD** | [Topic] | Source: ..."
 ```
 
+### Onboard project to vault
+```bash
+# Run the project onboarding protocol from _VAULT_CONTEXT.md
+# Detects project info from CLAUDE.md, creates Overview/Log/Solutions, registers in MOC
+# See _VAULT_CONTEXT.md "Project Onboarding" for full steps
+```
+
 ## Rules
 
 - Always use `silent` flag for create/append when user doesn't need the note opened

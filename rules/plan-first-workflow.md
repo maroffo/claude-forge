@@ -36,7 +36,7 @@ Can also be invoked explicitly via `/refine-requirements`.
 
 1. Requirements refinement (above) — only for ambiguous requests
 2. Plan mode → draft: files, approach, dependencies, verification, risks
-3. Save to `quality_reports/plans/YYYY-MM-DD_description.md`
+3. Save plan: `obsidian create name="Plans/YYYY-MM-DD - description" content="..." silent` (fallback: `quality_reports/plans/`)
 4. Approve → orchestrator
 
 ## Annotation Cycle (complex only)
@@ -62,7 +62,8 @@ Between checkpoints, execution is autonomous. Use sparingly: 0-2 per plan.
 
 ## Session Logging
 
-Append to `quality_reports/session_logs/YYYY-MM-DD_description.md`:
+Append to project log in vault: `obsidian append file="<project> - Log" content="## YYYY-MM-DD: <goal>\n..."` (fallback: `quality_reports/session_logs/`)
+
 - **Post-plan:** goal, plan summary, key context
 - **During:** decisions, problems, review findings (1-3 lines each)
 - **End:** accomplishments, open questions

@@ -80,6 +80,8 @@ Each solution file:
 
 **When to use LEARNING.md vs solutions/**: LEARNING.md for narrative retrospectives, architectural decisions, broad lessons. Solutions/ for specific, searchable, reusable fixes — "how did we solve X?" answers.
 
+**Vault copy:** After writing to `docs/solutions/`, also append to vault: `obsidian append file="<project> - Solutions" content="### YYYY-MM-DD: [title]\n[Problem/Solution/Why]"`. Creates cross-project discoverability.
+
 ## Session Analysis
 
 Analyze past sessions to identify improvement opportunities. Session files live in `~/.claude/projects/` (project paths: slashes→dashes).
@@ -130,4 +132,14 @@ jq -r '.messages[] | select(.role=="assistant") | .content[]? | select(.type=="t
 3. **Scripts** - Multi-step commands done often
 4. **LEARNING.md entries** - Project-specific gotchas
 5. **Pre-commit hooks** - Catch issues earlier
+
+### Vault Pattern Annotation
+
+When a lesson learned maps to a skill domain, append to `## Skill Candidates` in the relevant Second Brain note:
+
+```bash
+obsidian append file="Second Brain - Development" content="\n| <pattern> | <target-skill> | <project> | YYYY-MM-DD | weak |"
+```
+
+Signal starts as `weak`. The `knowledge-sync` skill promotes to `strong` when 3+ projects or 2+ independent sources confirm the pattern. Create the `## Skill Candidates` section (with table header) if it doesn't exist yet.
 

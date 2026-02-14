@@ -42,6 +42,7 @@ Non-code/paths/docs → grep/glob
 
 # Workflow
 Rules in `rules/` auto-load: orchestrator (contractor mode), plan-first, TDD verification, quality gates (80/90/95). Agents in `agents/` launched by orchestrator based on file patterns — use subagents for parallel/isolated workstreams, work directly for simple tasks.
+Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes via `## Vault Context`.
 
 # Skills (`~/.claude/skills/`)
 
@@ -63,13 +64,17 @@ Rules in `rules/` auto-load: orchestrator (contractor mode), plan-first, TDD ver
 | Code review | `gemini-review` |
 | Release/tag | `releasing-software` |
 | Project retrospective | `learning-docs` |
+| Knowledge sync | `knowledge-sync` |
 | Cover/hero images | `cover-image` |
 | Table/diagram images | `table-image` |
 
 # Knowledge Capture
 - **Quick corrections:** Append `[LEARN:category]` to `MEMORY.md`
 - **Deep retrospectives:** Run `learning-docs` to update LEARNING.md
-- **Solved problems:** Capture in `docs/solutions/[category]/` for searchable reuse
+- **Solved problems:** Capture in `docs/solutions/[category]/` + vault copy (`<project> - Solutions`)
+- **Plans:** Vault-first (`Plans/YYYY-MM-DD - description`), fallback `quality_reports/plans/`
+- **Session logs:** Vault-first (`<project> - Log`), fallback `quality_reports/session_logs/`
+- **Vault-to-skills sync:** Run `knowledge-sync` monthly to promote recurring patterns
 
 # Writing
 - **NEVER use em dashes (—).** Use Italian punctuation: commas, colons, semicolons, or parentheses.

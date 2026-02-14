@@ -21,7 +21,7 @@ Before planning (pre-step 1 in orchestrator), or manually when evaluating:
 ## Research Process
 
 1. **Clarify the question** — what exactly needs to be decided?
-2. **Search internal first** — `docs/solutions/`, `LEARNING.md`, `MEMORY.md`, existing code patterns
+2. **Search internal first** — `docs/solutions/`, `LEARNING.md`, `MEMORY.md`, vault (`obsidian search query="..." path="Projects"`), existing code patterns
 3. **Search external** — docs, repos, blog posts, conference talks via web search
 4. **Compare approaches** — table format: approach | pros | cons | complexity | risk
 5. **Recommend** — one clear recommendation with reasoning, plus alternatives

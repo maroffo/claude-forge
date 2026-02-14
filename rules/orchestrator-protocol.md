@@ -18,11 +18,12 @@ After plan approval, execute autonomously until quality gates pass.
 6. SCORE     → quality-gates thresholds
 7. LOOP      → repeat 3-7 until score ≥ threshold or max 5 rounds
 8. PRESENT   → summary: files changed, issues found/fixed, score, open items
+9. STORE     → save session log + plan status to vault (see plan-first-workflow)
 ```
 
 ## Research + Complexity (Step 0)
 
-research-analyst searches `docs/solutions/`, `LEARNING.md`, `MEMORY.md`, then external. Returns comparison table + recommendation. MUST end with complexity verdict:
+research-analyst searches `docs/solutions/`, `LEARNING.md`, `MEMORY.md`, vault (`obsidian search query="..." path="Projects"`), then external. Returns comparison table + recommendation. MUST end with complexity verdict:
 
 | Level | Criteria | Effect |
 |-------|----------|--------|

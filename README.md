@@ -1,6 +1,6 @@
 # Claude Forge
 
-![Claude Forge](cover.png)
+![Claude Forge](blog/cover.png)
 
 Token-optimized skills, orchestrated review agents, and always-on workflow rules for Claude Code. A three-tier system: **rules** (always active) + **agents** (on-demand reviewers) + **skills** (user-invoked).
 
@@ -46,7 +46,12 @@ cp claude-forge/MEMORY.md ~/.claude/MEMORY.md
 ├── rules/              → Always-on workflow guardrails (auto-loaded)
 ├── agents/             → On-demand agents (launched by orchestrator)
 ├── skills/             → User-invoked language/tool skills
-└── docs/solutions/     → Categorized solved problems (searchable knowledge base)
+├── docs/solutions/     → Categorized solved problems (searchable knowledge base)
+│
+Obsidian Vault (Documents/)
+├── Projects/           → Per-project artifacts (overview, log, solutions)
+├── Plans/              → Cross-project plans (vault-first, local fallback)
+└── Second Brain/       → Topic files with Skill Candidates for knowledge-sync
 ```
 
 **Rules** auto-load every conversation — no invocation needed.
@@ -82,6 +87,16 @@ Launched by the orchestrator based on file patterns. All review agents are **rea
 
 ## Skills
 
+Skills are markdown files that teach Claude domain-specific patterns. They load automatically when relevant or on demand via `/skill-name` in Claude Code.
+
+**How invocation works:**
+- Type `/obsidian` to activate the Obsidian vault skill
+- Type `/commit` to use the source-control commit workflow
+- Type `/knowledge-sync` to run the vault-to-skills sync
+- Some skills auto-activate based on project context (e.g., `golang/` loads when working in a Go project)
+
+**Shared reference files** (`_*.md`) are not invocable. They provide configuration and patterns that other skills reference internally.
+
 ### Languages & Frameworks
 
 | Skill | Description |
@@ -108,6 +123,7 @@ Launched by the orchestrator based on file patterns. All review agents are **rea
 | `_GMAIL.md` | Gmail account config, gog CLI commands |
 | `_OBSIDIAN.md` | Obsidian CLI config, vault commands |
 | `_SECOND_BRAIN.md` | Category routing, content templates, rules |
+| `_VAULT_CONTEXT.md` | Vault context injection, token budget, breadcrumbs |
 
 ### Support & Integrations
 
@@ -115,7 +131,8 @@ Launched by the orchestrator based on file patterns. All review agents are **rea
 |-------|-------------|
 | `source-control/` | Conventional commits, git workflow, hooks |
 | `commit/` | Redirects to `source-control/` |
-| `learning-docs/` | LEARNING.md retrospectives, session analysis, docs/solutions/ capture |
+| `learning-docs/` | LEARNING.md retrospectives, session analysis, docs/solutions/ capture, vault pattern annotation |
+| `knowledge-sync/` | Vault-to-skills sync: scan Second Brain for recurring patterns, propose skill updates |
 | `releasing-software/` | Pre-release checklist, no-tag-without-green-CI |
 | `obsidian/` | Obsidian vault operations via CLI (CRUD, search, daily notes, graph, tasks) |
 | `refine-requirements/` | Structured requirements gathering before planning |
@@ -131,6 +148,88 @@ Launched by the orchestrator based on file patterns. All review agents are **rea
 | `newsletter-digest/` | Process newsletters into Second Brain (via Obsidian CLI) |
 | `process-clippings/` | Web clippings to Second Brain (via Obsidian CLI) |
 | `process-email-bookmarks/` | Gmail bookmarks processing (via Obsidian CLI) |
+
+## Vault Integration (Obsidian)
+
+An optional layer that turns an Obsidian vault into a knowledge backbone for Claude Code. Works across three layers; each is useful alone but they compound together.
+
+### Prerequisites
+
+- [Obsidian](https://obsidian.md/) app installed and running (the CLI is built-in, see `_OBSIDIAN.md` for config)
+- A vault named "Documents" (configurable in `_OBSIDIAN.md`)
+- **Without Obsidian:** everything degrades gracefully to local `quality_reports/` paths. No vault = no breakage.
+
+### Layer 1: Structured Storage
+
+Plans, session logs, and solutions go to the vault instead of project-local folders.
+
+```
+Documents/
+├── Projects/<project>/          Overview, Log, Solutions per project
+├── Plans/                       Cross-project plans (draft → approved → done)
+└── Second Brain/                Topic files (existing, unchanged)
+```
+
+| Artifact | Vault destination | Local fallback |
+|----------|-------------------|----------------|
+| Plan | `Plans/YYYY-MM-DD - description.md` | `quality_reports/plans/` |
+| Session log | `<project> - Log.md` (append) | `quality_reports/session_logs/` |
+| Solution | `<project> - Solutions.md` (append) | `docs/solutions/` |
+
+Configured in `rules/plan-first-workflow.md` and `rules/orchestrator-protocol.md`.
+
+### Layer 2: Context Injection
+
+Project CLAUDE.md files can reference vault notes via a `## Vault Context` section:
+
+```markdown
+## Vault Context
+- Architecture: [[Projects/feed-brain/feed-brain - Overview]]
+- Go patterns: [[Second Brain - Development#Go (Golang)]]
+```
+
+Claude reads linked notes on demand via `obsidian read`. Token budget rules prevent context bloat (< 5KB: read fully; 5-20KB: outline first; > 20KB: section only). See `_VAULT_CONTEXT.md`.
+
+### Layer 3: Knowledge Feedback Loop
+
+Recurring patterns accumulate in Second Brain topic notes as `## Skill Candidates` tables. The `/knowledge-sync` skill (run monthly) scans for strong signals (3+ projects) and proposes additions to skill files, with mandatory human approval.
+
+```
+learning-docs retrospective → annotate pattern (weak signal)
+  → seen in 3+ projects → signal becomes strong
+    → /knowledge-sync proposes skill update → human approves → skill improved
+```
+
+### Onboarding a Project
+
+Ask Claude to onboard the current project to the vault:
+
+```
+"Onboard this project to the vault"
+```
+
+Claude reads the project's CLAUDE.md (or asks for basics), then automatically:
+1. Creates Overview, Log, and Solutions notes in `Projects/<project>/`
+2. Registers in the Projects MOC
+3. Adds `## Vault Context` to the project's CLAUDE.md
+
+This also runs automatically when using `/project-analyzer` on a new codebase.
+
+The protocol is defined in `_VAULT_CONTEXT.md` (Project Onboarding section). It's idempotent: skips notes that already exist.
+
+### Obsidian Skills Map
+
+| Skill/File | Type | Purpose |
+|------------|------|---------|
+| `obsidian/` | Invocable (`/obsidian`) | Vault CRUD, search, daily notes, graph, tasks |
+| `newsletter-digest/` | Invocable (`/newsletter-digest`) | Process newsletters into Second Brain |
+| `process-clippings/` | Invocable (`/process-clippings`) | Web clippings to Second Brain |
+| `process-email-bookmarks/` | Invocable (`/process-email-bookmarks`) | Gmail bookmarks to Second Brain |
+| `knowledge-sync/` | Invocable (`/knowledge-sync`) | Vault-to-skills sync (monthly) |
+| `learning-docs/` | Invocable (`/learning-docs`) | Retrospectives + vault pattern annotation |
+| `_OBSIDIAN.md` | Reference | CLI config and commands |
+| `_SECOND_BRAIN.md` | Reference | Category routing, content templates |
+| `_VAULT_CONTEXT.md` | Reference | Context injection protocol, token budget |
 
 ## Token Optimization
 
