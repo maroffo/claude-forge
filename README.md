@@ -58,7 +58,7 @@ cp claude-forge/MEMORY.md ~/.claude/MEMORY.md
 | Rule | Purpose |
 |------|---------|
 | `orchestrator-protocol` | Contractor mode: research → implement → verify → review → fix → score → loop |
-| `plan-first-workflow` | Plan before build, save plans to disk, session logging |
+| `plan-first-workflow` | Requirements refinement, plan before build, checkpoints, context preservation |
 | `verification-protocol` | TDD process, mandatory test/lint/build cycle |
 | `quality-gates` | Scoring: 80 commit, 90 PR, 95 excellence |
 
@@ -68,7 +68,7 @@ Launched by the orchestrator based on file patterns. All review agents are **rea
 
 | Agent | Trigger | Role |
 |-------|---------|------|
-| `software-engineer` | Implementation subtasks, fix rounds | Scoped read-write, incremental commits, acts on reviewer findings |
+| `software-engineer` | Implementation subtasks, fix rounds | Scoped read-write, deviation rules (R1-R4), incremental commits |
 | `research-analyst` | Pre-plan unknowns, tech evaluation | Best practices, external repos, docs, prior art |
 | `security-reviewer` | Auth, input, API, secrets | OWASP, injection, credentials |
 | `performance-reviewer` | Hot paths, queries, caching | N+1, memory, allocations |
@@ -106,6 +106,7 @@ Launched by the orchestrator based on file patterns. All review agents are **rea
 | `_INDEX.md` | Quick skill lookup by language/task |
 | `_PATTERNS.md` | Cross-language patterns (DI, errors, testing, jobs) |
 | `_GMAIL.md` | Gmail account config, gog CLI commands |
+| `_OBSIDIAN.md` | Obsidian CLI config, vault commands |
 | `_SECOND_BRAIN.md` | Category routing, content templates, rules |
 
 ### Support & Integrations
@@ -116,6 +117,8 @@ Launched by the orchestrator based on file patterns. All review agents are **rea
 | `commit/` | Redirects to `source-control/` |
 | `learning-docs/` | LEARNING.md retrospectives, session analysis, docs/solutions/ capture |
 | `releasing-software/` | Pre-release checklist, no-tag-without-green-CI |
+| `obsidian/` | Obsidian vault operations via CLI (CRUD, search, daily notes, graph, tasks) |
+| `refine-requirements/` | Structured requirements gathering before planning |
 | `clickup/` | Task management via MCP |
 | `gemini-review/` | Local code review with Gemini CLI |
 
@@ -125,9 +128,9 @@ Launched by the orchestrator based on file patterns. All review agents are **rea
 |-------|-------------|
 | `inbox-triage/` | Gmail inbox review and prioritization |
 | `email-cleanup/` | Archive old emails, manage storage |
-| `newsletter-digest/` | Process newsletters into Second Brain |
-| `process-clippings/` | Web clippings to Second Brain |
-| `process-email-bookmarks/` | Gmail bookmarks processing |
+| `newsletter-digest/` | Process newsletters into Second Brain (via Obsidian CLI) |
+| `process-clippings/` | Web clippings to Second Brain (via Obsidian CLI) |
+| `process-email-bookmarks/` | Gmail bookmarks processing (via Obsidian CLI) |
 
 ## Token Optimization
 
@@ -139,7 +142,7 @@ Everything is aggressively optimized:
 
 ## Inspiration
 
-Evolved from [Harper Reed's dotfiles](https://github.com/harperreed/dotfiles/tree/master/.claude), [Matteo Vaccari's AI-assisted modernization series](https://matteo.vaccari.name/posts/plants-by-websphere/), [Pedro Santanna's orchestrated workflow](https://github.com/pedrohcgs/claude-code-my-workflow), and [Every's compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin) (solutions directory, research agent, incremental commits).
+Evolved from [Harper Reed's dotfiles](https://github.com/harperreed/dotfiles/tree/master/.claude), [Matteo Vaccari's AI-assisted modernization series](https://matteo.vaccari.name/posts/plants-by-websphere/), [Pedro Santanna's orchestrated workflow](https://github.com/pedrohcgs/claude-code-my-workflow), [Every's compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin) (solutions directory, research agent, incremental commits), and [Get Shit Done](https://github.com/gsd-build/get-shit-done) (requirements refinement, deviation rules).
 
 ## License
 
