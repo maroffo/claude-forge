@@ -48,6 +48,8 @@ The fallback matters. If Obsidian isn't running, or the CLI isn't available, eve
 
 Solutions get a dual-write: the local copy stays (the research-analyst searches `docs/solutions/` internally), but a summary also goes to the vault for cross-project discovery. When you're working on project B and the research-analyst searches the vault, it finds the Redis fix from project A.
 
+**Project onboarding is automated.** You don't manually create vault notes for each project. Say "onboard this project to the vault" and Claude reads the project's CLAUDE.md, creates Overview/Log/Solutions notes, registers in the Projects MOC, and adds `## Vault Context` to the CLAUDE.md. The same thing happens automatically when running `/project-analyzer` on a new codebase. One sentence, four artifacts.
+
 ### Layer 2: The Vault as Context Source
 
 Layer 1 puts things *into* the vault. Layer 2 pulls things *out*.
@@ -87,12 +89,7 @@ The problem: you solve the same kind of issue across multiple projects. Go error
 
 **The annotation schema.** Second Brain topic notes get a `## Skill Candidates` section:
 
-```markdown
-## Skill Candidates
-<!-- Updated by learning-docs during retrospectives -->
-
 ![Skill Candidates table example with weak and strong signals](medium-post-4-table-skill-candidates.png)
-```
 
 Table-based (not YAML frontmatter) because: easy to append via CLI, readable in Obsidian, parseable by Claude, no frontmatter corruption risk.
 
@@ -121,7 +118,7 @@ The human gate is non-negotiable. Skills are loaded into every session's context
 
 **`.continue-here.md` stays project-local.** It's a handoff document for the current working directory, not a vault artifact. It gets deleted after resuming. Putting it in the vault would add complexity without benefit.
 
-**The Obsidian skill itself didn't change.** `_OBSIDIAN.md` is the CLI reference, already complete. The new system uses the existing CLI commands; it doesn't need new ones.
+**The Obsidian CLI reference didn't change.** `_OBSIDIAN.md` was already complete. The `obsidian/` skill gained one new workflow (project onboarding), but no new CLI commands were needed.
 
 **Local fallbacks are mandatory.** Every vault operation has a local equivalent. If Obsidian isn't running, the system degrades gracefully to `quality_reports/` paths. The vault is preferred, not required.
 
@@ -161,7 +158,7 @@ The recursion from the previous article's bio line? It's now three levels deep. 
 
 ---
 
-**The updated system is at [github.com/maroffo/claude-forge](https://github.com/maroffo/claude-forge). Key changes: vault storage in `rules/plan-first-workflow.md` and `rules/orchestrator-protocol.md`, context injection in `skills/_VAULT_CONTEXT.md`, knowledge sync in `skills/knowledge-sync/`.**
+**The updated system is at [github.com/maroffo/claude-forge](https://github.com/maroffo/claude-forge). Key changes: vault storage in `rules/plan-first-workflow.md` and `rules/orchestrator-protocol.md`, context injection and project onboarding in `skills/_VAULT_CONTEXT.md`, knowledge sync in `skills/knowledge-sync/`.**
 
 ---
 
