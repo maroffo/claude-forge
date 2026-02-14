@@ -1,6 +1,6 @@
 ---
 name: apple-swift
-description: "Modern Apple platform development with Swift 6, SwiftUI, async/await, and performance optimization for iOS, iPadOS, macOS, watchOS, and visionOS."
+description: "Apple platform development with Swift 6, SwiftUI, async/await, and performance. Use when working with .swift files, Package.swift, Xcode projects, or building for iOS/macOS/watchOS/visionOS."
 allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ---
 
@@ -31,95 +31,36 @@ sg --pattern 'func $NAME() async throws -> $RET { $$$ }' --lang swift
 sg --pattern '@MainActor' --lang swift
 ```
 
-**Nav:** [Swift 6](#swift-6) | [SwiftUI](#swiftui) | [Concurrency](#concurrency) | [Architecture](#architecture) | [Networking](#networking) | [Testing](#testing) | [Performance](#performance) | [Review](#review)
+**Nav:** [Swift 6](#swift-6) | [SwiftUI](#swiftui) | [Concurrency](#concurrency) | [Architecture](#architecture) | [Testing](#testing) | [Review](#review)
 
-**See also:** `_AST_GREP.md`, `_PATTERNS.md`, `source-control`
+**See also:** `_AST_GREP.md`, `_PATTERNS.md`, `source-control`, `references/`
 
 ---
 
 ## Swift 6
 
-### 6.0 - Strict Concurrency
-Data-race safety enforced at compile time.
+### Key Features
 
-```swift
-// Enable: swiftLanguageModes: [.v6] in Package.swift
-// Or: Build Settings → Swift Language Mode → Swift 6
+- **Strict concurrency** - Data-race safety enforced at compile time
+- **@Observable** - Modern state management replacing ObservableObject
+- **@MainActor** - Automatic UI thread isolation
+- **Sendable** - Safe cross-actor value types
+- **Macros** - @Observable, @Model, #Preview
 
-// ✅ Sendable struct
-struct UserData: Sendable { let id: String; let name: String }
+### Migration Checklist
 
-// ✅ Actor for mutable shared state
-actor UserCache {
-    private var cache: [String: User] = [:]
-    func get(_ id: String) -> User? { cache[id] }
-    func set(_ user: User) { cache[user.id] = user }
-}
+- [ ] Enable strict concurrency: `swiftLanguageModes: [.v6]`
+- [ ] Replace `ObservableObject` with `@Observable`
+- [ ] Add `@MainActor` to UI classes
+- [ ] Add `Sendable` to value types
+- [ ] Use actors for shared mutable state
+- [ ] Replace callbacks with `async throws`
 
-// ❌ Compile error - mutable class not Sendable
-class UserManager { var users: [User] = [] }
-
-// Migration: -strict-concurrency=complete → fix warnings → enable Swift 6
-```
-
-### 6.2 - Approachable Concurrency (2025)
-
-```swift
-// Main-actor by default: SWIFT_STRICT_CONCURRENCY=default_isolation
-// No @MainActor needed for UI code
-
-// @concurrent for explicit parallelism
-@concurrent func processInBackground() async { /* off main thread */ }
-
-// Async stays in caller's context - no unexpected thread hops
-@MainActor class ViewModel {
-    func loadData() async {
-        let data = await fetchData()  // Returns to main actor
-        self.items = data             // Safe
-    }
-}
-
-// Isolated conformances - MainActor types can conform to protocols
-@MainActor final class UserVM: Equatable {
-    var name = ""
-    static func == (lhs: UserVM, rhs: UserVM) -> Bool { lhs.name == rhs.name }
-}
-```
-
-### Macros
-
-```swift
-@Observable final class UserStore { var users: [User] = []; var isLoading = false }
-
-@Model final class Task { var title: String; var isCompleted: Bool; var createdAt: Date }
-
-#Preview { ContentView() }
-#Preview("Dark") { ContentView().preferredColorScheme(.dark) }
-```
+**Detailed patterns:** See `references/swift6-patterns.md`
 
 ---
 
 ## SwiftUI
-
-### @Observable (iOS 17+, Preferred)
-
-```swift
-// ❌ OLD: class VM: ObservableObject { @Published var user: User? }
-// ✅ NEW:
-@Observable final class UserVM { var user: User?; var isLoading = false }
-
-// @State for view-owned @Observable
-struct ContentView: View {
-    @State private var vm = UserVM()
-    var body: some View { UserView(viewModel: vm) }
-}
-
-// @Bindable for two-way bindings
-struct ProfileEditor: View {
-    @Bindable var vm: ProfileVM
-    var body: some View { TextField("Name", text: $vm.name) }
-}
-```
 
 ### Property Wrappers
 
@@ -152,46 +93,20 @@ struct ProfileEditor: View {
 | Business logic needed | @Observable ViewModel |
 | Network/DB access | Repository pattern |
 
-### NavigationStack (iOS 16+)
+### Modern Patterns (iOS 17+)
 
 ```swift
-enum AppRoute: Hashable { case profile(String); case settings; case detail(Item) }
+// @Observable instead of ObservableObject
+@Observable final class UserVM { var user: User?; var isLoading = false }
 
-struct ContentView: View {
-    @State private var path = NavigationPath()
-    var body: some View {
-        NavigationStack(path: $path) {
-            HomeView()
-                .navigationDestination(for: AppRoute.self) { route in
-                    switch route {
-                    case .profile(let id): UserProfileView(userId: id)
-                    case .settings: SettingsView()
-                    case .detail(let item): ItemDetailView(item: item)
-                    }
-                }
-        }
-    }
-}
+// NavigationStack instead of NavigationView
+enum AppRoute: Hashable { case profile(String); case settings }
+
+// SwiftData for persistence
+@Model final class Task { var title: String; var isCompleted: Bool }
 ```
 
-### SwiftData (iOS 17+)
-
-```swift
-@Model final class Task {
-    var title: String; var notes: String?; var isCompleted: Bool; var dueDate: Date?; var createdAt: Date
-    @Relationship(deleteRule: .cascade) var subtasks: [Subtask] = []
-    init(title: String, notes: String? = nil) {
-        self.title = title; self.notes = notes; self.isCompleted = false; self.createdAt = .now
-    }
-}
-
-struct TaskListView: View {
-    @Query(sort: \Task.createdAt, order: .reverse) private var tasks: [Task]
-    @Environment(\.modelContext) private var ctx
-    var body: some View { List(tasks) { TaskRow(task: $0) } }
-    func add(_ title: String) { ctx.insert(Task(title: title)) }
-}
-```
+**Detailed patterns:** See `references/swiftui-patterns.md`
 
 ---
 
@@ -207,32 +122,7 @@ struct TaskListView: View {
 | Protocol async | Require `async` in protocol | `protocol P { func load() async }` |
 | Closure capture | Use `@Sendable` closure | `Task { @Sendable in ... }` |
 
-### async/await
-
-```swift
-func fetchUser(id: String) async throws -> User {
-    let (data, _) = try await URLSession.shared.data(from: URL(string: "https://api.example.com/users/\(id)")!)
-    return try JSONDecoder().decode(User.self, from: data)
-}
-
-// Parallel with async let
-func loadDashboard() async throws -> Dashboard {
-    async let user = fetchUser()
-    async let posts = fetchPosts()
-    async let notifs = fetchNotifications()
-    return try await Dashboard(user: user, posts: posts, notifications: notifs)
-}
-
-// TaskGroup for dynamic parallelism
-func fetchAll(ids: [String]) async throws -> [User] {
-    try await withThrowingTaskGroup(of: User.self) { group in
-        for id in ids { group.addTask { try await fetchUser(id: id) } }
-        return try await group.reduce(into: []) { $0.append($1) }
-    }
-}
-```
-
-### MainActor
+### MainActor Pattern
 
 ```swift
 @MainActor final class HomeVM {
@@ -241,6 +131,21 @@ func fetchAll(ids: [String]) async throws -> [User] {
         isLoading = true; defer { isLoading = false }
         items = (try? await itemService.fetchItems()) ?? []
     }
+}
+```
+
+### Parallel Execution
+
+```swift
+// Fixed parallelism
+async let user = fetchUser()
+async let posts = fetchPosts()
+return try await Dashboard(user: user, posts: posts)
+
+// Dynamic parallelism
+try await withThrowingTaskGroup(of: User.self) { group in
+    for id in ids { group.addTask { try await fetchUser(id: id) } }
+    return try await group.reduce(into: []) { $0.append($1) }
 }
 ```
 
@@ -253,6 +158,8 @@ func fetchAll(ids: [String]) async throws -> [User] {
 | Real-time streams | Combine / AsyncStream |
 | UI events, debounce | Combine |
 
+**Detailed patterns:** See `references/concurrency-patterns.md`
+
 ---
 
 ## Architecture
@@ -261,20 +168,17 @@ func fetchAll(ids: [String]) async throws -> [User] {
 
 ```swift
 @Observable @MainActor final class UserListVM {
-    private(set) var users: [User] = []; private(set) var isLoading = false; private(set) var error: Error?
+    private(set) var users: [User] = []
+    private(set) var isLoading = false
+    private(set) var error: Error?
     private let svc: UserServiceProtocol
-    init(svc: UserServiceProtocol = UserService()) { self.svc = svc }
-    func load() async { isLoading = true; error = nil; defer { isLoading = false }; do { users = try await svc.fetchUsers() } catch { self.error = error } }
-}
 
-struct UserListView: View {
-    @State private var vm = UserListVM()
-    var body: some View {
-        Group {
-            if vm.isLoading { ProgressView() }
-            else if let e = vm.error { ErrorView(error: e, retry: { Task { await vm.load() } }) }
-            else { List(vm.users) { UserRow(user: $0) } }
-        }.task { await vm.load() }
+    init(svc: UserServiceProtocol = UserService()) { self.svc = svc }
+
+    func load() async {
+        isLoading = true; error = nil; defer { isLoading = false }
+        do { users = try await svc.fetchUsers() }
+        catch { self.error = error }
     }
 }
 ```
@@ -285,8 +189,15 @@ struct UserListView: View {
 protocol UserServiceProtocol { func fetchUsers() async throws -> [User] }
 
 // Environment DI
-private struct UserServiceKey: EnvironmentKey { static let defaultValue: UserServiceProtocol = UserService() }
-extension EnvironmentValues { var userService: UserServiceProtocol { get { self[UserServiceKey.self] } set { self[UserServiceKey.self] = newValue } } }
+private struct UserServiceKey: EnvironmentKey {
+    static let defaultValue: UserServiceProtocol = UserService()
+}
+extension EnvironmentValues {
+    var userService: UserServiceProtocol {
+        get { self[UserServiceKey.self] }
+        set { self[UserServiceKey.self] = newValue }
+    }
+}
 ```
 
 ---
@@ -317,48 +228,6 @@ import Testing
 
 ---
 
-## Performance
-
-### Common Performance Killers
-
-| Issue | Impact | Fix |
-|-------|--------|-----|
-| Unstable identity | List jumps/flickers | Use `.id()` or stable Identifiable |
-| Observing everything | Over-invalidation | Fine-grained `@Observable` tracking |
-| Deep nesting | Slow layout | Split into child views |
-
-### Debug: `let _ = Self._printChanges()` in body to trace recomputations.
-
-### SwiftUI Optimization
-
-```swift
-// @Observable tracks accessed properties only
-// LazyVStack for long lists (not VStack)
-ScrollView { LazyVStack { ForEach(items) { ItemRow(item: $0) } } }
-```
-
-### Instruments (CLI via xctrace)
-
-| Template | Use Case |
-|----------|----------|
-| Time Profiler | CPU hotspots, slow functions |
-| Allocations | Memory usage, leaks |
-| System Trace | I/O, system calls |
-| Leaks | Memory leak detection |
-
-```bash
-xctrace list templates
-xctrace record --template "Time Profiler" --attach "MyApp" --output ~/profile.trace --time-limit 30s
-xctrace record --template "Time Profiler" --device "iPhone 16 Pro" --attach "MyApp" --output ~/profile.trace
-xctrace record --template "Time Profiler" --launch com.example.myapp --output ~/profile.trace --time-limit 60s
-xctrace export --input profile.trace --output profile.xml
-xctrace symbolicate --input profile.trace --output symbolicated.trace
-```
-
-**Tips:** Profile Release builds. Use `--time-limit` to auto-stop. Warm up app first.
-
----
-
 ## Review Checklists
 
 ### Concurrency
@@ -378,6 +247,17 @@ xctrace symbolicate --input profile.trace --output symbolicated.trace
 **CRITICAL:** Force unwrap without safety, UI updates off MainActor, data races, retain cycles
 
 **HIGH:** ObservableObject when @Observable available, NavigationView instead of NavigationStack
+
+---
+
+## Detailed References
+
+For exhaustive patterns and examples, consult:
+
+- `references/swift6-patterns.md` - Swift 6 migration, Sendable, actors, macros
+- `references/swiftui-patterns.md` - NavigationStack, SwiftData, MVVM, dependency injection
+- `references/concurrency-patterns.md` - async/await, TaskGroup, MainActor, actors, AsyncStream
+- `references/performance.md` - Optimization, Instruments profiling, memory management
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: knowledge-sync
-description: "Sync vault knowledge patterns to skills. Scans Second Brain for strong signals, proposes skill updates. Run monthly or after major milestones."
+description: "Sync vault knowledge patterns to skills. Scans Second Brain for strong signals, proposes skill updates. Use when user says knowledge sync, sync skills, update skills from vault, or promote patterns."
 ---
 
 # ABOUTME: Vault-to-skills sync, promotes recurring patterns from Second Brain to skill files
@@ -79,6 +79,13 @@ obsidian append file="Second Brain - Development" content="..."
 #### cloud-infrastructure (1 candidate)
 ...
 ```
+
+## Quality Notes
+
+- Take your time scanning every Skill Candidates table thoroughly
+- Read the target skill file before proposing additions (avoid duplicates)
+- Quality of proposals matters more than quantity
+- Do not skip validation steps
 
 ## Rules
 

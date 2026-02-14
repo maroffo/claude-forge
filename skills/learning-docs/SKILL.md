@@ -1,12 +1,18 @@
 ---
 name: learning-docs
-description: "Create and update LEARNING.md project retrospectives. Use to document architecture decisions, lessons learned, bugs fixed, and technical insights."
+description: "Create and update LEARNING.md project retrospectives. Use when user says retrospective, lessons learned, what did we learn, document decisions, or session analysis."
 ---
 
 # ABOUTME: Project knowledge capture through engaging LEARNING.md files
 # ABOUTME: Documents architecture, decisions, bugs, lessons learned in conversational style
 
 # Learning Documentation
+
+## Quality Notes
+
+- Take your time reviewing recent work thoroughly before writing
+- Quality of insights matters more than covering every change
+- Re-read what you wrote: is it useful to a future reader, or just filler?
 
 ## Purpose
 

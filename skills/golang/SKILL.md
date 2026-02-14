@@ -1,6 +1,6 @@
 ---
 name: golang
-description: "Complete Go development: code conventions, architecture, concurrency, performance, and code review."
+description: "Go development: conventions, architecture, concurrency, performance, and code review. Use when working with .go files, go.mod, or user asks about goroutines, channels, error handling, interfaces."
 allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ---
 

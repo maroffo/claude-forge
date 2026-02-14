@@ -1,7 +1,8 @@
 ---
 name: cover-image
-description: Generate editorial cover images from article context. Use when user wants a cover image, hero image, or editorial illustration for an article or blog post.
+description: "Generate editorial cover images from article context. Use when user wants a cover image, hero image, or editorial illustration for an article or blog post."
 tools: Bash, Read
+compatibility: "Requires GEMINI_API_KEY or GOOGLE_API_KEY in environment. Uses ~/.claude/skills/_generate_image.py"
 ---
 
 # Cover Image Skill

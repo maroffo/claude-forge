@@ -1,7 +1,8 @@
 ---
 name: gemini-review
-description: "Local code review with Gemini CLI for pre-commit reviews."
+description: "Local code review with Gemini CLI for pre-commit reviews. Use when user says review code, code review, check my changes, or review before commit."
 allowed-tools: [mcp__acp__Read, mcp__acp__Bash]
+compatibility: "Requires Gemini CLI installed and GEMINI_API_KEY in environment."
 ---
 
 # ABOUTME: Local code review skill using Gemini CLI for pre-commit reviews
@@ -87,6 +88,12 @@ EOF
 ### Step 5: Present results
 
 Gemini's output will appear in the terminal. Summarize key findings for the user.
+
+## Quality Notes
+
+- Review the full diff carefully before sending to Gemini
+- Summarize findings thoughtfully; do not just relay raw output
+- Flag false positives rather than forwarding everything
 
 ## Important Notes
 

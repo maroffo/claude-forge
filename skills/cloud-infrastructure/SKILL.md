@@ -1,6 +1,6 @@
 ---
 name: cloud-infrastructure
-description: "AWS/GCP cloud infrastructure: Well-Architected, security, cost, observability"
+description: "AWS/GCP cloud infrastructure: Well-Architected, security, cost, observability. Use when working with Terraform outputs, IAM policies, VPC design, load balancers, or cloud architecture decisions."
 allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: commit
-description: "Create a git commit using conventional commit format. Use for committing staged changes."
+description: "Create a git commit using conventional commit format. Use for committing staged changes. Not for branch strategy, rebasing, or git workflow questions (use source-control skill)."
 allowed-tools: [Bash]
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: rails
-description: "Ruby on Rails 8 with service-oriented architecture, Dry-validation, Sidekiq/Solid Queue, Hotwire. Use for Rails API, Rails services, Rails forms, RSpec, ActiveRecord, Rails migrations."
+description: "Ruby on Rails 8 with service-oriented architecture, Dry-validation, Sidekiq/Solid Queue, Hotwire. Use for Rails API, Rails services, Rails forms, RSpec, ActiveRecord, Rails migrations. Not for standalone Ruby gems (use ruby skill)."
 allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ---
 
@@ -59,164 +59,37 @@ users.map { it.name }  # replaces _1
 
 ---
 
-## Service Pattern
+## Pattern Summary
 
+**Service:** Complex business logic, multi-step operations, transactions
 ```ruby
-module Feature
-  class OperationService
-    def initialize(user:, params:)
-      @user, @params = user, params
-    end
-
-    def call
-      validate_preconditions
-      ActiveRecord::Base.transaction { perform_operation }
-      schedule_jobs  # AFTER transaction
-      OpenStruct.new(success: true, record: @record)
-    end
-
-    private
-
-    def validate_preconditions
-      raise UnauthorizedError unless @user.can_perform?
-    end
-
-    def perform_operation
-      @record = @user.records.create!(name: @params[:name])
-    end
-
-    def schedule_jobs
-      ProcessJob.perform_async(@record.id)
-    end
-  end
-end
+MyService.new(user:, params:).call  # Returns OpenStruct(success, record)
 ```
 
----
-
-## Form & Contract Pattern
-
+**Form:** User input validation + persistence
 ```ruby
-# Contract = validation rules
-class CreateContract < Dry::Validation::Contract
-  params do
-    required(:name).filled(:string, max_size?: 255)
-    optional(:category_id).filled(:integer)
-  end
-
-  rule(:name) do
-    key.failure(I18n.t('errors.messages.taken')) if Feature.exists?(name: value.downcase)
-  end
-end
-
-# Form = orchestrate + persist
-class CreateForm < BaseForm
-  def initialize(attributes, current_user)
-    super(attributes)
-    @current_user = current_user
-    @contract = CreateContract.new
-  end
-
-  private
-
-  def persist!
-    ActiveRecord::Base.transaction do
-      @model = Feature.create!(validated_params.merge(user: @current_user))
-    end
-    ProcessJob.perform_async(@model.id)
-  end
-end
+MyForm.new(params, user).save  # Returns true/false
 ```
 
----
-
-## Controller Pattern
-
-Controllers = HTTP layer ONLY.
-
+**Contract:** Validation rules (Dry-validation)
 ```ruby
-class FeaturesController < Api::V1::BaseController
-  def index = render(json: FeaturesFilter.result(filter_params, current_user.features))
-
-  def create
-    form = CreateForm.new(feature_params, current_user)
-    form.save ? render(json: form.model, status: :created) : render(json: { errors: form.errors }, status: :unprocessable_entity)
-  end
-end
+CreateContract.new.call(params)  # Returns Result(success?, errors)
 ```
 
----
-
-## Model Pattern
-
-Models = associations + enums + simple scopes. NO validation, NO callbacks, NO business logic.
-
+**Controller:** HTTP layer only, no business logic
 ```ruby
-class Feature < ApplicationRecord
-  belongs_to :user
-  has_many :tags, dependent: :destroy
-  enum :status, { draft: 0, published: 1, archived: 2 }
-  scope :recent, -> { order(created_at: :desc) }
+def create
+  form = CreateForm.new(params, current_user)
+  form.save ? render(json: form.model, status: :created) : render(json: { errors: form.errors }, status: :unprocessable_entity)
 end
 ```
 
----
-
-## Background Jobs
-
-**Sidekiq:**
+**Model:** Associations, enums, simple scopes. NO validations, NO callbacks, NO business logic.
 ```ruby
-class ProcessJob
-  include Sidekiq::Job
-  sidekiq_options retry: 3, queue: :default
-
-  def perform(feature_id)
-    Feature.find(feature_id).then { ProcessService.new(feature: _1).call }
-  rescue ActiveRecord::RecordNotFound => e
-    Rails.logger.error("Feature ##{feature_id} not found")
-  end
-end
-```
-
----
-
-## Hotwire
-
-**Turbo Frames:**
-```erb
-<%= turbo_frame_tag "list" do %><% @items.each { |i| render i } %><% end %>
-<%= link_to "Filter", path, data: { turbo_frame: "list" } %>
-```
-
-**Turbo Streams:** `append`, `prepend`, `replace`, `update`, `remove`
-
-**Stimulus:**
-```javascript
-export default class extends Controller {
-  static targets = ["source"]
-  copy() { navigator.clipboard.writeText(this.sourceTarget.value) }
-}
-```
-
----
-
-## Testing
-
-```ruby
-factory :feature do
-  user
-  sequence(:name) { "Feature #{_1}" }
-  trait(:published) { status { :published } }
-end
-
-# Performance: build_stubbed > build > create
-let(:user) { build_stubbed(:user) }
-
-describe '#call' do
-  it 'creates feature' do
-    expect { service.call }.to change(Feature, :count).by(1)
-  end
-end
+belongs_to :user
+has_many :tags, dependent: :destroy
+enum :status, { draft: 0, published: 1 }
+scope :recent, -> { order(created_at: :desc) }
 ```
 
 ---
@@ -241,3 +114,7 @@ Before commit: `bundle exec lefthook run all`
 - https://turbo.hotwired.dev/
 
 **Key gems:** Dry-validation, Sidekiq/Solid Queue, Scenic, Pundit, Devise/Rodauth, ViewComponent/Phlex
+
+---
+
+**For detailed patterns and examples, see `references/rails-patterns.md`**

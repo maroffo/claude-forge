@@ -1,6 +1,6 @@
 ---
 name: process-email-bookmarks
-description: Process bookmarks from Gmail. Use when user mentions email bookmarks, Gmail bookmarks, or wants to process saved links from email.
+description: "Process bookmarks from Gmail. Use when user mentions email bookmarks, Gmail bookmarks, or wants to process saved links from email. Not for web clippings (use process-clippings) or newsletters (use newsletter-digest)."
 tools: Bash, Read, WebFetch
 ---
 

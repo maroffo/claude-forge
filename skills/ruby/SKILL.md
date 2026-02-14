@@ -1,6 +1,6 @@
 ---
 name: ruby
-description: "Ruby gem development with modern tooling, testing, and publishing best practices."
+description: "Ruby gem development with modern tooling, testing, and publishing. Use when working with .gemspec, Rakefile, or user asks about gem structure, RSpec for gems, Bundler, or gem publishing. Not for Rails apps (use rails skill)."
 allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ---
 
