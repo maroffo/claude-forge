@@ -200,69 +200,22 @@ learning-docs retrospective → annotate pattern (weak signal)
     → /knowledge-sync proposes skill update → human approves → skill improved
 ```
 
-### Onboarding an Existing Project
+### Onboarding a Project
 
-To integrate a mature project into the vault:
+Ask Claude to onboard the current project to the vault:
 
-**1. Create the project folder and seed notes:**
-```bash
-# Overview: project identity, stack, key files
-obsidian create name="Projects/my-project/my-project - Overview" content="---
-tags: [project, my-project, go]
-created: 2026-02-14
-project: my-project
-status: active
-repo: ~/Development/my-project
----
-
-# my-project
-
-Brief description. Stack, purpose, key architectural choices." silent
-
-# Empty Log and Solutions (will grow via append)
-obsidian create name="Projects/my-project/my-project - Log" content="---
-tags: [project, my-project, log]
-created: 2026-02-14
----
-
-# my-project - Log" silent
-
-obsidian create name="Projects/my-project/my-project - Solutions" content="---
-tags: [project, my-project, solutions]
-created: 2026-02-14
----
-
-# my-project - Solutions" silent
+```
+"Onboard this project to the vault"
 ```
 
-**2. Add `## Vault Context` to the project's CLAUDE.md:**
-```markdown
-## Vault Context
-<!-- Follow these links via `obsidian read` for deeper context -->
-- Architecture: [[Projects/my-project/my-project - Overview]]
-- Session history: [[Projects/my-project/my-project - Log]]
-- Solved problems: [[Projects/my-project/my-project - Solutions]]
-- Relevant topic: [[Second Brain - Development#Relevant Section]]
-```
+Claude reads the project's CLAUDE.md (or asks for basics), then automatically:
+1. Creates Overview, Log, and Solutions notes in `Projects/<project>/`
+2. Registers in the Projects MOC
+3. Adds `## Vault Context` to the project's CLAUDE.md
 
-**3. Register in the Projects MOC:**
-```bash
-obsidian append file="Projects - MOC" content="| [[Projects/my-project/my-project - Overview|my-project]] | Go, PostgreSQL | active | ~/Development/my-project |"
-```
+This also runs automatically when using `/project-analyzer` on a new codebase.
 
-**4. (Optional) Backfill existing knowledge:**
-```bash
-# Import solutions from docs/solutions/ into the vault
-obsidian append file="my-project - Solutions" content="### 2026-01-15: Redis connection pooling
-**Problem:** Connections exhausted under load.
-**Solution:** Added pool with max 10 idle connections.
-**Why:** Default was unlimited, each goroutine opened a new connection."
-
-# Import existing plans
-obsidian create name="Plans/2026-01-10 - my-project auth migration" content="..." silent
-```
-
-After onboarding, the orchestrator's STORE step and learning-docs will keep the vault notes updated automatically during normal work.
+The protocol is defined in `_VAULT_CONTEXT.md` (Project Onboarding section). It's idempotent: skips notes that already exist.
 
 ### Obsidian Skills Map
 

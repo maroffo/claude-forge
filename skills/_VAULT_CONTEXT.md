@@ -41,6 +41,22 @@ obsidian append file="<note>" content="\n<!-- breadcrumb: YYYY-MM-DD | <insight>
 
 Invisible in Obsidian preview, readable by future Claude sessions. Use sparingly: only for non-obvious discoveries worth preserving.
 
+## Project Onboarding
+
+To register a project in the vault, run these steps (automate, don't ask the user to do them manually):
+
+1. **Detect project info** from CLAUDE.md or cwd: name, stack, repo path, purpose
+2. **Create vault notes:**
+   ```bash
+   obsidian create name="Projects/<project>/<project> - Overview" content="---\ntags: [project, <project>, <language>]\ncreated: YYYY-MM-DD\nproject: <project>\nstatus: active\nrepo: <repo-path>\n---\n\n# <project>\n\n<purpose>. Stack: <stack>." silent
+   obsidian create name="Projects/<project>/<project> - Log" content="---\ntags: [project, <project>, log]\ncreated: YYYY-MM-DD\n---\n\n# <project> - Log" silent
+   obsidian create name="Projects/<project>/<project> - Solutions" content="---\ntags: [project, <project>, solutions]\ncreated: YYYY-MM-DD\n---\n\n# <project> - Solutions" silent
+   ```
+3. **Register in MOC:** `obsidian append file="Projects - MOC" content="| [[Projects/<project>/<project> - Overview|<project>]] | <stack> | active | <repo-path> |"`
+4. **Add `## Vault Context`** to the project's CLAUDE.md (or create it if running via project-analyzer)
+
+Skip any step where the note already exists. Idempotent.
+
 ## Vault Search for Unlisted Context
 
 If the task needs context not linked in `## Vault Context`:

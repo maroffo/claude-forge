@@ -25,7 +25,7 @@ Analyze the provided codebase and create a CLAUDE.md covering:
 3. Use `sg` (ast-grep) for structural code analysis — see `_AST_GREP.md`
 4. Read key files (README, main, config)
 5. Generate CLAUDE.md with specific findings, not generic templates
-6. If vault is configured, include `## Vault Context` section with relevant wikilinks (see `_VAULT_CONTEXT.md`)
+6. If vault is configured, run project onboarding (see `_VAULT_CONTEXT.md`) and include `## Vault Context` section with wikilinks
 
 ## Output
 
