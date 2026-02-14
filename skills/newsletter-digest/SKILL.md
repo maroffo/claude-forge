@@ -1,6 +1,6 @@
 ---
 name: newsletter-digest
-description: Process newsletters into Second Brain digest. Use when user wants to process newsletters, create digest, or catch up on subscriptions.
+description: "Process newsletters into Second Brain digest. Use when user wants to process newsletters, create digest, or catch up on subscriptions. Not for web clippings (use process-clippings) or email bookmarks (use process-email-bookmarks)."
 tools: Bash, Read, WebFetch
 ---
 

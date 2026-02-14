@@ -1,6 +1,6 @@
 ---
 name: gemini-review
-description: "Local code review with Gemini CLI for pre-commit reviews."
+description: "Local code review with Gemini CLI for pre-commit reviews. Use when user says review code, code review, check my changes, or review before commit."
 allowed-tools: [mcp__acp__Read, mcp__acp__Bash]
 ---
 

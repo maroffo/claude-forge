@@ -2,7 +2,7 @@
 <!-- ABOUTME: Invoked on "release", "tag", "ship it", "push to production" -->
 ---
 name: releasing-software
-description: Release prep & tagging - invokes on "release", "tag", "ship it", "push to production". Prevents retag failures via pre-flight verification
+description: "Release prep and tagging with pre-flight verification. Use when user says release, tag, ship it, push to production, create release, or bump version."
 ---
 
 # Releasing Software

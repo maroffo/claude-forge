@@ -1,6 +1,6 @@
 ---
 name: process-clippings
-description: Process web clippings into Second Brain. Use when user mentions clippings, asks to process articles, or wants to integrate saved content.
+description: "Process web clippings into Second Brain. Use when user mentions clippings, asks to process articles, or wants to integrate saved content. Not for newsletters (use newsletter-digest) or email bookmarks (use process-email-bookmarks)."
 tools: Bash, Read, WebFetch
 ---
 

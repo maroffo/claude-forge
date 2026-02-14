@@ -1,6 +1,6 @@
 ---
 name: react-nextjs
-description: "React 19 + Next.js 16 App Router development. Use for React components, Server Components, data fetching, state management, forms, and testing."
+description: "React 19 + Next.js 16 App Router development. Use when working with .tsx/.jsx files, next.config, or user asks about Server Components, data fetching, state management, forms, or React testing."
 allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: python
-description: "Python development with uv, type checking, linting, testing, and Docker deployment."
+description: "Python development with uv, type checking, linting, testing, and Docker deployment. Use when working with .py files, pyproject.toml, or user asks about pytest, mypy, ruff, FastAPI, Django."
 allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ---
 
