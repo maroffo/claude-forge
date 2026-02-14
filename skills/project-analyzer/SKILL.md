@@ -77,6 +77,7 @@ Quality tools: `.golangci.yml` (Go), `ruff.toml` (Python), `.rubocop.yml` (Rails
 - Architecture overview (directory structure)
 - Key conventions and patterns
 - Environment setup
+- Vault Context (if vault is configured; see `_VAULT_CONTEXT.md`)
 
 ---
 
