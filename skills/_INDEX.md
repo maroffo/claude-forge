@@ -43,6 +43,7 @@
 | Clean up email | `email-cleanup` | `_GMAIL.md` |
 | Generate cover image | `cover-image` | `_generate_image.py` |
 | Render table as image | `table-image` | `_generate_image.py` |
+| Create/improve skills | `skill-forge` | `_INDEX.md`, `CLAUDE.md.example` |
 
 ## Shared Reference Files
 

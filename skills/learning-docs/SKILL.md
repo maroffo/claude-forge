@@ -8,6 +8,12 @@ description: "Create and update LEARNING.md project retrospectives. Use when use
 
 # Learning Documentation
 
+## Quality Notes
+
+- Take your time reviewing recent work thoroughly before writing
+- Quality of insights matters more than covering every change
+- Re-read what you wrote: is it useful to a future reader, or just filler?
+
 ## Purpose
 
 Capture project knowledge in `LEARNING.md` - a living document that grows with the project. Not boring docs, but engaging technical storytelling.

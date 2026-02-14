@@ -80,6 +80,13 @@ obsidian append file="Second Brain - Development" content="..."
 ...
 ```
 
+## Quality Notes
+
+- Take your time scanning every Skill Candidates table thoroughly
+- Read the target skill file before proposing additions (avoid duplicates)
+- Quality of proposals matters more than quantity
+- Do not skip validation steps
+
 ## Rules
 
 - **Never auto-apply.** Always present proposals and wait for approval.

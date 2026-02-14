@@ -67,6 +67,7 @@ Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes 
 | Knowledge sync | `knowledge-sync` |
 | Cover/hero images | `cover-image` |
 | Table/diagram images | `table-image` |
+| Skill creation/review | `skill-forge` |
 
 # Knowledge Capture
 - **Quick corrections:** Append `[LEARN:category]` to `MEMORY.md`

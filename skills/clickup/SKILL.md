@@ -2,6 +2,7 @@
 name: clickup
 description: "ClickUp task management via MCP. Use for task updates, comments, time tracking, workspace navigation. Always interact in English."
 allowed-tools: [mcp__clickup__*]
+compatibility: "Requires ClickUp MCP server connected and authenticated."
 ---
 
 # ABOUTME: ClickUp MCP integration for task management and workflow automation
