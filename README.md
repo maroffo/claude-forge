@@ -101,17 +101,19 @@ Skills are markdown files that teach Claude domain-specific patterns. They load 
 
 | Skill | Description |
 |-------|-------------|
-| `golang/` | Code conventions, architecture, concurrency, performance |
+| `golang/` | Go conventions, architecture, concurrency, performance |
 | `python/` | uv, type checking, ruff, pytest, Docker |
-| `rails/` | Service-oriented architecture, Dry-validation, Sidekiq |
+| `rails/` | Service-oriented Rails, Dry-validation, Sidekiq, Hotwire |
 | `ruby/` | Gem development, RSpec, RuboCop, publishing |
 | `terraform/` | IaC patterns, modules, Terragrunt, OpenTofu |
 | `react-nextjs/` | React 19, Next.js 16, App Router, Server Components |
 | `android-kotlin/` | Kotlin 2.x, Jetpack Compose, Clean Architecture |
 | `apple-swift/` | Swift 6, SwiftUI, async/await, TCA, concurrency, performance |
 | `swiftui-liquid-glass/` | iOS 26+ Liquid Glass API |
-| `ios-debugger/` | XcodeBuildMCP simulator workflow |
+| `ios-debugger/` | Build, run, debug iOS apps via CLI (Xcode + Simulator) |
 | `cloud-infrastructure/` | AWS/GCP Well-Architected, security, cost, observability |
+
+Large skills use a `references/` subdirectory for detailed patterns (progressive disclosure: core in SKILL.md, details on demand). Currently: `apple-swift/`, `android-kotlin/`, `rails/`.
 
 ### Shared Reference Files
 
@@ -124,6 +126,7 @@ Skills are markdown files that teach Claude domain-specific patterns. They load 
 | `_OBSIDIAN.md` | Obsidian CLI config, vault commands |
 | `_SECOND_BRAIN.md` | Category routing, content templates, rules |
 | `_VAULT_CONTEXT.md` | Vault context injection, token budget, breadcrumbs |
+| `_generate_image.py` | Gemini image generation (used by cover-image, table-image) |
 
 ### Support & Integrations
 
@@ -138,6 +141,14 @@ Skills are markdown files that teach Claude domain-specific patterns. They load 
 | `refine-requirements/` | Structured requirements gathering before planning |
 | `clickup/` | Task management via MCP |
 | `gemini-review/` | Local code review with Gemini CLI |
+| `skill-forge/` | Create new skills or review/improve existing ones against quality checklist |
+
+### Content & Images
+
+| Skill | Description |
+|-------|-------------|
+| `cover-image/` | Generate editorial cover images via Gemini |
+| `table-image/` | Render tables/diagrams as hand-drawn sketch images |
 
 ### Personal Workflows
 
@@ -231,6 +242,20 @@ The protocol is defined in `_VAULT_CONTEXT.md` (Project Onboarding section). It'
 | `_SECOND_BRAIN.md` | Reference | Category routing, content templates |
 | `_VAULT_CONTEXT.md` | Reference | Context injection protocol, token budget |
 
+## Skill Conventions
+
+Skills follow [Anthropic's Complete Guide to Building Skills for Claude](https://www.anthropic.com/engineering/claude-code-best-practices), with additional project conventions. Use `/skill-forge` to create or audit skills.
+
+| Convention | Detail |
+|------------|--------|
+| **Frontmatter** | `name` (kebab-case) + `description` (what + when/triggers + capabilities) |
+| **ABOUTME** | 2-line comment header after frontmatter |
+| **Progressive disclosure** | Core in SKILL.md (< 150 lines), details in `references/` |
+| **Trigger phrases** | Description includes words users actually say |
+| **Negative triggers** | "Not for X (use Y skill)" when skills overlap |
+| **Compatibility** | `compatibility` field for external deps (CLI, API key, MCP) |
+| **Quality Notes** | Anti-laziness section for multi-step workflow skills |
+
 ## Token Optimization
 
 Everything is aggressively optimized:
@@ -241,7 +266,7 @@ Everything is aggressively optimized:
 
 ## Inspiration
 
-Evolved from [Harper Reed's dotfiles](https://github.com/harperreed/dotfiles/tree/master/.claude), [Matteo Vaccari's AI-assisted modernization series](https://matteo.vaccari.name/posts/plants-by-websphere/), [Pedro Santanna's orchestrated workflow](https://github.com/pedrohcgs/claude-code-my-workflow), [Every's compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin) (solutions directory, research agent, incremental commits), and [Get Shit Done](https://github.com/gsd-build/get-shit-done) (requirements refinement, deviation rules).
+Evolved from [Harper Reed's dotfiles](https://github.com/harperreed/dotfiles/tree/master/.claude), [Matteo Vaccari's AI-assisted modernization series](https://matteo.vaccari.name/posts/plants-by-websphere/), [Pedro Santanna's orchestrated workflow](https://github.com/pedrohcgs/claude-code-my-workflow), [Every's compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin) (solutions directory, research agent, incremental commits), [Get Shit Done](https://github.com/gsd-build/get-shit-done) (requirements refinement, deviation rules), and [Anthropic's Complete Guide to Building Skills](https://www.anthropic.com/engineering/claude-code-best-practices) (progressive disclosure, trigger phrases, skill-forge).
 
 ## License
 
