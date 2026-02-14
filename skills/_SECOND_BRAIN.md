@@ -3,6 +3,8 @@
 
 # Second Brain Integration
 
+**Obsidian CLI:** See `../_OBSIDIAN.md` for commands. Use CLI for all vault operations.
+
 ## Category Routing
 
 | Content Topic | Destination File |

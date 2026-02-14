@@ -1,14 +1,14 @@
 ---
 name: process-email-bookmarks
 description: Process bookmarks from Gmail. Use when user mentions email bookmarks, Gmail bookmarks, or wants to process saved links from email.
-tools: Bash, Read, Write, Edit, Glob
+tools: Bash, Read, WebFetch
 ---
 
 # Process Email Bookmarks Skill
 
 You process bookmarks sent via email (Gmail label "📑 Bookmarks") and integrate them into the Second Brain.
 
-**Gmail:** See `../_GMAIL.md` | **Integration:** See `../_SECOND_BRAIN.md`
+**Gmail:** See `../_GMAIL.md` | **Obsidian CLI:** See `../_OBSIDIAN.md` | **Integration:** See `../_SECOND_BRAIN.md`
 **Label**: 📑 Bookmarks (ID: Label_2765838113845362546)
 
 ## Processing Workflow
@@ -34,8 +34,17 @@ gog gmail thread get <threadId> --account=maroffo@gmail.com --json
 
 3. **Categorize** per `../_SECOND_BRAIN.md` routing table
 4. **Decide**: Actionable -> Fetch via WebFetch, extract, add to Second Brain | Reference -> Bookmarks
-5. **Integrate** per `../_SECOND_BRAIN.md` content template
-6. **Update Timeline** per `../_SECOND_BRAIN.md`
+5. **Integrate** via Obsidian CLI:
+```bash
+# Actionable content -> Second Brain
+obsidian append file="Second Brain - <Topic>" content="<extracted>"
+# Reference only -> Bookmarks
+obsidian create path="Bookmarks/<title>.md" content="- [Title](url) - Brief description" silent
+```
+6. **Update Timeline**:
+```bash
+obsidian append file="Second Brain - Timeline" content="- **YYYY-MM-DD** | [Topic] | Source: Email bookmark | -> Second Brain - <File>.md"
+```
 7. **Mark email as read** (see `../_GMAIL.md` for command)
 
 ## Output Format

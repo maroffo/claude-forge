@@ -1,14 +1,14 @@
 ---
 name: newsletter-digest
 description: Process newsletters into Second Brain digest. Use when user wants to process newsletters, create digest, or catch up on subscriptions.
-tools: Bash, Read, Write, Edit, WebFetch
+tools: Bash, Read, WebFetch
 ---
 
 # Newsletter Digest Skill
 
 Process unread newsletters, extract actionable content for Second Brain, archive processed emails.
 
-**Gmail:** See `../_GMAIL.md` | **Integration:** See `../_SECOND_BRAIN.md` for category routing, content template, and rules.
+**Gmail:** See `../_GMAIL.md` | **Obsidian CLI:** See `../_OBSIDIAN.md` | **Integration:** See `../_SECOND_BRAIN.md`
 
 ## Newsletter Sources
 
@@ -78,8 +78,14 @@ gog gmail thread get <threadId> --account=maroffo@gmail.com --json
    - **Tutorials/guides** → Extract key steps
 
 4. **Categorize** per `../_SECOND_BRAIN.md` routing table
-5. **Extract & integrate** per `../_SECOND_BRAIN.md` content template
-6. **Update Timeline** per `../_SECOND_BRAIN.md`
+5. **Extract & integrate** via Obsidian CLI:
+```bash
+obsidian append file="Second Brain - <Topic>" content="<extracted>"
+```
+6. **Update Timeline**:
+```bash
+obsidian append file="Second Brain - Timeline" content="- **YYYY-MM-DD** | [Topic] | Source: Newsletter | -> Second Brain - <File>.md"
+```
 7. **Archive email** (see `../_GMAIL.md` for archive command)
 
 ## Output Format

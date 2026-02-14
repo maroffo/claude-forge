@@ -33,10 +33,11 @@
 | Document learnings | `learning-docs` | - |
 | Task management | `clickup` | `source-control` |
 | AWS/GCP infra | `cloud-infrastructure` | `terraform` |
+| Obsidian vault ops | `obsidian` | `_OBSIDIAN.md`, `_SECOND_BRAIN.md` |
 | Check email | `inbox-triage` | `_GMAIL.md` |
-| Process newsletters | `newsletter-digest` | `_SECOND_BRAIN.md` |
-| Process clippings | `process-clippings` | `_SECOND_BRAIN.md` |
-| Process bookmarks | `process-email-bookmarks` | `_GMAIL.md`, `_SECOND_BRAIN.md` |
+| Process newsletters | `newsletter-digest` | `_GMAIL.md`, `_OBSIDIAN.md`, `_SECOND_BRAIN.md` |
+| Process clippings | `process-clippings` | `_OBSIDIAN.md`, `_SECOND_BRAIN.md` |
+| Process bookmarks | `process-email-bookmarks` | `_GMAIL.md`, `_OBSIDIAN.md`, `_SECOND_BRAIN.md` |
 | Clean up email | `email-cleanup` | `_GMAIL.md` |
 | Generate cover image | `cover-image` | `_generate_image.py` |
 | Render table as image | `table-image` | `_generate_image.py` |
@@ -48,5 +49,6 @@
 | `_AST_GREP.md` | ast-grep patterns by language |
 | `_PATTERNS.md` | Cross-language code patterns |
 | `_GMAIL.md` | Gmail account config, gog CLI commands |
+| `_OBSIDIAN.md` | Obsidian CLI config, vault commands |
 | `_SECOND_BRAIN.md` | Category routing, content templates, rules |
 | `_generate_image.py` | Gemini image generation (used by cover-image, table-image) |

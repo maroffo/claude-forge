@@ -58,6 +58,7 @@ Rules in `rules/` auto-load: orchestrator (contractor mode), plan-first, TDD ver
 | React/Next.js | `react-nextjs` |
 | Terraform/IaC | `terraform` |
 | AWS/GCP | `cloud-infrastructure` |
+| Obsidian vault | `obsidian` |
 | ClickUp | `clickup` (English only) |
 | Code review | `gemini-review` |
 | Release/tag | `releasing-software` |
