@@ -4,7 +4,8 @@
 # Obsidian CLI Configuration
 
 - **Vault**: Documents
-- **Binary**: `obsidian` (requires app running, PATH via `~/.zprofile`)
+- **Binary**: `/Applications/Obsidian.app/Contents/MacOS/obsidian` (requires app running)
+- **Alias**: `obsidian` if PATH configured via `~/.zprofile`, otherwise use full path
 - **Syntax**: `obsidian [vault=Documents] <command> [params] [flags]`
 - When cwd is vault root, `vault=` can be omitted.
 - **Path fallback**: if CLI unavailable, vault root is `/Users/maroffo/Library/Mobile Documents/iCloud~md~obsidian/Documents/`
