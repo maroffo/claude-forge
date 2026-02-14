@@ -8,7 +8,7 @@ tools: Bash, Read, Write, Edit, WebFetch
 
 Process unread newsletters, extract actionable content for Second Brain, archive processed emails.
 
-**Gmail:** See `_GMAIL.md` | **Integration:** See `_SECOND_BRAIN.md` for category routing, content template, and rules.
+**Gmail:** See `../_GMAIL.md` | **Integration:** See `../_SECOND_BRAIN.md` for category routing, content template, and rules.
 
 ## Newsletter Sources
 
@@ -77,10 +77,10 @@ gog gmail thread get <threadId> --account=maroffo@gmail.com --json
    - **News/opinions** → Reference only (skip or brief note)
    - **Tutorials/guides** → Extract key steps
 
-4. **Categorize** per `_SECOND_BRAIN.md` routing table
-5. **Extract & integrate** per `_SECOND_BRAIN.md` content template
-6. **Update Timeline** per `_SECOND_BRAIN.md`
-7. **Archive email** (see `_GMAIL.md` for archive command)
+4. **Categorize** per `../_SECOND_BRAIN.md` routing table
+5. **Extract & integrate** per `../_SECOND_BRAIN.md` content template
+6. **Update Timeline** per `../_SECOND_BRAIN.md`
+7. **Archive email** (see `../_GMAIL.md` for archive command)
 
 ## Output Format
 
@@ -138,6 +138,6 @@ After processing batch:
 
 ## Rules
 
-See `_SECOND_BRAIN.md` for shared rules. Additional:
+See `../_SECOND_BRAIN.md` for shared rules. Additional:
 - **Always archive** - processed = archived, no exceptions
 - **Batch process** - handle multiple newsletters in one session

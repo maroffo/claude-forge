@@ -9,7 +9,7 @@ tools: Bash, Read, Write, Edit
 
 # Inbox Triage Skill
 
-**Gmail:** See `_GMAIL.md` for account config and commands.
+**Gmail:** See `../_GMAIL.md` for account config and commands.
 
 ## Workflow
 
@@ -75,7 +75,7 @@ Format output as:
 
 ### Step 4: Handle User Actions
 
-See `_GMAIL.md` for modify commands (mark read, archive, star, trash).
+See `../_GMAIL.md` for modify commands (mark read, archive, star, trash).
 
 **Useful filters:**
 ```bash

@@ -9,7 +9,7 @@ tools: Bash, Read
 
 # Email Cleanup Skill
 
-**Gmail:** See `_GMAIL.md` for account config and commands.
+**Gmail:** See `../_GMAIL.md` for account config and commands.
 
 ## Safety Rules
 

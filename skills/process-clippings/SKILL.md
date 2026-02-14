@@ -33,9 +33,9 @@ Path: /Users/maroffo/Library/Mobile Documents/iCloud~md~obsidian/Documents/Clipp
 ### Step 2: For Each Clipping
 
 1. **Read the clipping** - understand the content
-2. **Categorize** per `_SECOND_BRAIN.md` routing table
+2. **Categorize** per `../_SECOND_BRAIN.md` routing table
 3. **Decide**: Actionable (tutorials, patterns, code) -> Second Brain | Reference only -> Bookmarks
-4. **Extract & integrate** per `_SECOND_BRAIN.md` content template
+4. **Extract & integrate** per `../_SECOND_BRAIN.md` content template
 
 ### Step 3: Archive Clipping
 
@@ -94,5 +94,5 @@ service.Up(ctx, project, api.UpOptions{})
 
 ## Rules
 
-See `_SECOND_BRAIN.md` for shared rules. Additional:
+See `../_SECOND_BRAIN.md` for shared rules. Additional:
 - **Code examples** - only if genuinely useful, keep minimal
