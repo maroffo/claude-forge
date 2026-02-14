@@ -18,7 +18,8 @@ After plan approval, execute autonomously until quality gates pass.
 6. SCORE     → quality-gates thresholds
 7. LOOP      → repeat 3-7 until score ≥ threshold or max 5 rounds
 8. PRESENT   → summary: files changed, issues found/fixed, score, open items
-9. STORE     → save session log + plan status to vault (see plan-first-workflow)
+9. UAT       → goal-backward verification with human (skip for docs-only, config, refactors)
+10. STORE    → save session log + plan status to vault (see plan-first-workflow)
 ```
 
 ## Research + Complexity (Step 0)
@@ -48,6 +49,20 @@ Split into independent workstreams. Each software-engineer gets: **scope** (file
 | `migrations/`, `schema.rb`, `*.sql` | database |
 | `docs/`, `README*`, `ADR/`, `*.md` | dx |
 | No match | architecture + security (minimum) |
+
+## UAT: Goal-Backward Verification (Step 9)
+
+After PRESENT, verify the work actually achieves the user's goal (not just that code passes tests).
+
+**1. Derive must-be-true list.** Work backward from the original goal to observable behaviors:
+- Goal: "working search" → "typing a query returns filtered results", "empty query shows all items", "no results shows empty state"
+- 3-7 items max. Behaviors, not implementation details.
+
+**2. Walkthrough.** Present each must-be-true one at a time via `AskUserQuestion`. Options: Pass / Fail / Skip (can't test now).
+
+**3. On failure:** capture what's broken, feed into fix loop (step 4), re-verify (step 5), re-score (step 6), then re-UAT only failed items.
+
+**When to skip:** docs-only changes, config/infra with no user-facing behavior, pure refactors, single-function fixes with passing tests. When in doubt, run it.
 
 ## Rules
 
