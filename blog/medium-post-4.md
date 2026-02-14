@@ -136,7 +136,7 @@ Anthropic published a [Complete Guide to Building Skills for Claude](https://www
 
 **Three skills were too large.** `apple-swift` at 383 lines, `android-kotlin` at 321, `rails` at 238. Anthropic's guide recommends progressive disclosure: keep SKILL.md under ~150 lines with core patterns, move detailed content to a `references/` subdirectory that Claude reads on demand. We split all three.
 
-The fix was 37 files changed, but the meta-lesson led to something more lasting: a `/skill-forge` skill that encodes both Anthropic's guide and our conventions as a validation checklist. Creating a new skill? `skill-forge create <name>` walks through the template. Auditing existing ones? `skill-forge review all` scores every skill on structure, description quality, content specificity, and conventions. Score 90+ ships, 70-89 needs fixes, below 70 is a rewrite.
+We touched 37 files to fix this, but the meta-lesson led to something more lasting: a `/skill-forge` skill that encodes both Anthropic's guide and our conventions as a validation checklist. Creating a new skill? `skill-forge create <name>` walks through the template. Auditing existing ones? `skill-forge review all` scores every skill on structure, description quality, content specificity, and conventions. Score 90+ ships, 70-89 needs fixes, below 70 is a rewrite.
 
 This matters for the feedback loop. Layer 3 proposes additions to skills. If those skills are poorly structured, the additions land in the wrong place or get lost in noise. Clean skills make the whole pipeline more reliable.
 
