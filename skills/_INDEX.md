@@ -35,6 +35,7 @@
 | Task management | `clickup` | `source-control` |
 | AWS/GCP infra | `cloud-infrastructure` | `terraform` |
 | Obsidian vault ops | `obsidian` | `_OBSIDIAN.md`, `_SECOND_BRAIN.md` |
+| Notion to vault sync | `notion-sync` | `obsidian` |
 | Save project artifacts | vault (see plan-first-workflow) | `_OBSIDIAN.md` |
 | Check email | `inbox-triage` | `_GMAIL.md` |
 | Process newsletters | `newsletter-digest` | `_GMAIL.md`, `_OBSIDIAN.md`, `_SECOND_BRAIN.md` |

@@ -60,6 +60,7 @@ Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes 
 | Terraform/IaC | `terraform` |
 | AWS/GCP | `cloud-infrastructure` |
 | Obsidian vault | `obsidian` |
+| Notion to vault sync | `notion-sync` |
 | ClickUp | `clickup` (English only) |
 | Code review | `gemini-review` |
 | Release/tag | `releasing-software` |

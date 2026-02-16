@@ -142,6 +142,7 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | `clickup/` | Task management via MCP |
 | `gemini-review/` | Local code review with Gemini CLI |
 | `skill-forge/` | Create new skills or review/improve existing ones against quality checklist |
+| `notion-sync/` | Notion workspace to Obsidian vault sync (pull, push, AI summaries) |
 
 ### Content & Images
 
