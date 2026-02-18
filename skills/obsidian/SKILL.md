@@ -66,9 +66,23 @@ obsidian append file="Second Brain - Timeline" content="- **YYYY-MM-DD** | [Topi
 # See _VAULT_CONTEXT.md "Project Onboarding" for full steps
 ```
 
+## Fallback: Direct File Access
+
+When the Obsidian CLI is unavailable (app not running, CLI errors, tool not found), access vault markdown files directly.
+
+**Vault path:** `'/Users/maroffo/Library/Mobile Documents/iCloud~md~obsidian/Documents'`
+
+- Use Read/Write/Edit/Glob/Grep tools on `.md` files in the vault path
+- Note names map to `<vault>/<note name>.md` (subfolders for organized notes)
+- Frontmatter is standard YAML between `---` delimiters
+- Daily notes: `<vault>/Daily Notes/YYYY-MM-DD.md`
+- Search: use Grep on vault path instead of `obsidian search`
+- Append: use Edit tool to add content at end of file
+
 ## Rules
 
 - Always use `silent` flag for create/append when user doesn't need the note opened
 - Prefer `file=<name>` (wikilink resolution) over `path=` for convenience
 - For Second Brain operations, follow `../_SECOND_BRAIN.md` routing
 - Multiline content: use `\n` for newlines in content strings
+- **CLI first, direct file access as fallback.** Try CLI; on failure, switch to direct access silently.
