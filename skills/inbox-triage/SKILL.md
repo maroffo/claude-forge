@@ -4,8 +4,8 @@ description: Review and prioritize Gmail inbox. Use when user wants to check ema
 tools: Bash, Read, Write, Edit
 ---
 
-# ABOUTME: Gmail inbox triage - categorize unread by priority, suggest actions
-# ABOUTME: P1-P4 priority system with batch operations
+# ABOUTME: Gmail inbox triage - classify unread by priority, suggest actions
+# ABOUTME: P1-P4 priority system with CLI tool for classification and batch archival
 
 # Inbox Triage Skill
 
@@ -13,75 +13,60 @@ tools: Bash, Read, Write, Edit
 
 ## Workflow
 
-### Step 1: Get Inbox Overview
+### Step 1: Classify Inbox
+
+Pipe gog search output through the CLI tool:
 
 ```bash
-# Get unread count
-gog gmail labels get INBOX --account=maroffo@gmail.com --json
-
-# Get unread emails (most recent first)
-gog gmail search "is:unread in:inbox" --account=maroffo@gmail.com --max=30 --json
+gog gmail search "is:unread in:inbox" --json --max=30 --account=maroffo@gmail.com \
+  | uv run --project ~/.claude/skills/inbox-triage -- inbox-triage classify
 ```
 
-### Step 2: Categorize Emails
+This outputs a markdown summary grouped by priority and saves state to `/tmp/inbox-triage-state.json`.
 
-For each unread thread, categorize by:
+### Step 2: Review with User
 
-**Priority Levels:**
-- **P1 - Urgent**: Direct messages from known contacts, time-sensitive, action required
-- **P2 - Important**: Work-related, personal correspondence, bills/receipts
-- **P3 - Normal**: Newsletters worth reading, notifications to review
-- **P4 - Low**: Promotions, social updates, automated notifications
+Present the CLI output to the user. The summary includes:
+- **P1 - Urgent**: Direct messages from known contacts, time-sensitive
+- **P2 - Important**: Work-related, newsletters worth reading, personal correspondence
+- **P3 - Normal**: General updates, notifications
+- **P4 - Low Priority**: Promotions, social, automated noise
 
-**Quick Filters:**
+### Step 3: Archive
+
+Use the archive subcommand for batch operations:
+
 ```bash
-# People emails (likely important)
-gog gmail search "is:unread -category:promotions -category:social -category:updates" --account=maroffo@gmail.com --json
+# Dry run (shows commands without executing)
+uv run --project ~/.claude/skills/inbox-triage -- inbox-triage archive p3 p4
 
-# Promotions (batch process)
-gog gmail search "is:unread category:promotions" --account=maroffo@gmail.com --json
-
-# Updates/notifications
-gog gmail search "is:unread category:updates" --account=maroffo@gmail.com --json
+# Execute
+uv run --project ~/.claude/skills/inbox-triage -- inbox-triage archive p3 p4 --yes
 ```
 
-### Step 3: Present Summary
+### Step 4: Handle Remaining Items
 
-Format output as:
-
-```
-## Inbox Triage - [Date]
-
-**Unread:** X messages
-
-### P1 - Urgent (X)
-- [ ] From: [sender] - [subject] - [snippet]
-
-### P2 - Important (X)
-- [ ] From: [sender] - [subject] - [snippet]
-
-### P3 - Normal (X)
-- [ ] From: [sender] - [subject]
-
-### P4 - Low Priority (X)
-- Promotions: X
-- Social: X
-- Updates: X
-
-### Suggested Actions
-- Archive all promotions older than 7 days
-- [Other suggestions based on content]
-```
-
-### Step 4: Handle User Actions
-
-See `../_GMAIL.md` for modify commands (mark read, archive, star, trash).
-
-**Useful filters:**
+For P1/P2 threads that need action:
 ```bash
-gog gmail search "is:unread -category:{promotions social updates forums}" --account=maroffo@gmail.com --json  # Real people
-gog gmail search "is:unread to:me -category:promotions" --account=maroffo@gmail.com --json                   # Needs reply
+# Open in browser
+gog gmail url <threadId>
+
+# Star for follow-up
+gog gmail thread modify <threadId> --account=maroffo@gmail.com --add=STARRED
+
+# Mark as read without archiving
+gog gmail thread modify <threadId> --account=maroffo@gmail.com --remove=UNREAD
 ```
+
+## Classification Rules
+
+Rules are in `~/.claude/skills/inbox-triage/rules.yaml` (user-editable). First match wins:
+
+1. Sender exact email match
+2. Sender domain match (`@domain.com`)
+3. Gmail label match
+4. Gmail category fallback (`CATEGORY_PROMOTIONS`, etc.)
+5. Default (P3)
 
 ## Rules
 

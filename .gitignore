@@ -13,3 +13,11 @@ Thumbs.db
 *.tmp
 *.bak
 .DS_Store
+
+# Python
+__pycache__/
+*.egg-info/
+uv.lock
+
+# Client-specific skills (private, not for public repo)
+skills/*-hikma/
