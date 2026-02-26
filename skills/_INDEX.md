@@ -33,6 +33,8 @@
 | Document learnings | `learning-docs` | - |
 | Sync vault knowledge to skills | `knowledge-sync` | `_VAULT_CONTEXT.md`, `learning-docs` |
 | Task management | `clickup` | `source-control` |
+| Bullet Journal (daily/weekly/monthly) | `bujo` | `obsidian`, `bujo-sync` |
+| Sync BuJo with ClickUp/Linear | `bujo-sync` | `bujo`, `clickup` |
 | AWS/GCP infra | `cloud-infrastructure` | `terraform` |
 | Obsidian vault ops | `obsidian` | `_OBSIDIAN.md`, `_SECOND_BRAIN.md` |
 | Notion to vault sync | `notion-sync` | `obsidian` |
@@ -44,6 +46,7 @@
 | Clean up email | `email-cleanup` | `_GMAIL.md` |
 | Generate cover image | `cover-image` | `_generate_image.py` |
 | Render table as image | `table-image` | `_generate_image.py` |
+| Edit/review text for AI patterns | `humanizer` | - |
 | Create/improve skills | `skill-forge` | `_INDEX.md`, `CLAUDE.md.example` |
 
 ## Shared Reference Files
