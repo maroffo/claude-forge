@@ -1,6 +1,7 @@
 ---
 name: terraform
 description: "Terraform and Terragrunt for infrastructure as code. Use for IaC, modules, state management, HCL."
+compatibility: "Requires terraform CLI. Optional: tflint, checkov, infracost."
 allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ---
 

@@ -1,6 +1,7 @@
 ---
 name: email-cleanup
-description: Clean up Gmail - archive old emails, delete promotions, manage storage. Use when user wants to clean inbox, archive emails, or free up space.
+description: "Clean up Gmail - archive old emails, delete promotions, manage storage. Use when user wants to clean inbox, archive emails, or free up space."
+compatibility: "Requires gog CLI (Gmail CLI tool)."
 tools: Bash, Read
 ---
 

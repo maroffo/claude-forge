@@ -1,9 +1,11 @@
-<!-- ABOUTME: Release preparation skill - prevents retag-four-times pattern -->
-<!-- ABOUTME: Invoked on "release", "tag", "ship it", "push to production" -->
 ---
 name: releasing-software
 description: "Release prep and tagging with pre-flight verification. Use when user says release, tag, ship it, push to production, create release, or bump version."
+compatibility: "Requires gh CLI. Optional: goreleaser."
 ---
+
+# ABOUTME: Release preparation skill with pre-flight verification, prevents retag-four-times pattern
+# ABOUTME: Invoked on "release", "tag", "ship it", "push to production"
 
 # Releasing Software
 

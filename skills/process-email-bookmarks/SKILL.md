@@ -4,6 +4,9 @@ description: "Process bookmarks from Gmail. Use when user mentions email bookmar
 tools: Bash, Read, WebFetch
 ---
 
+# ABOUTME: Process bookmarks from Gmail into Second Brain via WebFetch and Obsidian
+# ABOUTME: Extracts URLs from bookmark-labeled emails, fetches content, categorizes and integrates
+
 # Process Email Bookmarks Skill
 
 You process bookmarks sent via email (Gmail label "📑 Bookmarks") and integrate them into the Second Brain.

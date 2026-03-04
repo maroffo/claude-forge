@@ -1,6 +1,7 @@
 ---
 name: ruby
 description: "Ruby gem development with modern tooling, testing, and publishing. Use when working with .gemspec, Rakefile, or user asks about gem structure, RSpec for gems, Bundler, or gem publishing. Not for Rails apps (use rails skill)."
+compatibility: "Requires Bundler. Optional: RuboCop, SimpleCov."
 allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ---
 
@@ -28,7 +29,7 @@ gem build my_gem.gemspec
 gem push my_gem-1.0.0.gem --attestation
 ```
 
-**Target: Ruby 3.3+** | For Rails apps → use `rails` skill | **See also:** `_AST_GREP.md`, `_PATTERNS.md`
+**Target: Ruby 3.3+** | For Rails apps, use `rails` skill | **See also:** `_AST_GREP.md`, `_PATTERNS.md`
 
 ---
 
@@ -91,112 +92,15 @@ end
 
 ---
 
-## Testing (RSpec)
+## Testing & Quality
 
-```ruby
-# spec/spec_helper.rb
-require "simplecov"
-SimpleCov.start { minimum_coverage 90 }
-require "my_gem"
-require "webmock/rspec"
+**RSpec:** `describe`/`it` with `expect` syntax, `subject(:name)`, WebMock for HTTP, SimpleCov >= 90%.
 
-RSpec.configure do |config|
-  config.disable_monkey_patching!
-  config.expect_with(:rspec) { |c| c.syntax = :expect }
-  WebMock.disable_net_connect!(allow_localhost: true)
-end
-```
+**RuboCop:** `rubocop-rspec` + `rubocop-performance`, `TargetRubyVersion: 3.3`, `NewCops: enable`, max line 120, max method 10.
 
-```ruby
-# spec/my_gem/client_spec.rb
-RSpec.describe MyGem::Client do
-  subject(:client) { described_class.new(token: "test") }
+**Thread safety:** `Mutex.new` + `@mutex.synchronize { ... }` for shared state.
 
-  describe "#get" do
-    before do
-      stub_request(:get, "https://api.example.com/data")
-        .to_return(status: 200, body: '{"id": 1}')
-    end
-
-    it "returns parsed JSON" do
-      expect(client.get("/data")).to eq({ "id" => 1 })
-    end
-  end
-end
-```
-
----
-
-## RuboCop
-
-```yaml
-# .rubocop.yml
-require: [rubocop-rspec, rubocop-performance]
-
-AllCops:
-  TargetRubyVersion: 3.3
-  NewCops: enable
-
-Style/FrozenStringLiteralComment:
-  EnforcedStyle: always
-
-Layout/LineLength:
-  Max: 120
-
-Metrics/MethodLength:
-  Max: 10
-```
-
----
-
-## CI (GitHub Actions)
-
-```yaml
-name: CI
-on: [push, pull_request]
-
-jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ruby/setup-ruby@v1
-        with: { ruby-version: "3.3", bundler-cache: true }
-      - run: bundle exec rubocop
-
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        ruby-version: ["3.3", "3.4"]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ruby/setup-ruby@v1
-        with: { ruby-version: "${{ matrix.ruby-version }}", bundler-cache: true }
-      - run: bundle exec rspec
-```
-
----
-
-## Thread Safety
-
-Use `Mutex.new` + `@mutex.synchronize { ... }` for shared state. All public methods that touch mutable state must synchronize.
-
----
-
-## HTTP Client (stdlib)
-
-Pattern: `Net::HTTP` + `JSON.parse`, set `use_ssl`, `open_timeout`, `read_timeout`. Auth via `request["Authorization"] = "Bearer #{@token}"`. Keep client class with `initialize(base_url:, token:, timeout:)` + private `execute(request)` method.
-
----
-
-## Publishing
-
-```bash
-bundle exec rspec && bundle exec rubocop && gem build my_gem.gemspec
-gem install ./my_gem-X.Y.Z.gem    # Test locally
-gem push my_gem-X.Y.Z.gem --attestation && bundle lock --add-checksums
-```
+For detailed testing examples, CI config, HTTP client pattern, and publishing steps, see `references/ruby-patterns.md`.
 
 ---
 
@@ -206,7 +110,7 @@ gem push my_gem-X.Y.Z.gem --attestation && bundle lock --add-checksums
 |----------|--------|
 | Structure | `frozen_string_literal`, ABOUTME headers, standard layout |
 | Gemspec | `required_ruby_version`, `rubygems_mfa_required`, metadata URIs |
-| Testing | RSpec expect syntax, SimpleCov ≥90%, WebMock, no real HTTP |
+| Testing | RSpec expect syntax, SimpleCov >= 90%, WebMock, no real HTTP |
 | Quality | RuboCop passes, thread-safe if async, custom error classes |
 | CI | Ruby 3.3+3.4, `ruby/setup-ruby`, bundler-cache |
 

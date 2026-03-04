@@ -1,6 +1,7 @@
 ---
 name: swiftui-liquid-glass
 description: "iOS 26+ Liquid Glass API for glassmorphism effects. Use when user wants glass effects, frosted backgrounds, translucent UI, or .glassEffect() modifier guidance."
+compatibility: "Requires Xcode with iOS 26+ SDK."
 ---
 
 # ABOUTME: iOS 26+ Liquid Glass API for glassmorphism effects and interactive UI

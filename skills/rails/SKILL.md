@@ -1,6 +1,7 @@
 ---
 name: rails
 description: "Ruby on Rails 8 with service-oriented architecture, Dry-validation, Sidekiq/Solid Queue, Hotwire. Use for Rails API, Rails services, Rails forms, RSpec, ActiveRecord, Rails migrations. Not for standalone Ruby gems (use ruby skill)."
+compatibility: "Requires Bundler and Rails 8+. Optional: lefthook, RSpec."
 allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: inbox-triage
-description: Review and prioritize Gmail inbox. Use when user wants to check email, review inbox, or see what needs attention.
+description: "Review and prioritize Gmail inbox. Use when user wants to check email, review inbox, or see what needs attention."
 tools: Bash, Read, Write, Edit
 ---
 
