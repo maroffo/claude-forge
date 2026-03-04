@@ -28,6 +28,7 @@
 | Search/refactor code | `_AST_GREP.md` | Language-specific |
 | Commit changes | `source-control` | (`commit` redirects here) |
 | Review code | `gemini-review` | Language review sections |
+| Assess test quality | `test-design-reviewer` | `gemini-review`, `_PATTERNS.md` |
 | Setup/analyze project | `project-analyzer` | Language-specific |
 | Release/tag | `releasing-software` | `source-control` |
 | Document learnings | `learning-docs` | - |

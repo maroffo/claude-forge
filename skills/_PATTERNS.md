@@ -237,4 +237,46 @@ ActiveRecord::Base.transaction { user.save! }
 
 ---
 
+---
+
+## Hotspot Analysis
+
+Identify where to focus refactoring effort. A hotspot is a file that is both complex and frequently changed.
+
+```
+hotspot_score = complexity x change_frequency
+```
+
+**Collect data:**
+```bash
+# Change frequency (last 6 months)
+git log --since="6 months ago" --format=format: --name-only | sort | uniq -c | sort -rn | head -20
+
+# Approximate complexity (lines of code, proxy)
+wc -l $(git ls-files '*.go' '*.py' '*.rb' '*.ts') | sort -rn | head -20
+```
+
+**Interpret:** Files appearing in both top-20 lists are hotspots. Prioritize these for refactoring, test coverage, and code review. Files that are complex but rarely change are low priority.
+
+---
+
+## Cognitive Load Dimensions
+
+8 dimensions for assessing codebase complexity (adapted from cognitive-load-analyzer). Useful for "should we refactor?" decisions.
+
+| Dimension | What to measure | High-load signal |
+|-----------|----------------|------------------|
+| Structural complexity | Cyclomatic complexity, branching depth | Functions with CC > 15 |
+| Nesting depth | Max indentation levels | > 4 levels deep |
+| Volume | File length, function length | Files > 500 lines, functions > 50 |
+| Naming quality | Semantic clarity, abbreviation density | Single-letter vars, ambiguous names |
+| Coupling | Import fan-in/fan-out, dependency depth | Module importing > 10 others |
+| Cohesion | Semantic relatedness within module | "Utils" classes, mixed responsibilities |
+| Duplication | Clone detection, near-miss patterns | Copy-paste with minor variations |
+| Navigability | Directory depth, file discoverability | > 5 levels deep, unclear organization |
+
+**Key insight:** Use P90 (90th percentile) rather than averages. Averages hide complexity: a codebase with 95% clean files and 5% nightmares looks "fine" by average but painful to work in.
+
+---
+
 **Details:** See `golang/SKILL.md`, `python/SKILL.md`, `rails/SKILL.md`
