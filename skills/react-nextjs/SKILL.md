@@ -1,6 +1,7 @@
 ---
 name: react-nextjs
 description: "React 19 + Next.js 16 App Router development. Use when working with .tsx/.jsx files, next.config, or user asks about Server Components, data fetching, state management, forms, or React testing."
+compatibility: "Requires Node.js and npm. Optional: Vitest, Playwright."
 allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ---
 
@@ -100,76 +101,17 @@ export function usePosts() {
 
 ---
 
-## State Management
+## Key Patterns
 
-| Library | Use Case |
-|---------|----------|
-| TanStack Query | Server state |
-| Zustand | Global client |
-| nuqs | URL state |
+**State:** TanStack Query (server state), Zustand (global client), nuqs (URL state).
 
-```tsx
-// Zustand
-export const useAuthStore = create<AuthState>()(
-  persist((set) => ({
-    user: null,
-    login: (user) => set({ user }),
-    logout: () => set({ user: null }),
-  }), { name: 'auth-storage' })
-)
-```
+**Forms:** Server Action + `useActionState` + Zod validation. `useFormStatus` for pending UI.
 
----
+**Performance:** `next/image` with priority, `dynamic()` for lazy loading, React Compiler for auto-memoization.
 
-## Forms & Validation
+**Testing:** Vitest + React Testing Library (unit), Playwright (E2E).
 
-```tsx
-// Server Action + useActionState
-'use server'
-const schema = z.object({ email: z.string().email(), password: z.string().min(8) })
-
-export async function login(prev: State, formData: FormData): Promise<State> {
-  const result = schema.safeParse(Object.fromEntries(formData))
-  if (!result.success) return { errors: result.error.flatten().fieldErrors }
-  await authenticate(result.data)
-  redirect('/dashboard')
-}
-
-// Component
-'use client'
-const [state, action, isPending] = useActionState(login, { errors: {} })
-return <form action={action}>...</form>
-```
-
----
-
-## Testing
-
-| Type | Tool |
-|------|------|
-| Unit | Vitest + RTL |
-| E2E | Playwright |
-
-```tsx
-describe('Button', () => {
-  it('calls onClick', () => {
-    const onClick = vi.fn()
-    render(<Button onClick={onClick}>Click</Button>)
-    fireEvent.click(screen.getByRole('button'))
-    expect(onClick).toHaveBeenCalled()
-  })
-})
-```
-
----
-
-## Performance
-
-```tsx
-<Image src={src} alt={alt} width={w} height={h} priority={isAboveFold} />
-const Heavy = dynamic(() => import('@/components/heavy'), { loading: () => <Skeleton /> })
-experimental: { reactCompiler: true }  // Auto-memoization
-```
+For detailed code examples (forms, Zustand, testing, performance), see `references/react-patterns.md`.
 
 ---
 

@@ -81,10 +81,10 @@ Each solution file:
 [What fixed it, with code if relevant]
 
 # Why It Works
-[Root cause or design rationale — 1-3 sentences]
+[Root cause or design rationale, 1-3 sentences]
 ```
 
-**When to use LEARNING.md vs solutions/**: LEARNING.md for narrative retrospectives, architectural decisions, broad lessons. Solutions/ for specific, searchable, reusable fixes — "how did we solve X?" answers.
+**When to use LEARNING.md vs solutions/**: LEARNING.md for narrative retrospectives, architectural decisions, broad lessons. Solutions/ for specific, searchable, reusable fixes; "how did we solve X?" answers.
 
 **Vault copy:** After writing to `docs/solutions/`, also append to vault: `obsidian append file="<project> - Solutions" content="### YYYY-MM-DD: [title]\n[Problem/Solution/Why]"`. Creates cross-project discoverability.
 
@@ -108,36 +108,17 @@ Analyze past sessions to identify improvement opportunities. Session files live 
 | Missing automation | Manual steps every session | Script it, add to workflow |
 | Context loss | Re-learn after compaction | Save state to LEARNING.md before limit |
 
-### Analysis Commands
+### Key jq Commands
 
-```bash
-# List project sessions
-ls ~/.claude/projects/
+Sessions live in `~/.claude/projects/PROJECT_NAME/session_*.json`.
 
-# Count tool calls by type (find most used)
-jq '[.messages[].content[]? | select(.type=="tool_use") | .name] | group_by(.) | map({tool: .[0], count: length}) | sort_by(-.count)' \
-  ~/.claude/projects/PROJECT_NAME/session_*.json
-
-# Find repeated file reads (>3 times)
-jq -r '.messages[].content[]? | select(.type=="tool_use" and .name=="Read") | .input.file_path' \
-  ~/.claude/projects/PROJECT_NAME/session_*.json | sort | uniq -c | sort -rn | head -20
-
-# Extract error patterns
-jq -r '.messages[].content[]? | select(.type=="tool_result" and (.content | tostring | test("error|Error|ERROR"))) | .content' \
-  ~/.claude/projects/PROJECT_NAME/session_*.json | head -50
-
-# Summarize session themes (tool uses + key phrases)
-jq -r '.messages[] | select(.role=="assistant") | .content[]? | select(.type=="text") | .text' \
-  ~/.claude/projects/PROJECT_NAME/session_*.json | grep -E "^(Let me|I'll|Looking at|The issue)" | head -30
-```
+- **Tool call counts:** `jq '[.messages[].content[]? | select(.type=="tool_use") | .name] | group_by(.) | map({tool: .[0], count: length}) | sort_by(-.count)'`
+- **Repeated reads:** `jq -r '... | select(.name=="Read") | .input.file_path' | sort | uniq -c | sort -rn | head -20`
+- **Error patterns:** `jq -r '... | select(.type=="tool_result" and (.content | tostring | test("error"))) | .content' | head -50`
 
 ### Propose Improvements As
 
-1. **CLAUDE.md updates** - Workflow rules, decision frameworks
-2. **New skills** - Repeated patterns → automation
-3. **Scripts** - Multi-step commands done often
-4. **LEARNING.md entries** - Project-specific gotchas
-5. **Pre-commit hooks** - Catch issues earlier
+CLAUDE.md updates, new skills, scripts, LEARNING.md entries, pre-commit hooks.
 
 ### Vault Pattern Annotation
 

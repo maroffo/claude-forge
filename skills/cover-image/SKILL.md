@@ -1,9 +1,12 @@
 ---
 name: cover-image
-description: "Generate editorial cover images from article context. Use when user wants a cover image, hero image, or editorial illustration for an article or blog post."
+description: "Generate editorial cover images from article context. Use when user wants a cover image, hero image, or editorial illustration for an article or blog post. Not for table/diagram images (use table-image)."
 tools: Bash, Read
 compatibility: "Requires GEMINI_API_KEY or GOOGLE_API_KEY in environment. Uses ~/.claude/skills/_generate_image.py"
 ---
+
+# ABOUTME: Generate editorial cover images from article context using Gemini image generation
+# ABOUTME: Distills articles into hand-drawn sketch visual metaphors with ink stroke style
 
 # Cover Image Skill
 
@@ -28,7 +31,7 @@ editorial tech illustration. --ar 16:9
 **Visual metaphor guidelines:**
 - Translate abstract concepts into concrete imagery (e.g., "microservices" -> "separate buildings connected by bridges")
 - Prefer architectural/technical metaphors over literal depictions
-- Keep the scene simple — one strong central image, not a collage
+- Keep the scene simple: one strong central image, not a collage
 - Avoid text, labels, or UI elements in the image
 
 ### 3. Show Prompt for Approval

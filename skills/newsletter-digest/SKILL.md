@@ -4,6 +4,9 @@ description: "Process newsletters into Second Brain digest. Use when user wants 
 tools: Bash, Read, WebFetch
 ---
 
+# ABOUTME: Process unread newsletters into Second Brain entries via Gmail and Obsidian
+# ABOUTME: Batch extraction of actionable content from Substack, Beehiiv, and other platforms
+
 # Newsletter Digest Skill
 
 Process unread newsletters, extract actionable content for Second Brain, archive processed emails.

@@ -1,6 +1,7 @@
 ---
 name: android-kotlin
 description: "Android development with Kotlin 2.x, Jetpack Compose, Clean Architecture, and performance. Use when working with .kt files, build.gradle.kts, AndroidManifest.xml, or Compose UI."
+compatibility: "Requires Android SDK, Gradle. Optional: ktlint."
 allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ---
 
@@ -91,9 +92,9 @@ fun UserCard(user: User, onClick: () -> Unit, modifier: Modifier = Modifier) {
 ```
 
 **State management:**
-- `remember { mutableStateOf() }` — lost on config change
-- `rememberSaveable { mutableStateOf() }` — survives config change
-- `derivedStateOf` — computed state
+- `remember { mutableStateOf() }`, lost on config change
+- `rememberSaveable { mutableStateOf() }`, survives config change
+- `derivedStateOf`, computed state
 
 **Side effects:** `LaunchedEffect(key)`, `DisposableEffect`
 

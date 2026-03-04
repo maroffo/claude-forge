@@ -1,6 +1,6 @@
 ---
 name: ios-debugger
-description: "Build, run, and debug iOS apps via CLI without Xcode UI. Use when user wants to build iOS app, run on simulator, capture logs, take screenshots, or automate simulator interactions."
+description: "Build, run, and debug iOS apps via CLI without Xcode UI. Use when user wants to build iOS app, run on simulator, capture logs, take screenshots, or automate simulator interactions. Not for Swift code patterns (use apple-swift)."
 compatibility: "Requires Xcode and iOS Simulator. Optionally XcodeBuildMCP for enhanced integration."
 ---
 

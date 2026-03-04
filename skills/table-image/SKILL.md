@@ -5,6 +5,9 @@ tools: Bash, Read
 compatibility: "Requires GEMINI_API_KEY or GOOGLE_API_KEY in environment. Uses ~/.claude/skills/_generate_image.py"
 ---
 
+# ABOUTME: Render markdown tables and diagrams as hand-drawn sketch images via Gemini
+# ABOUTME: Converts tabular data into ink-style editorial illustrations with wide aspect ratio
+
 # Table Image Skill
 
 Render markdown tables and diagrams as hand-drawn sketch images using Gemini's image generation.
