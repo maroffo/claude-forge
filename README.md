@@ -113,7 +113,7 @@ Skills are markdown files that teach Claude domain-specific patterns. They load 
 | `ios-debugger/` | Build, run, debug iOS apps via CLI (Xcode + Simulator) |
 | `cloud-infrastructure/` | AWS/GCP Well-Architected, security, cost, observability |
 
-Large skills use a `references/` subdirectory for detailed patterns (progressive disclosure: core in SKILL.md, details on demand). Currently: `apple-swift/`, `android-kotlin/`, `rails/`.
+Large skills use a `references/` subdirectory for detailed patterns (progressive disclosure: core in SKILL.md, details on demand). Currently: `android-kotlin/`, `apple-swift/`, `bujo-sync/`, `golang/`, `humanizer/`, `python/`, `rails/`, `react-nextjs/`, `ruby/`.
 
 ### Shared Reference Files
 
@@ -150,11 +150,14 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 |-------|-------------|
 | `cover-image/` | Generate editorial cover images via Gemini |
 | `table-image/` | Render tables/diagrams as hand-drawn sketch images |
+| `humanizer/` | Remove AI writing patterns (inflated symbolism, rule of three, etc.) |
 
 ### Personal Workflows
 
 | Skill | Description |
 |-------|-------------|
+| `bujo/` | Bullet Journal: daily/weekly/monthly logs, task migration, reviews |
+| `bujo-sync/` | Bidirectional task sync between Bullet Journal and ClickUp/Linear |
 | `inbox-triage/` | Gmail inbox review and prioritization |
 | `email-cleanup/` | Archive old emails, manage storage |
 | `newsletter-digest/` | Process newsletters into Second Brain (via Obsidian CLI) |
