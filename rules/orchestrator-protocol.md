@@ -44,7 +44,7 @@ Split into independent workstreams. Each software-engineer gets: **scope** (file
 |---------|--------|
 | `*.go`, `*.rb`, `*.py`, `*.ts`, `*.kt`, `*.swift` | architecture + security |
 | Hot paths, queries, caching | + performance |
-| `*_test.*`, `*_spec.*` | + test |
+| `*_test.*`, `*_spec.*` | + test + test-design-reviewer |
 | `go.mod`, `Gemfile`, `package.json`, `pyproject.toml` | dependency |
 | `migrations/`, `schema.rb`, `*.sql` | database |
 | `docs/`, `README*`, `ADR/`, `*.md` | dx |

@@ -63,11 +63,13 @@ Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes 
 | Notion to vault sync | `notion-sync` |
 | ClickUp | `clickup` (English only) |
 | Code review | `gemini-review` |
+| Test quality assessment | `test-design-reviewer` |
 | Release/tag | `releasing-software` |
 | Project retrospective | `learning-docs` |
 | Knowledge sync | `knowledge-sync` |
 | Cover/hero images | `cover-image` |
 | Table/diagram images | `table-image` |
+| Humanize AI text | `humanizer` |
 | Skill creation/review | `skill-forge` |
 
 # Knowledge Capture
