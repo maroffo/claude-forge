@@ -70,6 +70,7 @@ Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes 
 | Cover/hero images | `cover-image` |
 | Table/diagram images | `table-image` |
 | Humanize AI text | `humanizer` |
+| Architecture decisions | `adr` |
 | Skill creation/review | `skill-forge` |
 
 # Knowledge Capture
