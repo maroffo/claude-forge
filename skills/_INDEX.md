@@ -49,6 +49,7 @@
 | Generate cover image | `cover-image` | `_generate_image.py` |
 | Render table as image | `table-image` | `_generate_image.py` |
 | Edit/review text for AI patterns | `humanizer` | - |
+| Write blog posts | `blog-writer` | `humanizer`, `cover-image`, `_SECOND_BRAIN.md` |
 | Create/improve skills | `skill-forge` | `_INDEX.md`, `CLAUDE.md.example` |
 
 ## Shared Reference Files
