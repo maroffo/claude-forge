@@ -13,7 +13,7 @@
 | Search | `gog gmail search "<query>" --account=maroffo@gmail.com --json` |
 | Get thread | `gog gmail thread get <threadId> --account=maroffo@gmail.com --json` |
 | Archive | `gog gmail thread modify <threadId> --account=maroffo@gmail.com --remove=INBOX` |
-| Mark read | `gog gmail thread modify <threadId> --account=maroffo@gmail.com --remove-labels=UNREAD` |
+| Mark read | `gog gmail thread modify <threadId> --account=maroffo@gmail.com --remove=UNREAD` |
 | Star | `gog gmail thread modify <threadId> --account=maroffo@gmail.com --add=STARRED` |
 | Trash | `gog gmail thread modify <threadId> --account=maroffo@gmail.com --add=TRASH` |
 | Open URL | `gog gmail url <threadId>` |
