@@ -30,7 +30,7 @@ research-analyst searches `docs/solutions/`, `LEARNING.md`, `MEMORY.md`, vault (
 |-------|----------|--------|
 | simple | Known tech, <3 files, prior art exists | Standard flow |
 | moderate | Some unknowns, 3-5 files | Standard flow |
-| complex | Unfamiliar tech, >5 files, multiple approaches, no prior art, cross-cutting | Extended flow: write `quality_reports/research/YYYY-MM-DD_desc.md` + activate annotation cycle (see plan-first-workflow) |
+| complex | Unfamiliar tech, >5 files, multiple approaches, no prior art, cross-cutting | Extended flow: write `quality_reports/research/YYYY-MM-DD_desc.md` + `/second-opinion` on approach + activate annotation cycle (see plan-first-workflow) |
 
 ## Implementation (Step 1)
 
