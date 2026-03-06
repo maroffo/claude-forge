@@ -141,6 +141,7 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | `refine-requirements/` | Structured requirements gathering before planning |
 | `clickup/` | Task management via MCP |
 | `gemini-review/` | Local code review with Gemini CLI |
+| `second-opinion/` | Second opinion from Gemini CLI on complex problems (auto-triggers for debugging, architecture, stuck reviews) |
 | `test-design-reviewer/` | Test quality assessment (Farley's 8 Properties, Tautology Theatre) |
 | `adr/` | Architecture Decision Records: refine, research, write, vault storage, review |
 | `skill-forge/` | Create new skills or review/improve existing ones against quality checklist |
