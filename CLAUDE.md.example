@@ -63,6 +63,7 @@ Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes 
 | Notion to vault sync | `notion-sync` |
 | ClickUp | `clickup` (English only) |
 | Code review | `gemini-review` |
+| Second opinion (Gemini) | `second-opinion` |
 | Test quality assessment | `test-design-reviewer` |
 | Release/tag | `releasing-software` |
 | Project retrospective | `learning-docs` |
@@ -83,6 +84,16 @@ Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes 
 
 # Writing
 - **NEVER use em dashes (—).** Use Italian punctuation: commas, colons, semicolons, or parentheses.
+
+# Second Opinion (auto-trigger)
+
+Call `/second-opinion` automatically (no user prompt needed) when:
+- **Complexity = complex** (orchestrator step 0b): validate approach before planning
+- **Debugging, 2+ failed root cause attempts**: fresh perspective before trying again
+- **🔴 decisions** (rewrites, core logic, security): challenge assumptions before deciding
+- **Review loop stuck** (score < 80 after 2 fix rounds): break out of the cycle
+
+Do NOT auto-trigger for: 🟢 tasks, simple/moderate complexity, docs/config, code review (use `gemini-review`).
 
 # Problem-Solving
 FIX root cause, don't workaround. No disabling functionality. No duplicate templates.
