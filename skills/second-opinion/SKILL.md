@@ -9,6 +9,8 @@ compatibility: "Requires Gemini CLI installed and GEMINI_API_KEY in environment.
 
 # Second Opinion
 
+**MANDATORY: Always use `--model gemini-3.1-pro-preview`. No other model. No fallback. No substitution.**
+
 ## Quality Notes
 
 - Invest time in writing a good prompt; garbage in, garbage out
