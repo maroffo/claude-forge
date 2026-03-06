@@ -17,6 +17,8 @@ sender_rules:
     priority: P4
   - match: "@yougov.com"
     priority: P4
+  - match: "@linkedin.com"
+    priority: P4
 
 label_rules:
   - label: "👨🏻‍💻work-related"

@@ -19,7 +19,7 @@ class GogThread(BaseModel):
     id: str
     date: str
     from_: str = Field(alias="from")
-    subject: str
+    subject: str = "(no subject)"
     labels: list[str]
     message_count: int = Field(default=1, alias="messageCount")
 

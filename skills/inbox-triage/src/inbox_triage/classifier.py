@@ -44,10 +44,12 @@ def classify_thread(thread: GogThread, rules: RuleConfig) -> ClassifiedThread:
                 matched_rule=f"sender:{rule.match}",
             )
 
-    # 2. Sender rules: domain match (@domain suffix, case-insensitive)
+    # 2. Sender rules: domain match (@domain, including subdomains, case-insensitive)
     for rule in rules.sender_rules:
         match_lower = rule.match.lower()
-        if match_lower.startswith("@") and match_lower == domain_lower:
+        if match_lower.startswith("@") and (
+            domain_lower == match_lower or domain_lower.endswith("." + match_lower[1:])
+        ):
             return ClassifiedThread(
                 thread=thread,
                 priority=rule.priority,

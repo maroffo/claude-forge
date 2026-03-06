@@ -136,6 +136,28 @@ class TestClassifyThreadSenderDomain:
         assert result.priority == "P2"
         assert result.matched_rule == "sender:@Alerts.COM"
 
+    def test_subdomain_match(self):
+        rules = _rules(sender_rules=[SenderRule(match="@aliexpress.com", priority="P4")])
+        thread = _thread(from_="AliExpress <promo@mail.aliexpress.com>")
+        result = classify_thread(thread, rules)
+        assert result.priority == "P4"
+        assert result.matched_rule == "sender:@aliexpress.com"
+
+    def test_subdomain_match_deep(self):
+        rules = _rules(sender_rules=[SenderRule(match="@aliexpress.com", priority="P4")])
+        thread = _thread(from_="AE <notify@selections.aliexpress.com>")
+        result = classify_thread(thread, rules)
+        assert result.priority == "P4"
+        assert result.matched_rule == "sender:@aliexpress.com"
+
+    def test_subdomain_no_false_positive(self):
+        """@bar.com must NOT match @foobar.com (not a subdomain)."""
+        rules = _rules(sender_rules=[SenderRule(match="@bar.com", priority="P4")])
+        thread = _thread(from_="Foo <x@foobar.com>")
+        result = classify_thread(thread, rules)
+        assert result.priority == "P3"  # default, not matched
+        assert result.matched_rule == "default"
+
 
 class TestClassifyThreadLabel:
     def test_label_match(self):
