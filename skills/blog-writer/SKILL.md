@@ -33,6 +33,18 @@ Write blog posts for Max's Hugo blog (PaperMod theme). Four entry points: discov
 └── hugo.toml                                 ← site config
 ```
 
+### Vault Folder
+
+Blog artifacts live in `maroffo-blog/` in the Obsidian vault (NOT `Mauro-Blog/`, that's a different person's blog).
+
+```
+maroffo-blog/
+├── Blog Discovery - YYYY-MM.md   ← topic discovery results, updated incrementally
+└── (future: drafts, outlines)
+```
+
+**Discovery note**: always read `maroffo-blog/Blog Discovery - <latest>.md` before scanning the full vault. If it exists and is <30 days old, only scan Timeline entries after the last scan date.
+
 ### Front Matter Template
 
 ```yaml
@@ -73,10 +85,25 @@ Add post-specific free tags: project names (`hikmaai`, `wishew`), tools (`obsidi
 
 Triggered when user invokes without a specific topic ("what should I write about?", "blog ideas").
 
-**Step 0a: Scan vault for signals**
+**Step 0: Check cached discovery**
 
 ```bash
-# Recent additions (last 30 days)
+obsidian read path="maroffo-blog/Blog Discovery - 2026-03.md"
+```
+
+If a discovery note exists and is <30 days old, use it as baseline. Only scan new Timeline entries since the last scan date:
+
+```bash
+obsidian read path="Second Brain/Second Brain - Timeline.md"
+# Filter entries after the "Last scan" date in the discovery note
+```
+
+Update the discovery note in-place with new findings. Skip full vault scan.
+
+**Step 0a: Full scan (only if no cached discovery or >30 days old)**
+
+```bash
+# Recent additions
 obsidian search query="added: 2026" path="Second Brain"
 
 # Timeline for volume signals
@@ -95,7 +122,6 @@ Look for:
 **Step 0b: Cross-check IDEAS.md**
 
 ```bash
-# Read existing ideas
 cat /Users/maroffo/Development/private/blog/IDEAS.md
 ```
 
@@ -109,7 +135,11 @@ ls /Users/maroffo/Development/private/blog/content/posts/
 
 Avoid proposing topics already covered (unless significant new angle).
 
-**Step 0d: Present 3-5 ideas**
+**Step 0d: Save/update discovery note**
+
+Save results to `maroffo-blog/Blog Discovery - YYYY-MM.md` via obsidian create/append. Include: published posts table, ranked candidates, secondary candidates, scan date.
+
+**Step 0e: Present 3-5 ideas**
 
 For each idea, show:
 
@@ -196,9 +226,21 @@ Write the full post applying Max's style (see Style Guide below). Save to:
 
 Use today's date. Slug: lowercase, hyphens, descriptive (match existing convention).
 
-### Step 4: Humanize
+### Step 4: Second Opinion (mandatory)
 
-Apply humanizer patterns to the draft. Focus on:
+Run `/second-opinion` on the draft. Ask Gemini to review for:
+- Factual accuracy of cited studies
+- Argument coherence and logical gaps
+- Tone consistency (personal narrative vs literature review)
+- Differentiation from previous posts
+- Missing angles and counterarguments
+- AI writing artifacts that survived the humanizer
+
+Apply Gemini's feedback before proceeding.
+
+### Step 5: Humanize
+
+Apply humanizer patterns to the draft (re-run after second-opinion edits). Focus on:
 - Kill AI vocabulary ("delve", "landscape", "tapestry", "foster", "crucial")
 - No em dashes (use commas, colons, semicolons, parentheses)
 - No rule of three unless natural
@@ -209,7 +251,7 @@ Apply humanizer patterns to the draft. Focus on:
 
 Read the draft back, fix issues in-place with Edit.
 
-### Step 5: Cover Image
+### Step 6: Cover Image
 
 Generate cover image via the cover-image skill workflow:
 
@@ -220,7 +262,7 @@ Generate cover image via the cover-image skill workflow:
 uv run ~/.claude/skills/_generate_image.py "<prompt>" --ar 16:9 -o /Users/maroffo/Development/private/blog/static/images/cover-<slug>.png
 ```
 
-### Step 6: Report
+### Step 7: Report
 
 ```
 Post written:
