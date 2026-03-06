@@ -15,3 +15,4 @@ Corrections and learnings that persist across sessions. When Claude makes a mist
 
 <!-- Append new learnings below this line -->
 [LEARN:writing] Never use em dashes (—) → use Italian punctuation: commas, colons, semicolons, parentheses
+[LEARN:go-workflow] Skipped go fix in verification loop → always run `go fix ./... && go vet ./...` before `go test` at every iteration, not just final verification
