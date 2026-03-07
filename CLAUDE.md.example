@@ -98,3 +98,4 @@ Do NOT auto-trigger for: 🟢 tasks, simple/moderate complexity, docs/config, co
 
 # Problem-Solving
 FIX root cause, don't workaround. No disabling functionality. No duplicate templates.
+**Approach failing?** Stop, re-plan. Don't push harder on a broken path.
