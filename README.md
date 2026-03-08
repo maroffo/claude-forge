@@ -6,14 +6,12 @@ Token-optimized skills, orchestrated review agents, and always-on workflow rules
 
 ## Quick Start
 
-**Option 1: Interactive installer (recommended)**
+**Option 1: One-liner (recommended)**
 ```bash
-git clone https://github.com/maroffo/claude-forge.git
-cd claude-forge
-./install.sh
+curl -sL https://raw.githubusercontent.com/maroffo/claude-forge/main/get.sh | bash
 ```
 
-The installer lets you pick skill categories, asks for your name, paths, and email, then copies everything to `~/.claude/` with personalized values. Safe to re-run (backs up existing files automatically).
+Clones the repo to `~/.claude-forge`, then runs the interactive installer. Pick skill categories, enter your name/paths/email, and it copies everything to `~/.claude/` with personalized values. Safe to re-run (backs up existing files, pulls latest on re-run).
 
 **Option 2: Symlink (for contributors)**
 ```bash
