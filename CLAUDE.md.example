@@ -62,6 +62,8 @@ Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes 
 | Obsidian vault | `obsidian` |
 | Notion to vault sync | `notion-sync` |
 | ClickUp | `clickup` (English only) |
+| Cognitive load analysis | `cognitive-load-analyzer` |
+| Legacy/untested code | `legacy-code-expert` |
 | Code review | `gemini-review` |
 | Second opinion (Gemini) | `second-opinion` |
 | Test quality assessment | `test-design-reviewer` |

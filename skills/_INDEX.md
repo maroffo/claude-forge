@@ -24,6 +24,7 @@
 | Task | Primary Skill | Related |
 |------|---------------|---------|
 | Refine requirements | `refine-requirements` | plan-first-workflow rule |
+| Work with legacy/untested code | `legacy-code-expert` | `verification-protocol`, language-specific |
 | Write code | Language-specific | `_PATTERNS.md`, `_AST_GREP.md` |
 | Search/refactor code | `_AST_GREP.md` | Language-specific |
 | Commit changes | `source-control` | (`commit` redirects here) |
@@ -50,6 +51,7 @@
 | Render table as image | `table-image` | `_generate_image.py` |
 | Edit/review text for AI patterns | `humanizer` | - |
 | Write blog posts | `blog-writer` | `humanizer`, `cover-image`, `_SECOND_BRAIN.md` |
+| Analyze code cognitive load | `cognitive-load-analyzer` | `gemini-review`, language-specific |
 | Create/improve skills | `skill-forge` | `_INDEX.md`, `CLAUDE.md.example` |
 
 ## Shared Reference Files
