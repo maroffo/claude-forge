@@ -6,7 +6,16 @@ Token-optimized skills, orchestrated review agents, and always-on workflow rules
 
 ## Quick Start
 
-**Option 1: Symlink (recommended)**
+**Option 1: Interactive installer (recommended)**
+```bash
+git clone https://github.com/maroffo/claude-forge.git
+cd claude-forge
+./install.sh
+```
+
+The installer lets you pick skill categories, asks for your name, paths, and email, then copies everything to `~/.claude/` with personalized values. Safe to re-run (backs up existing files automatically).
+
+**Option 2: Symlink (for contributors)**
 ```bash
 git clone https://github.com/maroffo/claude-forge.git ~/Development/claude-forge
 
@@ -22,19 +31,15 @@ ln -s ~/Development/claude-forge/rules ~/.claude/rules
 
 mv ~/.claude/CLAUDE.md ~/.claude/CLAUDE.md.backup
 ln -s ~/Development/claude-forge/CLAUDE.md.example ~/.claude/CLAUDE.md
-
-mv ~/.claude/MEMORY.md ~/.claude/MEMORY.md.backup 2>/dev/null
-ln -s ~/Development/claude-forge/MEMORY.md ~/.claude/MEMORY.md
 ```
 
-**Option 2: Copy**
+**Option 3: Manual copy**
 ```bash
 git clone https://github.com/maroffo/claude-forge.git
 cp -r claude-forge/skills/* ~/.claude/skills/
 cp -r claude-forge/agents/* ~/.claude/agents/
 cp -r claude-forge/rules/* ~/.claude/rules/
 cp claude-forge/CLAUDE.md.example ~/.claude/CLAUDE.md
-cp claude-forge/MEMORY.md ~/.claude/MEMORY.md
 ```
 
 ## Architecture
