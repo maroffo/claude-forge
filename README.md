@@ -142,7 +142,9 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | `clickup/` | Task management via MCP |
 | `gemini-review/` | Local code review with Gemini CLI |
 | `second-opinion/` | Second opinion from Gemini CLI on complex problems (auto-triggers for debugging, architecture, stuck reviews) |
-| `test-design-reviewer/` | Test quality assessment (Farley's 8 Properties, Tautology Theatre) |
+| `test-design-reviewer/` | Test quality assessment (Farley's 8 Properties, weighted scoring, Python calculator) |
+| `cognitive-load-analyzer/` | 8-dimension code complexity scoring (0-1000), sigmoid normalization, Python calculator |
+| `legacy-code-expert/` | Feathers' dependency-breaking techniques, seam identification, characterization tests |
 | `adr/` | Architecture Decision Records: refine, research, write, vault storage, review |
 | `skill-forge/` | Create new skills or review/improve existing ones against quality checklist |
 | `notion-sync/` | Notion workspace to Obsidian vault sync (pull, push, AI summaries) |
@@ -154,6 +156,7 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | `cover-image/` | Generate editorial cover images via Gemini |
 | `table-image/` | Render tables/diagrams as hand-drawn sketch images |
 | `humanizer/` | Remove AI writing patterns (inflated symbolism, rule of three, etc.) |
+| `blog-writer/` | Write blog posts from Second Brain, IDEAS.md, or free prompts |
 
 ### Personal Workflows
 
