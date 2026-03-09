@@ -63,16 +63,19 @@ gog gmail search "is:unread (from:substack.com OR from:beehiiv.com OR from:conve
 
 ### Step 2: For Each Newsletter
 
-1. **Get full content**:
+Use the extraction script to get clean text content:
+
 ```bash
-gog gmail thread get <threadId> --account=maroffo@gmail.com --json
+# Full content with metadata
+gog gmail thread get <threadId> --account=maroffo@gmail.com --json \
+  | python3 ~/.claude/skills/newsletter-digest/extract_email.py --meta
+
+# Truncated (for quick triage)
+gog gmail thread get <threadId> --account=maroffo@gmail.com --json \
+  | python3 ~/.claude/skills/newsletter-digest/extract_email.py --meta --max-chars 3000
 ```
 
-2. **Extract metadata**:
-   - Sender/publication name
-   - Subject/title
-   - Date
-   - Body content (HTML → text)
+The script (`extract_email.py`) handles multipart MIME, base64 decoding, HTML fallback, and nested parts. No need to write inline Python for email parsing.
 
 3. **Analyze content** - identify:
    - **Tools/libraries** mentioned → Second Brain - Development/AI

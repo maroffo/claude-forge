@@ -18,6 +18,18 @@
 | Trash | `gog gmail thread modify <threadId> --account=maroffo@gmail.com --add=TRASH` |
 | Open URL | `gog gmail url <threadId>` |
 | Get message | `gog gmail get <messageId> --account=maroffo@gmail.com --json` |
+| Extract text | `gog gmail thread get <threadId> --account=maroffo@gmail.com --json \| python3 ~/.claude/skills/newsletter-digest/extract_email.py --meta` |
+| Extract truncated | `... \| python3 ~/.claude/skills/newsletter-digest/extract_email.py --meta --max-chars 3000` |
+
+## Email Text Extraction
+
+Always use `extract_email.py` to get email body text. Do NOT write inline Python for MIME parsing, base64 decoding, or HTML stripping. The script handles all edge cases (multipart, nested parts, fallback to HTML).
+
+```bash
+# Options: --meta (include From/Subject/Date), --max-chars N (truncate), --message-index N (which message)
+gog gmail thread get <threadId> --account=maroffo@gmail.com --json \
+  | python3 ~/.claude/skills/newsletter-digest/extract_email.py --meta --max-chars 4000
+```
 
 ## Search Operators
 
