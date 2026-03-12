@@ -65,9 +65,9 @@ Obsidian Vault (Documents/)
 
 | Rule | Purpose |
 |------|---------|
-| `orchestrator-protocol` | Contractor mode: research → implement → verify → review → fix → score → loop |
-| `plan-first-workflow` | Requirements refinement, plan before build, checkpoints, context preservation |
-| `verification-protocol` | TDD process, mandatory test/lint/build cycle |
+| `orchestrator-protocol` | Contractor mode: research (with "don't hand-roll" check) → implement → verify → review → fix → score → loop |
+| `plan-first-workflow` | Requirements refinement, append-only decisions register, checkpoints, context preservation ("never summarize summaries") |
+| `verification-protocol` | TDD process, mandatory test/lint/build cycle, outcome verification tables |
 | `quality-gates` | Scoring: 80 commit, 90 PR, 95 excellence |
 
 ## Agents (On-Demand)
@@ -279,7 +279,7 @@ Everything is aggressively optimized:
 
 ## Inspiration
 
-Evolved from [Harper Reed's dotfiles](https://github.com/harperreed/dotfiles/tree/master/.claude), [Matteo Vaccari's AI-assisted modernization series](https://matteo.vaccari.name/posts/plants-by-websphere/), [Pedro Santanna's orchestrated workflow](https://github.com/pedrohcgs/claude-code-my-workflow), [Every's compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin) (solutions directory, research agent, incremental commits), [Get Shit Done](https://github.com/gsd-build/get-shit-done) (requirements refinement, deviation rules), [Anthropic's Complete Guide to Building Skills](https://www.anthropic.com/engineering/claude-code-best-practices) (progressive disclosure, trigger phrases, skill-forge), and [andlaf-ak's claude-code-agents](https://github.com/andlaf-ak/claude-code-agents) (test-design-reviewer, cognitive load dimensions, hotspot analysis).
+Evolved from [Harper Reed's dotfiles](https://github.com/harperreed/dotfiles/tree/master/.claude), [Matteo Vaccari's AI-assisted modernization series](https://matteo.vaccari.name/posts/plants-by-websphere/), [Pedro Santanna's orchestrated workflow](https://github.com/pedrohcgs/claude-code-my-workflow), [Every's compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin) (solutions directory, research agent, incremental commits), [Get Shit Done v1](https://github.com/gsd-build/get-shit-done) (requirements refinement, deviation rules), [GSD 2](https://github.com/gsd-build/GSD-2) (append-only decisions, outcome verification, "don't hand-roll" research, anti-drift summaries), [Anthropic's Complete Guide to Building Skills](https://www.anthropic.com/engineering/claude-code-best-practices) (progressive disclosure, trigger phrases, skill-forge), and [andlaf-ak's claude-code-agents](https://github.com/andlaf-ak/claude-code-agents) (test-design-reviewer, cognitive load dimensions, hotspot analysis).
 
 ## License
 
