@@ -9,9 +9,7 @@ Multi-file changes, new features, integrations, anything 🟡 or 🔴 in decisio
 
 ## Requirements Refinement (MUST run before planning)
 
-**MANDATORY** for any 🟡/🔴 task. BEFORE entering plan mode, identify gray areas and clarify with `AskUserQuestion`. Do NOT draft a plan with unresolved ambiguities.
-
-Skip ONLY when: single-file change, user gave fully specific instructions, or user explicitly says to skip.
+**MANDATORY** for any 🟡/🔴 task. Identify gray areas and clarify with `AskUserQuestion` BEFORE entering plan mode. Skip ONLY for: single-file changes, fully specific instructions, or explicit user skip.
 
 **1. Analyze gray areas** — what decisions would change the implementation?
 - Visual feature → layout, density, interactions, empty states
@@ -27,7 +25,9 @@ Skip ONLY when: single-file change, user gave fully specific instructions, or us
 - New scope suggested during refinement → capture as "deferred idea", redirect
 
 **4. Capture decisions** — feed into the plan
-- Add a `## Decisions` section to the plan file
+- Add a `## Decisions` section to the plan file (append-only across sessions)
+- Format: `| # | Decision | Choice | Rationale | Revisit if |`
+- Never edit/remove rows; to reverse, add a new row that supersedes
 - Record: what was decided, why, what was deferred to Claude's discretion
 
 Can also be invoked explicitly via `/refine-requirements`.
@@ -51,14 +51,12 @@ Activates when research-analyst verdict = **complex** (see orchestrator-protocol
 
 ## Checkpoints in Plans
 
-Plans MAY include checkpoint markers for moments where human judgment matters.
+Plans MAY include checkpoint markers (0-2 per plan). Between checkpoints, execution is autonomous.
 
-| Marker | When to use | Effect |
-|--------|-------------|--------|
-| `<!-- checkpoint:verify -->` | After UI, deploy, auth flow | STOP, show what was built, ask user to verify |
-| `<!-- checkpoint:decide -->` | Architectural fork during execution | STOP, present options with trade-offs, wait |
-
-Between checkpoints, execution is autonomous. Use sparingly: 0-2 per plan.
+| Marker | When | Effect |
+|--------|------|--------|
+| `<!-- checkpoint:verify -->` | After UI, deploy, auth flow | STOP, user verifies |
+| `<!-- checkpoint:decide -->` | Architectural fork | STOP, present options, wait |
 
 ## Session Logging
 
@@ -69,6 +67,8 @@ Append to project log in vault: `obsidian append file="<project> - Log" content=
 - **End:** accomplishments, open questions
 
 ## Context Preservation
+
+When compressing or summarizing session state, regenerate from source files (code, tests, git log), never compress an existing summary. Summaries drift; the codebase is the lossless source of truth.
 
 When pausing mid-task or before context gets large, write `.continue-here.md` in the working directory:
 

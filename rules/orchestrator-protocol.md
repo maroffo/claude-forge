@@ -24,7 +24,7 @@ After plan approval, execute autonomously until quality gates pass.
 
 ## Research + Complexity (Step 0)
 
-research-analyst searches `docs/solutions/`, `LEARNING.md`, `MEMORY.md`, vault (`obsidian search query="..." path="Projects"`), then external. Returns comparison table + recommendation. MUST end with complexity verdict:
+research-analyst searches docs/solutions/, LEARNING.md, MEMORY.md, vault, then external. Returns: comparison table, recommendation, ecosystem solutions (avoid hand-rolling), 1-2 common pitfalls. MUST end with complexity verdict:
 
 | Level | Criteria | Effect |
 |-------|----------|--------|
@@ -36,7 +36,7 @@ research-analyst searches `docs/solutions/`, `LEARNING.md`, `MEMORY.md`, vault (
 
 Split into independent workstreams. Each software-engineer gets: **scope** (files), **plan** (subtask + criteria), **context** (lang/framework). Max 3 parallel. Single-scope → implement directly.
 
-**Checkpoints:** If plan contains `<!-- checkpoint:verify -->` or `<!-- checkpoint:decide -->` markers, software-engineer stops at those points for human input. Between checkpoints, execution is autonomous. Engineers apply deviation rules (R1-R4) for unplanned discoveries.
+**Checkpoints:** see plan-first-workflow. Engineers apply deviation rules (R1-R4) for unplanned discoveries.
 
 ## Review Routing (Step 3)
 
@@ -52,17 +52,13 @@ Split into independent workstreams. Each software-engineer gets: **scope** (file
 
 ## UAT: Goal-Backward Verification (Step 9)
 
-After PRESENT, verify the work actually achieves the user's goal (not just that code passes tests).
+Verify the work achieves the user's goal, not just that code passes tests.
 
-**1. Derive must-be-true list.** Work backward from the original goal to observable behaviors:
-- Goal: "working search" → "typing a query returns filtered results", "empty query shows all items", "no results shows empty state"
-- 3-7 items max. Behaviors, not implementation details.
+1. **Derive must-be-true list** from the goal (3-7 observable behaviors, not implementation details)
+2. **Walkthrough** each via `AskUserQuestion`: Pass / Fail / Skip
+3. **On failure:** feed into fix loop (step 4), re-verify, re-score, re-UAT failed items only
 
-**2. Walkthrough.** Present each must-be-true one at a time via `AskUserQuestion`. Options: Pass / Fail / Skip (can't test now).
-
-**3. On failure:** capture what's broken, feed into fix loop (step 4), re-verify (step 5), re-score (step 6), then re-UAT only failed items.
-
-**When to skip:** docs-only changes, config/infra with no user-facing behavior, pure refactors, single-function fixes with passing tests. When in doubt, run it.
+**Skip when:** docs-only, config, pure refactors, single-function fixes with passing tests.
 
 ## Rules
 
