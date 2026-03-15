@@ -1,5 +1,5 @@
-# ABOUTME: Detailed Go patterns for performance, profiling, concurrency, and code review
-# ABOUTME: Reference companion to golang SKILL.md with benchmarks and optimization techniques
+# ABOUTME: Go patterns for performance, profiling, concurrency, modern stdlib, and code review
+# ABOUTME: Reference companion to golang SKILL.md with benchmarks, modern API prefs, optimization
 
 # Go Patterns Reference
 
@@ -38,7 +38,7 @@ type Conn struct {
 
 **PGO (2-7% free):** Capture profile, then `go build -pgo=cpu.pprof`.
 
-**Benchmarks:** `go test -bench=. -benchmem ./...`. Use `b.ResetTimer()` after setup.
+**Benchmarks:** `go test -bench=. -benchmem ./...`. Use `b.ResetTimer()` after setup. **1.24+:** prefer `b.Loop()` over `for range b.N` (prevents compiler from optimizing away loop body).
 
 ---
 
@@ -56,13 +56,37 @@ if err := g.Wait(); err != nil { return err }
 
 **Channel rules:** Sender closes. Generator returns `<-chan T`, closes on ctx.Done().
 
-**Pitfall:** `time.After` in loops leaks timers, use `time.NewTicker` + `defer Stop()`.
+**Pitfall (pre-1.23):** `time.After` in loops leaks timers, use `time.NewTicker` + `defer Stop()`. **1.23+:** `time.Tick` is GC-safe; tickers are reclaimed when unreferenced (requires `go 1.23` in go.mod).
+
+---
+
+## Modern Stdlib Preferences
+
+Prefer modern APIs over manual equivalents:
+
+| Instead of | Use | Since |
+|------------|-----|-------|
+| `sync.Once` + separate var | `sync.OnceValue(func() T)` / `sync.OnceFunc` | 1.21 |
+| Manual default chain (`if x == "" { x = fallback }`) | `cmp.Or(x, fallback, "default")` | 1.22 |
+| `strings.Index` + slice | `strings.Cut(s, sep)` | 1.18 |
+| `strings.HasPrefix` + slice | `strings.CutPrefix(s, prefix)` | 1.20 |
+| Multiple `if err != nil` to collect | `errors.Join(err1, err2)` | 1.20 |
+| `atomic.StoreInt32` / `LoadInt32` | `atomic.Bool`, `atomic.Pointer[T]` | 1.19 |
+| `context.Background()` + cancel in tests | `t.Context()` | 1.24 |
+| `for range b.N` in benchmarks | `for b.Loop()` | 1.24 |
+| `omitempty` for Duration/structs | `omitzero` JSON tag | 1.24 |
+| `strings.Split` in for-range | `strings.SplitSeq` (avoids slice alloc) | 1.24 |
+| `wg.Add(1); go func(){ defer wg.Done() }` | `wg.Go(func() { ... })` | 1.25 |
+| `errors.As(err, &target)` | `errors.AsType[*T](err)` (returns val, ok) | 1.26 |
+| `x := val; &x` (pointer to value) | `new(val)` | 1.26 |
+| `context.WithCancel` (no cause) | `context.WithCancelCause` + `context.Cause` | 1.20 |
+| `[]byte(fmt.Sprintf(...))` | `fmt.Appendf(buf, ...)` | 1.19 |
 
 ---
 
 ## Code Review
 
-**Errors:** All handled, wrapped `%w`, has context, no panic in libs, not logging AND returning.
+**Errors:** All handled, wrapped `%w`, has context, no panic in libs, not logging AND returning. Domain sentinels at service layer, log only at boundaries. Never wrap `io.EOF`.
 
 **Concurrency:** Goroutines exit cleanly, context propagated, sender closes channels, errgroup > WaitGroup, `defer mu.Unlock()`, `-race` passes, bounded pools, libs are synchronous.
 

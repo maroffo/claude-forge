@@ -6,7 +6,7 @@ allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ---
 
 # ABOUTME: Complete Go development guide - code, design, concurrency, performance, review
-# ABOUTME: Modern Go (1.22-1.26): stdlib router, Green Tea GC, fgprof, easyjson, pgx batching
+# ABOUTME: Modern Go (1.22-1.26): error layering, stdlib router, Green Tea GC, modern stdlib prefs
 
 # Go Development
 
@@ -27,7 +27,7 @@ golangci-lint run
 
 ```bash
 gofmt -w .                    # Fix formatting FIRST (sqlc/codegen can misalign)
-go fix ./...                  # Apply any pending API migrations
+go fix ./... && go fix ./...  # 1.26+: 25 modernizers (run twice for synergistic fixes)
 go vet ./...                  # Static analysis
 go build ./...                # Compilation check
 go test -race -count=1 ./...  # Tests with race detector
@@ -36,17 +36,21 @@ golangci-lint run             # Lint
 
 **Why gofmt before build:** Code generators (sqlc, protoc) may produce code `gofmt` disagrees with. Always run `gofmt -w` after regeneration and before commit.
 
+**`go fix` in 1.26+:** Completely rewritten with 25 modernizers on the `go/analysis` framework. Auto-rewrites: `interface{}`→`any`, `sort.Slice`→`slices.Sort`, `wg.Add+go`→`wg.Go`, `errors.As`→`errors.AsType[T]`, `omitempty`→`omitzero`, C-style loops→`range int`, and more. Version-gated by `go.mod` directive. Run twice (synergistic fixes). Preview with `go fix -diff ./...`. List fixers: `go tool fix help`.
+
 ---
 
 ## Modern Go (1.22+)
 
 **1.22:** Loop var fix (each iteration owns its variable). Range over int: `for i := range 10`. Stdlib router: `mux.HandleFunc("GET /api/v1/feed/{id}", h)` + `r.PathValue("id")`.
 
-**1.23:** `iter.Seq[T]` lazy sequences. Use sparingly.
+**1.23:** `iter.Seq[T]` lazy sequences (use sparingly). `time.Tick` now GC-safe (no more leak). `maps.Keys`, `slices.Collect`, `slices.Sorted`.
+
+**1.24:** `t.Context()` auto-cancelled test context. `omitzero` JSON tag (fixes `omitempty` for Duration/structs). `b.Loop()` for benchmarks. `strings.SplitSeq` lazy iteration (avoids slice alloc).
 
 **1.25:** Container-aware GOMAXPROCS, Green Tea GC (experimental), `sync.WaitGroup.Go()`.
 
-**1.26:** Green Tea GC default ON (10-40% lower overhead), `new(42)`, self-referential generics, ~30% faster cgo, goroutine leak detection (`/debug/pprof/goroutineleak`).
+**1.26:** Green Tea GC default ON (10-40% lower overhead), `new(42)`, `errors.AsType[T]`, self-referential generics, ~30% faster cgo, `go fix` rewritten (25 modernizers). Goroutine leak detection (`/debug/pprof/goroutineleak`) requires `GOEXPERIMENT=goroutineleakprofile`.
 
 ---
 
@@ -56,7 +60,31 @@ golangci-lint run             # Lint
 
 **Naming:** Short vars in funcs (`i`, `c`), descriptive at pkg level (`ErrNotFound`). Receivers 1-2 letter (`c *Client`). Initialisms all-caps or all-lower (`ServeHTTP`, `appID`). Packages lowercase singular.
 
-**Errors:** Always handle (never `_`). Wrap: `fmt.Errorf("decompress %v: %w", name, err)`. Lowercase, no punctuation, guard clauses.
+**Errors:** Always handle (never `_`). Wrap: `fmt.Errorf("decompress %v: %w", name, err)`. Lowercase, no punctuation, guard clauses. Never wrap `io.EOF` (callers use `==`).
+
+**Error layering:** Repo wraps infra errors with context. Service translates to domain sentinels (`ErrUserNotFound`, `ErrInsufficientFunds`). Handler maps sentinels to HTTP/gRPC codes. Log errors **only at system boundaries** (handlers, consumers, workers), not at every layer.
+```go
+// Domain sentinels
+var ErrUserNotFound = errors.New("user not found")
+
+// Service: translate infra → domain
+if errors.Is(err, sql.ErrNoRows) { return nil, ErrUserNotFound }
+
+// Handler: map domain → HTTP
+if errors.Is(err, ErrUserNotFound) { http.Error(w, "not found", 404); return }
+```
+
+**Structured errors (APIs only):** For HTTP/gRPC APIs needing error codes in responses:
+```go
+type AppError struct {
+    Code    string // "USER_NOT_FOUND", machine-readable
+    Message string // Human-readable
+    Err     error  // Wrapped cause
+}
+func (e *AppError) Error() string { return fmt.Sprintf("%s: %s", e.Code, e.Message) }
+func (e *AppError) Unwrap() error { return e.Err }
+```
+Not needed for CLIs, workers, or internal packages: use sentinels + `%w` wrapping.
 
 **Testing:** Table-driven with `t.Run()`, use `t.Helper()` in helpers.
 ```go
@@ -108,7 +136,7 @@ func NewServer(opts ...Option) *Server { /* apply opts */ }
 - Always know WHEN and HOW a goroutine terminates
 - **Libraries are synchronous**: never launch goroutines from lib code unless concurrency IS the feature
 
-**errgroup** (preferred over WaitGroup), **context** always first param, **bounded pools** for load, **sender closes** channels. `time.After` in loops leaks timers, use `time.NewTicker`.
+**errgroup** (preferred over WaitGroup), **context** always first param, **bounded pools** for load, **sender closes** channels. Pre-1.23: `time.After` in loops leaks timers, use `time.NewTicker`. **1.23+:** `time.Tick` is GC-safe (requires `go 1.23` in go.mod).
 
 For detailed concurrency patterns, performance optimization, profiling, and code review checklists, see `references/golang-patterns.md`.
 
