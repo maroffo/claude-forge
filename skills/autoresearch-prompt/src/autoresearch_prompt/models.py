@@ -1,31 +1,42 @@
 # ABOUTME: Pydantic models for eval examples, LLM responses, and run summaries
-# ABOUTME: EvalExample (JSONL row), LLMResponse (parsed output), ExampleResult, RunSummary
+# ABOUTME: Dynamic dict-based fields: inputs/expected from JSONL, fields from LLM output
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, Field
+from typing import Any
+
+from pydantic import BaseModel, model_validator
 
 
 class EvalExample(BaseModel):
-    """A single labeled example from eval_set.jsonl."""
+    """A single labeled example from eval_set.jsonl.
 
-    model_config = ConfigDict(populate_by_name=True)
+    Convention: keys starting with ``expected_`` become ``expected`` (prefix stripped),
+    everything else becomes ``inputs``. No schema config needed.
+    """
 
-    from_sender: str = Field(alias="from")
-    subject: str
-    content: str
-    expected_action: str  # "extract" or "skip"
-    expected_category: str | None = None  # only for action=extract
-    expected_content: str | None = None  # brief description of expected extraction
+    inputs: dict[str, str]
+    expected: dict[str, str]
+
+    @model_validator(mode="before")
+    @classmethod
+    def split_fields(cls, data: Any) -> Any:
+        if isinstance(data, dict) and "inputs" not in data:
+            inputs: dict[str, str] = {}
+            expected: dict[str, str] = {}
+            for key, value in data.items():
+                if key.startswith("expected_"):
+                    expected[key.removeprefix("expected_")] = value
+                else:
+                    inputs[key] = value
+            return {"inputs": inputs, "expected": expected}
+        return data
 
 
 class LLMResponse(BaseModel):
     """Parsed JSON output from the LLM."""
 
-    action: str  # "extract" or "skip"
-    category: str | None = None
-    content: str | None = None
-    reason: str | None = None
+    fields: dict[str, Any]
 
 
 class ExampleResult(BaseModel):
@@ -33,8 +44,7 @@ class ExampleResult(BaseModel):
 
     example: EvalExample
     response: LLMResponse | None = None
-    action_correct: bool = False
-    category_correct: bool | None = None  # None if action=skip
+    field_correct: dict[str, bool] = {}
     parse_error: bool = False
     error_message: str | None = None
     latency_ms: int = 0
@@ -46,12 +56,8 @@ class RunSummary(BaseModel):
     """Aggregate results of a full evaluation run."""
 
     total: int
-    correct_actions: int
-    correct_categories: int
-    category_comparisons: int  # how many had both expected and actual category
-    extract_accuracy: float
-    category_accuracy: float
-    score: float  # 0.6 * extract_acc + 0.4 * category_acc
+    field_accuracies: dict[str, float]
+    score: float
     errors: int
     total_input_tokens: int = 0
     total_output_tokens: int = 0

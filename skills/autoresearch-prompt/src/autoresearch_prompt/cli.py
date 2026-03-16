@@ -1,5 +1,5 @@
 # ABOUTME: CLI entry point with evaluate and classify subcommands
-# ABOUTME: evaluate scores prompt against eval set; classify triages a single newsletter
+# ABOUTME: evaluate scores prompt with --weights; classify takes stdin JSON input fields
 
 from __future__ import annotations
 
@@ -9,6 +9,18 @@ import sys
 from pathlib import Path
 
 from .evaluator import DEFAULT_MODEL, classify_single, run_evaluation
+
+
+def _parse_weights(raw: str) -> dict[str, float]:
+    """Parse 'field=0.6,field2=0.4' into dict."""
+    weights: dict[str, float] = {}
+    for pair in raw.split(","):
+        pair = pair.strip()
+        if not pair:
+            continue
+        key, val = pair.split("=")
+        weights[key.strip()] = float(val.strip())
+    return weights
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -38,14 +50,17 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=DEFAULT_MODEL,
         help=f"Model to use (default: {DEFAULT_MODEL})",
     )
+    eval_parser.add_argument(
+        "--weights",
+        type=str,
+        default=None,
+        help="Field weights: action=0.6,category=0.4 (default: equal weight)",
+    )
 
     # classify
     cls_parser = sub.add_parser(
-        "classify", help="Classify a single newsletter (stdin JSON or args)",
+        "classify", help="Classify a single input (stdin JSON)",
     )
-    cls_parser.add_argument("--from", dest="from_sender", help="Sender (From header)")
-    cls_parser.add_argument("--subject", help="Email subject")
-    cls_parser.add_argument("--content", help="Email body text")
     cls_parser.add_argument(
         "--prompt",
         type=Path,
@@ -63,17 +78,20 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def _cmd_evaluate(args: argparse.Namespace) -> None:
+    weights = _parse_weights(args.weights) if args.weights else None
+
     print("Running evaluation...", file=sys.stderr)
     summary = run_evaluation(
         prompt_path=args.prompt,
         eval_path=args.eval_set,
         model=args.model,
+        weights=weights,
     )
 
     # Stdout: grep-friendly key-value format
     print(f"score: {summary.score:.2f}")
-    print(f"extract_acc: {summary.extract_accuracy:.2f}")
-    print(f"category_acc: {summary.category_accuracy:.2f}")
+    for field, acc in sorted(summary.field_accuracies.items()):
+        print(f"{field}_acc: {acc:.2f}")
     print(f"cost: ${summary.cost_usd:.4f}")
     print(f"latency_ms: {summary.avg_latency_ms}")
     print(f"errors: {summary.errors}")
@@ -81,29 +99,25 @@ def _cmd_evaluate(args: argparse.Namespace) -> None:
 
 
 def _cmd_classify(args: argparse.Namespace) -> None:
-    # Read from args or stdin JSON
-    if args.from_sender and args.subject and args.content:
-        from_sender = args.from_sender
-        subject = args.subject
-        content = args.content
-    else:
-        raw = sys.stdin.read()
-        if not raw.strip():
-            print("Provide --from/--subject/--content or pipe JSON to stdin.", file=sys.stderr)
-            sys.exit(1)
-        data = json.loads(raw)
-        from_sender = data.get("from", data.get("from_sender", ""))
-        subject = data.get("subject", "")
-        content = data.get("content", "")
+    raw = sys.stdin.read()
+    if not raw.strip():
+        print("Pipe JSON to stdin.", file=sys.stderr)
+        sys.exit(1)
+    try:
+        fields = json.loads(raw)
+    except json.JSONDecodeError as e:
+        print(f"Invalid JSON: {e}", file=sys.stderr)
+        sys.exit(1)
+    if not isinstance(fields, dict):
+        print("Expected a JSON object, not an array or scalar.", file=sys.stderr)
+        sys.exit(1)
 
     response = classify_single(
-        from_sender=from_sender,
-        subject=subject,
-        content=content,
+        fields=fields,
         prompt_path=args.prompt,
         model=args.model,
     )
-    print(response.model_dump_json(indent=2))
+    print(json.dumps(response.fields, indent=2))
 
 
 def main(argv: list[str] | None = None) -> None:

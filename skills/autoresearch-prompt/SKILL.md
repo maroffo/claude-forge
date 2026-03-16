@@ -46,19 +46,27 @@ src/               <- Eval harness (CLI + scoring + API calls)
 
 ## Scoring
 
-```
-score = 0.6 * extract_accuracy + 0.4 * category_accuracy
+Per-field accuracy computed from `expected_*` fields in eval_set.jsonl. Weighted score via `--weights`:
+
+```bash
+# Custom weights (newsletter example)
+uv run -- autoresearch-prompt evaluate --weights action=0.6,category=0.4
+
+# Default: equal weight across all expected_* fields
+uv run -- autoresearch-prompt evaluate
 ```
 
-- `extract_accuracy`: fraction of correct extract/skip decisions
-- `category_accuracy`: fraction of correct categories (among extracted examples only)
-- When no category comparisons possible: `category_accuracy = 1.0`
+- Each `expected_*` field is compared case-insensitively against the LLM response JSON key (prefix stripped)
+- Fields not present in an example are skipped for that example's accuracy
+- When no comparisons possible for a field: accuracy = 1.0 (vacuous truth)
 
 ## Output format
 
+Dynamic, based on which `expected_*` fields exist in the eval set:
+
 ```
 score: 0.85
-extract_acc: 0.90
+action_acc: 0.90
 category_acc: 0.83
 cost: $0.0045
 latency_ms: 350
@@ -77,15 +85,29 @@ Follow `program.md` instructions. The loop:
 6. Log to results.tsv
 7. Repeat (max 10 iterations)
 
-## Adding eval examples
+## Eval set format
 
-Add JSONL lines to `eval_set.jsonl`:
+Convention-over-configuration JSONL. Non-`expected_*` keys = inputs (rendered into `{{key}}` in prompt template). `expected_*` keys = outputs to score (prefix stripped, compared against LLM response JSON).
 
 ```json
 {"from": "Sender <email>", "subject": "...", "content": "...", "expected_action": "extract", "expected_category": "AI Agents and Tools", "expected_content": "Brief expected insight"}
 {"from": "Sender <email>", "subject": "...", "content": "...", "expected_action": "skip"}
 ```
 
+Works with any schema, not just newsletters:
+
+```json
+{"diff": "- old\n+ new", "context": "refactor", "expected_message": "refactor: simplify logic"}
+```
+
 ## Prompt template format
 
-`prompt.md` uses `## System` / `## User` markdown headers. Template variables: `{{from}}`, `{{subject}}`, `{{content}}`.
+`prompt.md` uses `## System` / `## User` markdown headers. Template variables: `{{field_name}}` for each input field in the eval set.
+
+## Classify (single input)
+
+Pipe any JSON to stdin. All keys become input fields:
+
+```bash
+echo '{"from":"test","subject":"test","content":"test"}' | uv run -- autoresearch-prompt classify
+```

@@ -1,5 +1,5 @@
 # ABOUTME: Load prompt.md, split into system/user sections, render template variables
-# ABOUTME: Supports {{from}}, {{subject}}, {{content}} placeholders via str.replace
+# ABOUTME: Generic {{field_name}} placeholder rendering from dict keys
 
 from __future__ import annotations
 
@@ -46,23 +46,20 @@ def split_sections(raw: str) -> tuple[str, str]:
     return system, user
 
 
-def render_user(template: str, from_sender: str, subject: str, content: str) -> str:
-    """Replace {{from}}, {{subject}}, {{content}} placeholders in user template."""
+def render_user(template: str, fields: dict[str, str]) -> str:
+    """Replace ``{{key}}`` placeholders in user template for all keys in *fields*."""
     result = template
-    result = result.replace("{{from}}", from_sender)
-    result = result.replace("{{subject}}", subject)
-    result = result.replace("{{content}}", content)
+    for key, value in fields.items():
+        result = result.replace(f"{{{{{key}}}}}", str(value))
     return result
 
 
 def load_and_render(
-    from_sender: str,
-    subject: str,
-    content: str,
+    fields: dict[str, str],
     prompt_path: Path | None = None,
 ) -> tuple[str, str]:
     """Load prompt.md, split, and render. Returns (system_message, user_message)."""
     raw = load_prompt(prompt_path)
     system, user_template = split_sections(raw)
-    user = render_user(user_template, from_sender, subject, content)
+    user = render_user(user_template, fields)
     return system, user

@@ -50,20 +50,33 @@ class TestSplitSections:
 class TestRenderUser:
     def test_all_placeholders(self):
         template = "From: {{from}}\nSubject: {{subject}}\n\n{{content}}"
-        result = render_user(template, "Alice <a@b.com>", "Test Subject", "Body text")
+        fields = {"from": "Alice <a@b.com>", "subject": "Test Subject", "content": "Body text"}
+        result = render_user(template, fields)
         assert "Alice <a@b.com>" in result
         assert "Test Subject" in result
         assert "Body text" in result
 
     def test_no_placeholders(self):
         template = "Static text"
-        result = render_user(template, "from", "sub", "body")
+        result = render_user(template, {"from": "from", "subject": "sub", "content": "body"})
         assert result == "Static text"
 
     def test_multiple_occurrences(self):
         template = "{{from}} said {{from}}"
-        result = render_user(template, "Alice", "sub", "body")
+        result = render_user(template, {"from": "Alice"})
         assert result == "Alice said Alice"
+
+    def test_arbitrary_fields(self):
+        template = "Diff: {{diff}}\nContext: {{context}}"
+        result = render_user(template, {"diff": "- old\n+ new", "context": "refactor"})
+        assert "- old\n+ new" in result
+        assert "refactor" in result
+
+    def test_non_string_values_cast_to_str(self):
+        template = "Count: {{count}}, Active: {{active}}"
+        result = render_user(template, {"count": 5, "active": True})
+        assert "Count: 5" in result
+        assert "Active: True" in result
 
 
 class TestLoadPrompt:
@@ -75,12 +88,8 @@ class TestLoadPrompt:
 
 class TestLoadAndRender:
     def test_end_to_end(self, sample_prompt_md: Path):
-        system, user = load_and_render(
-            from_sender="Test <t@x.com>",
-            subject="My Subject",
-            content="Body here",
-            prompt_path=sample_prompt_md,
-        )
+        fields = {"from": "Test <t@x.com>", "subject": "My Subject", "content": "Body here"}
+        system, user = load_and_render(fields, prompt_path=sample_prompt_md)
         assert "classifier" in system
         assert "Test <t@x.com>" in user
         assert "My Subject" in user

@@ -1,5 +1,5 @@
 # ABOUTME: Tests for evaluator: scoring, JSON parsing, error handling
-# ABOUTME: Covers compute_score, parse_llm_output, evaluate_example with mocks
+# ABOUTME: Covers compute_score with weights, parse_llm_output, evaluate_example with mocks
 
 from __future__ import annotations
 
@@ -24,18 +24,18 @@ class TestParseLLMOutput:
             ' "content": "insight", "reason": "relevant"}'
         )
         resp = parse_llm_output(raw)
-        assert resp.action == "extract"
-        assert resp.category == "AI Agents and Tools"
+        assert resp.fields["action"] == "extract"
+        assert resp.fields["category"] == "AI Agents and Tools"
 
     def test_fenced_json(self):
         raw = '```json\n{"action": "skip", "reason": "job listings"}\n```'
         resp = parse_llm_output(raw)
-        assert resp.action == "skip"
+        assert resp.fields["action"] == "skip"
 
     def test_fenced_no_lang(self):
         raw = '```\n{"action": "extract", "category": "Dev"}\n```'
         resp = parse_llm_output(raw)
-        assert resp.action == "extract"
+        assert resp.fields["action"] == "extract"
 
     def test_invalid_json_raises(self):
         with pytest.raises(json.JSONDecodeError):
@@ -43,7 +43,8 @@ class TestParseLLMOutput:
 
 
 class TestComputeScore:
-    def test_perfect_score(self):
+    def test_perfect_score_equal_weights(self):
+        """All fields correct, equal weights -> score = 1.0."""
         results = []
         # 6 correct extracts with correct categories
         for _ in range(6):
@@ -52,63 +53,73 @@ class TestComputeScore:
                     "from": "a", "subject": "s", "content": "c",
                     "expected_action": "extract", "expected_category": "Cat",
                 }),
-                action_correct=True,
-                category_correct=True,
+                field_correct={"action": True, "category": True},
             )
             results.append(r)
-        # 14 correct skips
+        # 14 correct skips (no category field)
         for _ in range(14):
             r = ExampleResult(
                 example=EvalExample.model_validate({
                     "from": "a", "subject": "s", "content": "c",
                     "expected_action": "skip",
                 }),
-                action_correct=True,
-                category_correct=None,
+                field_correct={"action": True},
             )
             results.append(r)
 
         summary = compute_score(results)
         assert summary.total == 20
-        assert summary.extract_accuracy == 1.0
-        assert summary.category_accuracy == 1.0
+        assert summary.field_accuracies["action"] == 1.0
+        assert summary.field_accuracies["category"] == 1.0
         assert summary.score == 1.0
         assert summary.errors == 0
 
-    def test_formula_weights(self):
-        """Score = 0.6 * extract_acc + 0.4 * category_acc."""
+    def test_explicit_weights(self):
+        """Weights = {action: 0.6, category: 0.4} reproduces original formula."""
         results = []
-        # 16/20 correct actions = 0.8 extract_acc
-        for i in range(20):
+        # 16/20 correct actions, 4/6 correct categories
+        for i in range(6):
+            r = ExampleResult(
+                example=EvalExample.model_validate({
+                    "from": "a", "subject": "s", "content": "c",
+                    "expected_action": "extract", "expected_category": "Cat",
+                }),
+                field_correct={"action": i < 4, "category": i < 4},
+            )
+            results.append(r)
+        for i in range(14):
             r = ExampleResult(
                 example=EvalExample.model_validate({
                     "from": "a", "subject": "s", "content": "c",
                     "expected_action": "skip",
                 }),
-                action_correct=i < 16,
+                field_correct={"action": i < 12},
             )
             results.append(r)
 
-        summary = compute_score(results)
-        assert summary.extract_accuracy == 0.8
-        # No category comparisons -> category_accuracy = 1.0
-        assert summary.category_accuracy == 1.0
-        expected_score = round(0.6 * 0.8 + 0.4 * 1.0, 4)
+        weights = {"action": 0.6, "category": 0.4}
+        summary = compute_score(results, weights)
+        # action: 16/20 = 0.8, category: 4/6 = 0.6667
+        assert summary.field_accuracies["action"] == 0.8
+        assert summary.field_accuracies["category"] == 0.6667
+        expected_score = round((0.6 * 0.8 + 0.4 * 0.6667) / 1.0, 4)
         assert summary.score == expected_score
 
-    def test_no_category_comparisons(self):
-        """When all examples are skips, category_accuracy = 1.0."""
+    def test_no_comparisons_for_field(self):
+        """When no examples have a field, accuracy = 1.0 (vacuous truth)."""
         results = [
             ExampleResult(
                 example=EvalExample.model_validate({
                     "from": "a", "subject": "s", "content": "c",
                     "expected_action": "skip",
                 }),
-                action_correct=True,
+                field_correct={"action": True},
             )
         ]
         summary = compute_score(results)
-        assert summary.category_accuracy == 1.0
+        # Only "action" field exists
+        assert summary.field_accuracies["action"] == 1.0
+        assert "category" not in summary.field_accuracies
 
     def test_errors_counted(self):
         results = [
@@ -124,6 +135,24 @@ class TestComputeScore:
         summary = compute_score(results)
         assert summary.errors == 1
 
+    def test_weights_filter_fields(self):
+        """Weights only score the specified fields, ignoring others."""
+        results = [
+            ExampleResult(
+                example=EvalExample.model_validate({
+                    "from": "a", "subject": "s", "content": "c",
+                    "expected_action": "extract", "expected_category": "Cat",
+                    "expected_content": "some insight",
+                }),
+                field_correct={"action": True, "category": True, "content": False},
+            )
+        ]
+        # Score only action+category -> 1.0 (both correct)
+        summary = compute_score(results, weights={"action": 0.6, "category": 0.4})
+        assert summary.score == 1.0
+        # content accuracy still reported
+        assert summary.field_accuracies["content"] == 0.0
+
 
 class TestEvaluateExample:
     def test_correct_extract(
@@ -134,10 +163,10 @@ class TestEvaluateExample:
             sample_extract_example,
             prompt_path=sample_prompt_md,
         )
-        assert result.action_correct is True
-        assert result.category_correct is True
+        assert result.field_correct["action"] is True
+        assert result.field_correct["category"] is True
         assert result.parse_error is False
-        assert result.latency_ms >= 0  # mock returns instantly
+        assert result.latency_ms >= 0
 
     def test_correct_skip(self, sample_skip_example, sample_prompt_md):
         client = MagicMock()
@@ -148,8 +177,9 @@ class TestEvaluateExample:
         client.messages.create.return_value = response
 
         result = evaluate_example(client, sample_skip_example, prompt_path=sample_prompt_md)
-        assert result.action_correct is True
-        assert result.category_correct is None
+        assert result.field_correct["action"] is True
+        # skip examples don't have expected_category, so no category in field_correct
+        assert "category" not in result.field_correct
 
     def test_api_error_does_not_crash(self, sample_extract_example, sample_prompt_md):
         import anthropic as anthropic_mod
@@ -196,5 +226,5 @@ class TestLoadEvalSet:
 
         examples = load_eval_set(path)
         assert len(examples) == 2
-        assert examples[0].from_sender == "A <a@b.com>"
-        assert examples[1].expected_category == "Dev"
+        assert examples[0].inputs["from"] == "A <a@b.com>"
+        assert examples[1].expected["category"] == "Dev"

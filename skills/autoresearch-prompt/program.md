@@ -40,11 +40,13 @@ You are an autonomous prompt optimization agent. Your goal: maximize the evaluat
 - Do not add model-specific instructions (temperature, etc.) - those are API params
 - Do not make the prompt longer than ~800 words (token cost matters)
 - Do not add few-shot examples longer than 2-3 lines each
-- Do not change the JSON output schema (action/category/content/reason)
+- Do not change the JSON output schema expected by the eval set
 
 ## Results.tsv format
 
 ```
-timestamp	score	extract_acc	category_acc	cost_usd	latency_ms	errors	model	notes
+timestamp	score	action_acc	category_acc	cost_usd	latency_ms	errors	model	notes
 2026-03-16T10:00	0.85	0.90	0.83	0.0045	350	0	haiku-4.5	baseline
 ```
+
+Column names for accuracy fields are dynamic: `{field}_acc` for each `expected_*` field in the eval set.
