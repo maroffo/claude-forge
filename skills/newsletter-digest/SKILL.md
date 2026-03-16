@@ -61,38 +61,46 @@ gog gmail search "is:unread (from:substack.com OR from:beehiiv.com OR from:conve
 gog gmail search "is:unread (from:substack.com OR from:beehiiv.com OR from:convertkit.com)" --account=maroffo@gmail.com --json --max=20
 ```
 
-### Step 2: For Each Newsletter
+### Step 2: Extract & Triage
 
-Use the extraction script to get clean text content:
+For each newsletter, extract content and run automated triage:
 
 ```bash
-# Full content with metadata
+# Extract email text
 gog gmail thread get <threadId> --account=maroffo@gmail.com --json \
-  | python3 ~/.claude/skills/newsletter-digest/extract_email.py --meta
+  | python3 ~/.claude/skills/newsletter-digest/extract_email.py --meta --max-chars 4000
 
-# Truncated (for quick triage)
-gog gmail thread get <threadId> --account=maroffo@gmail.com --json \
-  | python3 ~/.claude/skills/newsletter-digest/extract_email.py --meta --max-chars 3000
+# Classify with optimized prompt (needs ANTHROPIC_API_KEY)
+echo '{"from": "<sender>", "subject": "<subject>", "content": "<body>"}' \
+  | uv run --project ~/.claude/skills/autoresearch-prompt -- autoresearch-prompt classify
 ```
 
-The script (`extract_email.py`) handles multipart MIME, base64 decoding, HTML fallback, and nested parts. No need to write inline Python for email parsing.
+The classifier returns JSON: `{"action": "extract"|"skip", "category": "...", "content": "...", "reason": "..."}`.
 
-3. **Analyze content** - identify:
-   - **Tools/libraries** mentioned → Second Brain - Development/AI
-   - **Patterns/techniques** → Second Brain appropriate section
-   - **News/opinions** → Reference only (skip or brief note)
-   - **Tutorials/guides** → Extract key steps
+- **action=skip**: Archive immediately, no Second Brain entry
+- **action=extract**: Process content into Second Brain using the returned `category` and `content`
 
-4. **Categorize** per `../_SECOND_BRAIN.md` routing table
-5. **Extract & integrate** via Obsidian CLI:
+For batch triage, classify all newsletters first, then process only the `extract` results. This avoids spending time analyzing content that should be skipped.
+
+### Step 3: Process Extracted Newsletters
+
+For each newsletter where classifier returned `action=extract`:
+
+1. **Use the classifier's category** to route to the correct Second Brain file
+2. **Refine the summary** if needed (the classifier provides a 2-3 sentence `content` field as starting point)
+3. **Categorize** per `../_SECOND_BRAIN.md` routing table (classifier categories match these)
+4. **Extract & integrate** via Obsidian CLI:
 ```bash
 obsidian append file="Second Brain - <Topic>" content="<extracted>"
 ```
-6. **Update Timeline**:
+5. **Update Timeline**:
 ```bash
 obsidian append file="Second Brain - Timeline" content="- **YYYY-MM-DD** | [Topic] | Source: Newsletter | -> Second Brain - <File>.md"
 ```
-7. **Archive email** (see `../_GMAIL.md` for archive command)
+
+### Step 4: Archive All
+
+Archive **all** processed newsletters (both extracted and skipped). See `../_GMAIL.md` for archive command.
 
 ## Output Format
 
