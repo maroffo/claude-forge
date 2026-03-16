@@ -1,15 +1,16 @@
-# ABOUTME: Tests for CLI argument parsing and evaluate subcommand output
-# ABOUTME: Covers _parse_args, stdout format, error cases
+# ABOUTME: Tests for CLI argument parsing, evaluate and classify subcommand output
+# ABOUTME: Covers _parse_args, stdout format, stdin JSON input, error cases
 
 from __future__ import annotations
 
+import json
 from io import StringIO
 from unittest.mock import patch
 
 import pytest
 
 from autoresearch_prompt.cli import _parse_args, main
-from autoresearch_prompt.models import RunSummary
+from autoresearch_prompt.models import LLMResponse, RunSummary
 
 
 class TestParseArgs:
@@ -31,6 +32,17 @@ class TestParseArgs:
         assert args.prompt == prompt
         assert args.eval_set == evalset
         assert args.model == "claude-sonnet-4-5-20250514"
+
+    def test_classify_with_args(self):
+        args = _parse_args([
+            "classify",
+            "--from", "Test <t@x.com>",
+            "--subject", "AI stuff",
+            "--content", "Some content",
+        ])
+        assert args.command == "classify"
+        assert args.from_sender == "Test <t@x.com>"
+        assert args.subject == "AI stuff"
 
     def test_no_command_fails(self):
         with pytest.raises(SystemExit):
@@ -68,3 +80,59 @@ class TestMainEvaluate:
         assert "latency_ms: 350" in output
         assert "errors: 1" in output
         assert "total: 20" in output
+
+
+class TestMainClassify:
+    def test_classify_with_args(self):
+        response = LLMResponse(
+            action="extract",
+            category="AI Agents and Tools",
+            content="Key insight about AI firewalls",
+            reason="technical pattern",
+        )
+
+        with (
+            patch(
+                "autoresearch_prompt.cli.classify_single",
+                return_value=response,
+            ),
+            patch("sys.stdout", new_callable=StringIO) as mock_out,
+        ):
+            main([
+                "classify",
+                "--from", "Test <t@x.com>",
+                "--subject", "AI Firewall",
+                "--content", "Reverse proxy for AI traffic",
+            ])
+
+        output = json.loads(mock_out.getvalue())
+        assert output["action"] == "extract"
+        assert output["category"] == "AI Agents and Tools"
+
+    def test_classify_from_stdin(self):
+        response = LLMResponse(action="skip", reason="job listings")
+        stdin_data = json.dumps({
+            "from": "Jobs <j@x.com>",
+            "subject": "68 Hot Jobs",
+            "content": "Apply now",
+        })
+
+        with (
+            patch(
+                "autoresearch_prompt.cli.classify_single",
+                return_value=response,
+            ),
+            patch("sys.stdin", StringIO(stdin_data)),
+            patch("sys.stdout", new_callable=StringIO) as mock_out,
+        ):
+            main(["classify"])
+
+        output = json.loads(mock_out.getvalue())
+        assert output["action"] == "skip"
+
+    def test_classify_empty_stdin_exits(self):
+        with (
+            patch("sys.stdin", StringIO("")),
+            pytest.raises(SystemExit),
+        ):
+            main(["classify"])

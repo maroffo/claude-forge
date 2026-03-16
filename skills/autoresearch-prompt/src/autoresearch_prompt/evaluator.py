@@ -166,6 +166,25 @@ def compute_score(results: list[ExampleResult]) -> RunSummary:
     )
 
 
+def classify_single(
+    from_sender: str,
+    subject: str,
+    content: str,
+    prompt_path: Path | None = None,
+    model: str = DEFAULT_MODEL,
+) -> LLMResponse:
+    """Classify a single newsletter. Returns parsed LLMResponse."""
+    client = anthropic.Anthropic()
+    system, user = load_and_render(
+        from_sender=from_sender,
+        subject=subject,
+        content=content,
+        prompt_path=prompt_path,
+    )
+    raw, _, _ = call_llm(client, system, user, model)
+    return parse_llm_output(raw)
+
+
 def run_evaluation(
     prompt_path: Path | None = None,
     eval_path: Path | None = None,
