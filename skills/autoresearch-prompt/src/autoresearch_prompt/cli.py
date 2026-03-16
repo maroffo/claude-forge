@@ -90,7 +90,9 @@ def _cmd_evaluate(args: argparse.Namespace) -> None:
 
     # Stdout: grep-friendly key-value format
     print(f"score: {summary.score:.2f}")
-    for field, acc in sorted(summary.field_accuracies.items()):
+    show_fields = weights.keys() if weights else summary.field_accuracies.keys()
+    for field in sorted(show_fields):
+        acc = summary.field_accuracies.get(field, 0.0)
         print(f"{field}_acc: {acc:.2f}")
     print(f"cost: ${summary.cost_usd:.4f}")
     print(f"latency_ms: {summary.avg_latency_ms}")
