@@ -110,6 +110,26 @@ class TestMainEvaluate:
         call_kwargs = mock_eval.call_args
         assert call_kwargs.kwargs["weights"] == {"action": 0.6, "category": 0.4}
 
+    def test_weights_filter_output_fields(self):
+        """Only fields in --weights appear in output, not all field_accuracies."""
+        summary = RunSummary(
+            total=20,
+            field_accuracies={"action": 0.9, "category": 1.0, "content": 0.0},
+            score=0.94,
+            errors=0,
+        )
+
+        with (
+            patch("autoresearch_prompt.cli.run_evaluation", return_value=summary),
+            patch("sys.stdout", new_callable=StringIO) as mock_out,
+        ):
+            main(["evaluate", "--weights", "action=0.6,category=0.4"])
+
+        output = mock_out.getvalue()
+        assert "action_acc: 0.90" in output
+        assert "category_acc: 1.00" in output
+        assert "content_acc" not in output
+
 
 class TestMainClassify:
     def test_classify_from_stdin(self):
