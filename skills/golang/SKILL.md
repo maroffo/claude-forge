@@ -15,6 +15,7 @@ allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ```bash
 gofmt -w . && goimports -w . && go fix ./... && go vet ./...
 go test ./... && go test -race ./... && go test -cover ./...
+govulncheck ./...
 go build -pgo=cpu.pprof -o bin/app ./cmd/app
 golangci-lint run
 ```
@@ -31,6 +32,7 @@ go fix ./... && go fix ./...  # 1.26+: 25 modernizers (run twice for synergistic
 go vet ./...                  # Static analysis
 go build ./...                # Compilation check
 go test -race -count=1 ./...  # Tests with race detector
+govulncheck ./...             # Reachable vulnerability scan
 golangci-lint run             # Lint
 ```
 
@@ -98,6 +100,20 @@ for _, tt := range tests {
         }
     })
 }
+```
+
+**Function literals:** Extract complex callbacks into named vars. Especially with iterators and functional stdlib (`slices`, `maps`), nested literals hurt readability fast.
+```go
+// bad: nested, hard to scan
+for k, v := range slices.Sorted(func(yield func(string, int) bool) {
+    for k, v := range m { yield(k, v) }
+}) { fmt.Println(k, v) }
+
+// good: named, intent is clear
+byKey := func(yield func(string, int) bool) {
+    for k, v := range m { yield(k, v) }
+}
+for k, v := range slices.Sorted(byKey) { fmt.Println(k, v) }
 ```
 
 **Build tags for simulation:** `//go:build simulation` in `driver_sim.go`, `//go:build !simulation` in `driver_real.go`. Same type, different impl. Use for hardware, external APIs, infra deps.
