@@ -84,6 +84,48 @@ Prefer modern APIs over manual equivalents:
 
 ---
 
+## Fuzz Testing
+
+**Built-in since 1.18.** Catches panics, edge cases, and security issues that unit tests miss (malformed inputs, boundary values, unexpected encodings).
+
+**When to fuzz:** Parsers, validators, deserializers, anything that takes external input. If a function can panic on bad input, it needs a fuzz test.
+
+```go
+func FuzzParseConfig(f *testing.F) {
+    f.Add(`{"port": 8080}`)          // valid
+    f.Add(``)                         // empty
+    f.Add(`not json`)                 // garbage
+    f.Fuzz(func(t *testing.T, input string) {
+        _, _ = ParseConfig(input)     // must not panic
+    })
+}
+```
+
+```bash
+go test -fuzz=FuzzParseConfig -fuzztime=30s ./...  # local exploration
+go test -fuzz=FuzzParseConfig -fuzztime=2m ./...   # CI (longer budget)
+```
+
+**Corpus:** Seeds in `testdata/fuzz/<FuncName>/`. Crashes auto-saved there, become regression tests on next `go test ./...`.
+
+**CI integration:** Fuzz in CI with a time budget (`-fuzztime`). Don't run indefinitely. Separate fuzz job from unit tests (longer, non-blocking).
+
+---
+
+## Vulnerability Scanning
+
+**`govulncheck`** (first-party, `golang.org/x/vuln`) uses **reachability analysis**: only reports vulnerabilities in code paths your binary actually calls. Far fewer false positives than generic dep scanners.
+
+```bash
+go install golang.org/x/vuln/cmd/govulncheck@latest
+govulncheck ./...          # source analysis (most precise)
+govulncheck -mode=binary ./bin/app  # binary analysis (for built artifacts)
+```
+
+**CI:** Run `govulncheck ./...` in pipeline. Non-zero exit = reachable vulnerability found. Pair with `go mod tidy` to remove unused deps that inflate attack surface.
+
+---
+
 ## Code Review
 
 **Errors:** All handled, wrapped `%w`, has context, no panic in libs, not logging AND returning. Domain sentinels at service layer, log only at boundaries. Never wrap `io.EOF`.
@@ -92,4 +134,4 @@ Prefer modern APIs over manual equivalents:
 
 **Performance:** Pre-alloc, sync.Pool hot paths, batch queries, L1 cache, easyjson, PGO, stack-friendly loops, structs by value.
 
-**Red flags:** CRITICAL: errors ignored `_`, panic in lib, global mutable state, goroutines w/o exit, data races. HIGH: goroutine leaks, unbounded spawning, resource leaks, no error context, no pre-alloc.
+**Red flags:** CRITICAL: errors ignored `_`, panic in lib, global mutable state, goroutines w/o exit, data races. HIGH: goroutine leaks, unbounded spawning, resource leaks, no error context, no pre-alloc, no `govulncheck` in CI, parsers/validators without fuzz tests.

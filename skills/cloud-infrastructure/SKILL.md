@@ -84,6 +84,24 @@ spec:
           resources: { limits: { cpu: "1", memory: "512Mi" } }
 ```
 
+### OS-Only Runtime (No Dockerfile)
+
+Deploy pre-compiled binaries without Dockerfile or language-specific runtime. Uses `google-24` stack with **automatic OS security patching**.
+
+```bash
+# Cross-compile (Go example, any compiled lang works)
+GOOS=linux GOARCH=amd64 go build -o main ./cmd/app
+
+# Deploy binary directly
+gcloud beta run deploy SERVICE \
+  --source . --no-build \
+  --base-image=osonly24 \
+  --project PROJECT_ID \
+  --command ./main
+```
+
+**When to use:** Compiled binaries (Go, Dart, Rust), custom images built from scratch, or when you want auto-patching without maintaining a Dockerfile. Requires `google-24` stack.
+
 ---
 
 ## Cost Optimization
