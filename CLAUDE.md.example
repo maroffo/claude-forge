@@ -64,7 +64,8 @@ Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes 
 | ClickUp | `clickup` (English only) |
 | Cognitive load analysis | `cognitive-load-analyzer` |
 | Legacy/untested code | `legacy-code-expert` |
-| Code review | `gemini-review` |
+| Code review (pre-commit) | `gemini-review` |
+| PR review (commit-aware) | `pr-review` |
 | Second opinion (Gemini) | `second-opinion` |
 | Test quality assessment | `test-design-reviewer` |
 | Release/tag | `releasing-software` |
