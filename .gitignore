@@ -19,5 +19,12 @@ __pycache__/
 *.egg-info/
 uv.lock
 
+# Execution traces (local-only, generated per session)
+quality_reports/traces/*.jsonl
+quality_reports/token_baselines/*.tsv
+
+# Python virtual environments
+.venv/
+
 # Client-specific skills (private, not for public repo)
 skills/*-hikma/
