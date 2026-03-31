@@ -77,6 +77,8 @@ Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes 
 | Architecture decisions | `adr` |
 | Blog writing | `blog-writer` |
 | Skill creation/review | `skill-forge` |
+| Execution traces/token baseline | `harness-trace` |
+| Harness optimization | `harness-mechanic` |
 
 # Knowledge Capture
 - **Quick corrections:** Append `[LEARN:category]` to `MEMORY.md`

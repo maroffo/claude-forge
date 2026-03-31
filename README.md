@@ -87,6 +87,7 @@ Launched by the orchestrator based on file patterns. All review agents are **rea
 | `dx-reviewer` | Docs, README, ADR | Documentation, error messages, onboarding |
 | `tech-writer` | Post-milestone | Blog posts, changelogs, release notes |
 | `project-analyzer` | New codebases | Generate CLAUDE.md documentation |
+| `harness-mechanic` | Trace analysis, weekly/on-demand | Evidence-based harness optimization |
 
 ## Skills
 
@@ -150,6 +151,8 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | `legacy-code-expert/` | Feathers' dependency-breaking techniques, seam identification, characterization tests |
 | `adr/` | Architecture Decision Records: refine, research, write, vault storage, review |
 | `skill-forge/` | Create new skills or review/improve existing ones against quality checklist |
+| `harness-trace/` | Execution trace capture from session JSONL, token baselining (tiktoken) |
+| `harness-mechanic/` | Automated harness optimization via trace analysis (Meta-Harness pattern) |
 | `notion-sync/` | Notion workspace to Obsidian vault sync (pull, push, AI summaries) |
 
 ### Content & Images

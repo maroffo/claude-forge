@@ -53,6 +53,8 @@
 | Write blog posts | `blog-writer` | `humanizer`, `cover-image`, `_SECOND_BRAIN.md` |
 | Analyze code cognitive load | `cognitive-load-analyzer` | `gemini-review`, language-specific |
 | Create/improve skills | `skill-forge` | `_INDEX.md`, `CLAUDE.md.example` |
+| Capture execution traces | `harness-trace` | orchestrator-protocol rule |
+| Optimize harness (rules/skills) | `harness-mechanic` | `harness-trace` |
 
 ## Shared Reference Files
 

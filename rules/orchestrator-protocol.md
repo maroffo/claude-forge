@@ -65,3 +65,24 @@ Verify the work achieves the user's goal, not just that code passes tests.
 - Max 3 agents parallel
 - Review agents: read-only. software-engineer: read-write, scoped.
 - "Just do it" mode: skip final approval, auto-commit if score ≥ 80. Full review loop still runs.
+
+## Trace Capture
+
+After each orchestrator step, append a JSONL line to `quality_reports/traces/YYYY-MM-DD_<session-slug>.jsonl`:
+
+| Step | Data to capture |
+|------|-----------------|
+| REFINE | ambiguities_found, questions_asked |
+| RESEARCH | complexity, sources_consulted |
+| IMPLEMENT | agents launched, files_changed, subtask_count |
+| VERIFY | tests_pass, lint_clean, build_ok, retries |
+| REVIEW | agents activated, findings {CRITICAL/MAJOR/MINOR: count} |
+| FIX | findings_addressed, deviations [{rule, desc}] |
+| SCORE | score, threshold, gate |
+| LOOP | round, total_rounds, exit_reason |
+| UAT | performed, items, passed, failed |
+| SUMMARY | tokens_in, tokens_out, model, duration_min, files_changed, final_score |
+
+Format: `{"v":1,"session":"<slug>","ts":"<ISO>","step":"<STEP>","data":{...}}`
+
+Skip for: docs-only, config, single-function fixes. Trace files are local-only (gitignored).
