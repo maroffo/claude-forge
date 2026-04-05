@@ -37,11 +37,31 @@ During implementation, you WILL discover work not in the plan. Apply automatical
 | R2: Missing Critical | Validation, auth, error handling, CSRF, rate limiting, indexes, logging | Auto-fix, track |
 | R3: Blocking | Missing deps, wrong types, broken imports, missing config/env | Auto-fix, track |
 | R4: Architectural | New DB table, schema change, switching libs, breaking API, new service | **STOP, ask** |
+| R5: No Unplanned Stubs | `TODO`, `pass`, `NotImplementedError`, placeholder, `// implement later`, empty function body | **CRITICAL** unless explicitly deferred in the plan |
+| R6: Proportionality | Destructive action (delete files/dirs, overwrite, restructure module, drop table) | Verify scope is proportional to task. Log justification. Disproportionate action = **CRITICAL** |
 
-**Priority:** R4 (STOP) > R1-3 (auto) > unsure → R4
-**Heuristic:** Affects correctness/security/completion? → R1-3. Structural change? → R4.
+**Priority:** R4 (STOP) > R5-R6 (gate) > R1-3 (auto) > unsure → R4
+
+**Heuristic:** Affects correctness/security/completion? → R1-3. Structural change? → R4. Giving up or cutting corners? → R5. Destroying more than required? → R6.
 
 R4 format: present discovery, proposed change, rationale, impact, alternatives. Wait for decision.
+
+### R5: No Unplanned Stubs
+
+Stubs are only acceptable when the plan explicitly marks a piece as "deferred" or "interface-only." If the plan says "implement X," you implement X fully, production-ready. Introducing a stub without plan authorization is a CRITICAL violation because downstream code will be wired to a hollow implementation, and the stub will silently persist.
+
+**Conservation of complexity:** if you delete >20% of a file's lines or remove existing functions/methods, you must:
+1. Document what was removed and why in the Implementation Report
+2. Prove no existing tests were deleted or weakened to hide the removal
+3. Confirm no callers reference the removed code (grep check)
+
+### R6: Proportionality Guard
+
+Before any destructive action, verify:
+1. **Necessity:** Is this action required by the plan or a direct consequence of it?
+2. **Scope:** Is the blast radius proportional to the task? (e.g., single-file task should not restructure directories)
+3. **Reversibility:** Prefer reversible alternatives (rename/move over delete, deprecate over remove)
+4. **Justification:** Log in Implementation Report: what you're destroying, why, and what safer alternatives you considered
 
 Track all deviations in Implementation Report under `### Deviations from Plan`.
 
