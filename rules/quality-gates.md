@@ -19,18 +19,23 @@
 - Build broken
 - Security vulnerability (injection, leaked secrets)
 - Data loss risk
+- Unplanned stub implementation (TODO, pass, NotImplementedError not in plan)
+- Destructive action disproportionate to task scope
 
 **Major (-10 each):**
 - Missing test coverage for new code
 - Error handling gaps
 - Performance regression
 - Breaking API change without migration
+- Blast radius contradiction (doc/test references old behavior after API change)
+- Unjustified deletion of >20% of a file or removal of existing functions
 
 **Minor (-3 each):**
 - Style inconsistencies
 - Missing documentation for public APIs
 - Suboptimal but functional implementation
 - TODO without tracking issue
+- Stale comment or doc referencing removed/changed logic
 
 ## How to Score
 

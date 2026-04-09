@@ -19,11 +19,32 @@ import os
 import re
 import sys
 from datetime import datetime
+from pathlib import Path
 
 from PIL import Image as PILImage
 
 from google import genai
 from google.genai import types
+
+
+def _load_dotenv_fallback() -> None:
+    """Load ~/.env if GEMINI_API_KEY / GOOGLE_API_KEY not already in env."""
+    if os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"):
+        return
+    env_file = Path.home() / ".env"
+    if not env_file.exists():
+        return
+    for line in env_file.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key, value = key.strip(), value.strip().strip("'\"")
+        if key in ("GEMINI_API_KEY", "GOOGLE_API_KEY"):
+            os.environ[key] = value
+
+
+_load_dotenv_fallback()
 
 
 ASPECT_RATIO_SIZES = {
