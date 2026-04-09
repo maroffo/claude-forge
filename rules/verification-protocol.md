@@ -32,6 +32,8 @@ On failure: don't retry the same way. Classify the error (syntax, logic, design,
 
 ## Bug Fix Process
 
-1. Write test that reproduces bug
-2. Confirm fails → fix → confirm passes
+1. Write test/script that reproduces bug (orchestrator: REPRODUCE step 1b)
+2. Confirm fails → fix → confirm passes (orchestrator: VERIFY checks `reproduction_confirmed`)
 3. Check for regressions
+
+When running under the orchestrator, reproduction is a traced step with two verified conditions: script fails before fix, script passes after fix. See orchestrator-protocol.md step 1b.

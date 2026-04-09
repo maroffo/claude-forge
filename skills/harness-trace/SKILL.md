@@ -49,10 +49,14 @@ One JSONL line per orchestrator step:
 |------|-------------|
 | REFINE | ambiguities_found, questions_asked |
 | RESEARCH | complexity, sources_consulted |
-| IMPLEMENT | agents, files_changed, subtask_count |
-| VERIFY | tests_pass, lint_clean, build_ok, retries |
-| REVIEW | agents, findings (CRITICAL/MAJOR/MINOR) |
+| LOCALIZE | files_planned, files_proposed, files_actually_changed, precision, recall, mismatches |
+| REPRODUCE | script, fails_before_fix, passes_after_fix |
+| IMPLEMENT | agents, files_changed, subtask_count, localization_precision |
+| DRIFT_CHECK | subtask_id, verdict, deviations |
+| VERIFY | tests_pass, lint_clean, build_ok, retries, reproduction_confirmed |
+| REVIEW | agents, findings (CRITICAL/MAJOR/MINOR), review_validity |
 | FIX | findings_addressed, deviations |
+| BLAST_RADIUS | triggered, trigger_reason, files_scanned, contradictions |
 | SCORE | score, threshold, gate |
 | LOOP | round, total_rounds, exit_reason |
 | UAT | performed, items, passed, failed |

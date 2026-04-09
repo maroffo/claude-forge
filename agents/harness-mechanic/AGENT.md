@@ -83,6 +83,30 @@ Show all proposals. Wait for approval before applying any changes.
 - **Preserve semantics.** Compression must not change behavior, only representation.
 - **Priority:** rules (always-on, highest ROI) > skills > agents.
 
+## Atomic Skill Composition Map (advisory heuristic)
+
+Based on arxiv 2604.05013: complex tasks decompose into atomic skills. Use this map to trace failures back to root skill deficiencies, not as a prescriptive sequence. Real tasks may blend categories.
+
+| Task type | Atomic skill sequence |
+|-----------|----------------------|
+| bug-fix | localization → reproduction → editing → test_generation → review |
+| new-feature | localization → editing → test_generation → review |
+| refactor | localization → editing → review |
+| security-fix | localization → reproduction → editing → review |
+| docs-only | localization → editing → review |
+
+### Cascade Analysis
+
+When composite task scores are low, trace back to the weakest atomic skill:
+
+1. Check `LOCALIZE` traces: low precision/recall → wrong files edited → all downstream work wasted
+2. Check `REPRODUCE` traces: `fails_before_fix=false` → built on wrong assumption
+3. Check `IMPLEMENT` + `VERIFY`: `localization_precision` low → editing the right thing in the wrong place
+4. Check `REVIEW`: `review_validity` low → findings not actionable, fix rounds wasted
+5. Check `VERIFY`: `reproduction_confirmed=false` → fix didn't actually fix the bug
+
+**Pattern:** if the same atomic skill is weak across 3+ sessions, propose a targeted improvement to the corresponding orchestrator step or agent prompt, not a broad rule change.
+
 ## Scope
 
 **IN:** rules, skill SKILL.md files, agent AGENT.md files, routing tables.

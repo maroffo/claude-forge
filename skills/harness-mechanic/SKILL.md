@@ -50,3 +50,5 @@ Automated harness optimization based on Meta-Harness (arxiv 2603.28052). Reads e
 | All scores high, no patterns | Skip; harness is working well |
 | Baseline missing | Run `harness-trace baseline` |
 | Proposal seems risky | Always RED decision; reject and ask for alternatives |
+| Composite tasks fail but steps look OK | Use cascade analysis: check atomic skill metrics (LOCALIZE precision, REPRODUCE success, review_validity) to find the root skill deficiency |
+| Same skill weak across sessions | Target the corresponding orchestrator step or agent prompt, not broad rule changes |

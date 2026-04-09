@@ -13,11 +13,15 @@ SCHEMA_VERSION = 1
 StepName = Literal[
     "REFINE",
     "RESEARCH",
+    "LOCALIZE",
+    "REPRODUCE",
     "IMPLEMENT",
+    "DRIFT_CHECK",
     "VERIFY",
     "REVIEW",
     "FIX",
     "RE_VERIFY",
+    "BLAST_RADIUS",
     "SCORE",
     "LOOP",
     "PRESENT",
@@ -49,10 +53,36 @@ class ResearchData(BaseModel):
     sources_consulted: int = 0
 
 
+class LocalizeData(BaseModel):
+    """Localization sub-protocol within IMPLEMENT (arxiv 2604.05013)."""
+
+    files_planned: list[str] = Field(default_factory=list)
+    files_proposed: list[str] = Field(default_factory=list)
+    files_actually_changed: list[str] = Field(default_factory=list)  # from git diff post-VERIFY
+    precision: float = 0.0  # len(correct) / len(proposed), vs plan
+    recall: float = 0.0  # len(correct) / len(planned), vs plan
+    mismatches: list[str] = Field(default_factory=list)  # files in proposed but not planned
+
+
+class ReproduceData(BaseModel):
+    """Issue reproduction step for bug-fix tasks (arxiv 2604.05013)."""
+
+    script: str = ""  # path to reproduction script
+    fails_before_fix: bool = False
+    passes_after_fix: bool | None = None  # filled during VERIFY
+
+
 class ImplementData(BaseModel):
     agents: list[str] = Field(default_factory=list)
     files_changed: int = 0
     subtask_count: int = 0
+    localization_precision: float | None = None  # from LOCALIZE sub-protocol
+
+
+class DriftCheckData(BaseModel):
+    subtask_id: str = ""
+    verdict: Literal["aligned", "minor_drift", "significant_drift"] = "aligned"
+    deviations: list[dict[str, str]] = Field(default_factory=list)  # [{desc}]
 
 
 class VerifyData(BaseModel):
@@ -60,16 +90,25 @@ class VerifyData(BaseModel):
     lint_clean: bool = False
     build_ok: bool = False
     retries: int = 0
+    reproduction_confirmed: bool | None = None  # True if reproduce script passes after fix
 
 
 class ReviewData(BaseModel):
     agents: list[str] = Field(default_factory=list)
     findings: dict[str, int] = Field(default_factory=dict)  # CRITICAL/MAJOR/MINOR -> count
+    review_validity: float | None = None  # % of CRITICAL+MAJOR findings addressed in FIX
 
 
 class FixData(BaseModel):
     findings_addressed: int = 0
     deviations: list[dict[str, str]] = Field(default_factory=list)  # [{rule, desc}]
+
+
+class BlastRadiusData(BaseModel):
+    triggered: bool = False
+    trigger_reason: str = ""
+    files_scanned: int = 0
+    contradictions: dict[str, int] = Field(default_factory=dict)  # MAJOR/MINOR -> count
 
 
 class ScoreData(BaseModel):
@@ -103,10 +142,14 @@ class SummaryData(BaseModel):
 STEP_DATA_MODELS: dict[StepName, type[BaseModel]] = {
     "REFINE": RefineData,
     "RESEARCH": ResearchData,
+    "LOCALIZE": LocalizeData,
+    "REPRODUCE": ReproduceData,
     "IMPLEMENT": ImplementData,
+    "DRIFT_CHECK": DriftCheckData,
     "VERIFY": VerifyData,
     "REVIEW": ReviewData,
     "FIX": FixData,
+    "BLAST_RADIUS": BlastRadiusData,
     "SCORE": ScoreData,
     "LOOP": LoopData,
     "UAT": UatData,
