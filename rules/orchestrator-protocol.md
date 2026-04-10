@@ -8,20 +8,22 @@ After plan approval, execute autonomously until quality gates pass.
 ## Loop
 
 ```
-0. REFINE       → requirements refinement (see plan-first-workflow) if request is ambiguous
-0b. RESEARCH    → (optional) research-analyst for unknowns before planning
-1. IMPLEMENT    → software-engineer(s) with scoped subtasks (parallel if independent)
-   1b. DRIFT    → (multi-subtask) verify alignment after each subtask before next
-2. VERIFY       → tests, lint, build (max 2 retries)
-3. REVIEW       → review agents by file pattern
-4. FIX          → software-engineer addresses CRITICAL/MAJOR findings (requirements, not suggestions)
-5. RE-VERIFY    → rebuild, retest
+0.  REFINE       → requirements refinement (see plan-first-workflow) if request is ambiguous
+0b. RESEARCH     → (optional) research-analyst for unknowns before planning
+1.  IMPLEMENT    → software-engineer(s) with scoped subtasks (parallel if independent)
+    1a. LOCALIZE → (within IMPLEMENT) verify file list vs plan before editing
+    1b. REPRODUCE → (bug-fix only, after LOCALIZE) write script proving the bug exists
+    1c. DRIFT    → (multi-subtask) verify alignment after each subtask before next
+2.  VERIFY       → tests, lint, build (max 2 retries)
+3.  REVIEW       → review agents by file pattern
+4.  FIX          → software-engineer addresses CRITICAL/MAJOR findings (requirements, not suggestions)
+5.  RE-VERIFY    → rebuild, retest
 5b. BLAST-RADIUS → (conditional) check related files for contradictions/staleness
-6. SCORE        → quality-gates thresholds
-7. LOOP         → repeat 3-7 until score ≥ threshold or max 5 rounds
-8. PRESENT      → summary: files changed, issues found/fixed, score, open items
-9. UAT          → goal-backward verification with human (skip for docs-only, config, refactors)
-10. STORE       → save session log + plan status to vault (see plan-first-workflow)
+6.  SCORE        → quality-gates thresholds
+7.  LOOP         → repeat 3-7 until score ≥ threshold or max 5 rounds
+8.  PRESENT      → summary: files changed, issues found/fixed, score, open items
+9.  UAT          → goal-backward verification with human (skip for docs-only, config, refactors)
+10. STORE        → save session log + plan status to vault (see plan-first-workflow)
 ```
 
 ## Research + Complexity (Step 0)
@@ -40,7 +42,32 @@ Split into independent workstreams. Each software-engineer gets: **scope** (file
 
 **Checkpoints:** see plan-first-workflow. Engineers apply deviation rules (R1-R6) for unplanned discoveries.
 
-### Mid-Implementation Drift Check (multi-subtask only)
+### Localization Sub-Protocol (Step 1a)
+
+Before editing any files, the software-engineer outputs the list of files to modify. The orchestrator compares this against the plan's file scope (arxiv 2604.05013: atomic skill "localization").
+
+**How:** engineer includes a `files_to_edit` list at the start of implementation. Orchestrator checks:
+- All proposed files exist in the repo
+- Proposed files align with the plan scope (precision: correct/proposed, recall: correct/planned)
+- Mismatches flagged as WARN (extra files) or STOP (missing planned files)
+
+**Trace:** `LOCALIZE` with `{files_planned, files_proposed, precision, recall, mismatches}`. The `localization_precision` is also recorded in `IMPLEMENT` data for correlation.
+
+**Skip when:** plan lists exact files (no ambiguity), single-file task, or trivial change (<10 lines).
+
+### Issue Reproduction (Step 1b, bug-fix only)
+
+After localization, prove the bug exists with a reproduction script (arxiv 2604.05013: atomic skill "reproduction"). Runs after LOCALIZE so the agent knows which files/entry points to target.
+
+**How:** write a script/test that triggers the reported failure on the current codebase. Two conditions for success:
+1. Script **fails** on the broken code (verified now)
+2. Script **passes** after the fix (verified during VERIFY, step 2)
+
+**Trace:** `REPRODUCE` with `{script, fails_before_fix, passes_after_fix}`. `passes_after_fix` is null until VERIFY completes.
+
+**Skip when:** not a bug-fix task, bug is purely visual (no scriptable assertion), or the plan explicitly states reproduction is not feasible.
+
+### Mid-Implementation Drift Check (Step 1c, multi-subtask only)
 
 When implementation has 2+ sequential subtasks, verify alignment after each subtask before launching the next. This prevents cascading deviations where subtask N+1 builds on a drifted subtask N.
 
@@ -122,10 +149,12 @@ After each orchestrator step, append a JSONL line to `quality_reports/traces/YYY
 |------|-----------------|
 | REFINE | ambiguities_found, questions_asked |
 | RESEARCH | complexity, sources_consulted |
-| IMPLEMENT | agents launched, files_changed, subtask_count |
+| LOCALIZE | files_planned, files_proposed, files_actually_changed, precision, recall, mismatches |
+| REPRODUCE | script, fails_before_fix, passes_after_fix (null until VERIFY) |
+| IMPLEMENT | agents launched, files_changed, subtask_count, localization_precision |
 | DRIFT_CHECK | subtask_id, verdict (aligned/minor_drift/significant_drift), deviations [{desc}] |
-| VERIFY | tests_pass, lint_clean, build_ok, retries |
-| REVIEW | agents activated, findings {CRITICAL/MAJOR/MINOR: count} |
+| VERIFY | tests_pass, lint_clean, build_ok, retries, reproduction_confirmed |
+| REVIEW | agents activated, findings {CRITICAL/MAJOR/MINOR: count}, review_validity |
 | FIX | findings_addressed, deviations [{rule, desc}] |
 | BLAST_RADIUS | triggered, trigger_reason, files_scanned, contradictions {MAJOR: count, MINOR: count} |
 | SCORE | score, threshold, gate |

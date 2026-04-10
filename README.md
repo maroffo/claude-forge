@@ -65,7 +65,7 @@ Obsidian Vault (Documents/)
 
 | Rule | Purpose |
 |------|---------|
-| `orchestrator-protocol` | Contractor mode: research (with "don't hand-roll" check) → implement → verify → review → fix → score → loop |
+| `orchestrator-protocol` | Contractor mode: research → localize → reproduce (bug-fix) → implement → verify → review → fix → score → loop. Atomic skill metrics in traces for cascade analysis. |
 | `plan-first-workflow` | Requirements refinement, append-only decisions register, checkpoints, context preservation ("never summarize summaries") |
 | `verification-protocol` | TDD process, mandatory test/lint/build cycle, outcome verification tables |
 | `quality-gates` | Scoring: 80 commit, 90 PR, 95 excellence |
@@ -87,7 +87,7 @@ Launched by the orchestrator based on file patterns. All review agents are **rea
 | `dx-reviewer` | Docs, README, ADR | Documentation, error messages, onboarding |
 | `tech-writer` | Post-milestone | Blog posts, changelogs, release notes |
 | `project-analyzer` | New codebases | Generate CLAUDE.md documentation |
-| `harness-mechanic` | Trace analysis, weekly/on-demand | Evidence-based harness optimization |
+| `harness-mechanic` | Trace analysis, weekly/on-demand | Evidence-based harness optimization, atomic skill cascade analysis |
 
 ## Skills
 
@@ -151,8 +151,8 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | `legacy-code-expert/` | Feathers' dependency-breaking techniques, seam identification, characterization tests |
 | `adr/` | Architecture Decision Records: refine, research, write, vault storage, review |
 | `skill-forge/` | Create new skills or review/improve existing ones against quality checklist |
-| `harness-trace/` | Execution trace capture from session JSONL, token baselining (tiktoken) |
-| `harness-mechanic/` | Automated harness optimization via trace analysis (Meta-Harness pattern) |
+| `harness-trace/` | Execution trace capture from session JSONL, token baselining (tiktoken). Tracks 14 step types including atomic skill metrics (localization precision, reproduction confirmation, review validity). |
+| `harness-mechanic/` | Automated harness optimization via trace analysis (Meta-Harness pattern). Includes atomic skill composition map and cascade analysis for diagnosing root skill deficiencies. |
 | `notion-sync/` | Notion workspace to Obsidian vault sync (pull, push, AI summaries) |
 
 ### Content & Images
@@ -282,7 +282,7 @@ Everything is aggressively optimized:
 
 ## Inspiration
 
-Evolved from [Harper Reed's dotfiles](https://github.com/harperreed/dotfiles/tree/master/.claude), [Matteo Vaccari's AI-assisted modernization series](https://matteo.vaccari.name/posts/plants-by-websphere/), [Pedro Santanna's orchestrated workflow](https://github.com/pedrohcgs/claude-code-my-workflow), [Every's compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin) (solutions directory, research agent, incremental commits), [Get Shit Done v1](https://github.com/gsd-build/get-shit-done) (requirements refinement, deviation rules), [GSD 2](https://github.com/gsd-build/GSD-2) (append-only decisions, outcome verification, "don't hand-roll" research, anti-drift summaries), [Anthropic's Complete Guide to Building Skills](https://www.anthropic.com/engineering/claude-code-best-practices) (progressive disclosure, trigger phrases, skill-forge), and [andlaf-ak's claude-code-agents](https://github.com/andlaf-ak/claude-code-agents) (test-design-reviewer, cognitive load dimensions, hotspot analysis).
+Evolved from [Harper Reed's dotfiles](https://github.com/harperreed/dotfiles/tree/master/.claude), [Matteo Vaccari's AI-assisted modernization series](https://matteo.vaccari.name/posts/plants-by-websphere/), [Pedro Santanna's orchestrated workflow](https://github.com/pedrohcgs/claude-code-my-workflow), [Every's compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin) (solutions directory, research agent, incremental commits), [Get Shit Done v1](https://github.com/gsd-build/get-shit-done) (requirements refinement, deviation rules), [GSD 2](https://github.com/gsd-build/GSD-2) (append-only decisions, outcome verification, "don't hand-roll" research, anti-drift summaries), [Anthropic's Complete Guide to Building Skills](https://www.anthropic.com/engineering/claude-code-best-practices) (progressive disclosure, trigger phrases, skill-forge), [andlaf-ak's claude-code-agents](https://github.com/andlaf-ak/claude-code-agents) (test-design-reviewer, cognitive load dimensions, hotspot analysis), and [Scaling Coding Agents via Atomic Skills](https://arxiv.org/abs/2604.05013) (atomic skill decomposition, localization/reproduction steps, cascade analysis).
 
 ## License
 
