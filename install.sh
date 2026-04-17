@@ -261,6 +261,17 @@ if is_selected 0; then
   # symlink so both Claude Code (CLAUDE.md) and tools reading AGENTS.md see the same content.
   ln -sf CLAUDE.md "$TARGET_DIR/AGENTS.md"
   installed_files+=("AGENTS.md -> CLAUDE.md")
+  # Enforcement layer: copy hook scripts (settings.json registration stays manual; see summary)
+  if [[ -d "$SCRIPT_DIR/hooks" ]]; then
+    mkdir -p "$TARGET_DIR/hooks"
+    for h in "$SCRIPT_DIR"/hooks/*.sh "$SCRIPT_DIR"/hooks/*.py; do
+      [[ -f "$h" ]] || continue
+      cp "$h" "$TARGET_DIR/hooks/$(basename "$h")"
+      chmod +x "$TARGET_DIR/hooks/$(basename "$h")"
+    done
+    installed_files+=("hooks/*")
+    INSTALLED_HOOKS=1
+  fi
 fi
 
 # --- Apply replacements ---
@@ -333,4 +344,76 @@ echo ""
 echo "  Skills: ${installed_skills[*]}"
 [[ ${#installed_files[@]} -gt 0 ]] && echo "  Files:  ${installed_files[*]}"
 echo ""
-echo "Done. Restart Claude Code to pick up the new skills."
+
+if [[ -n "${INSTALLED_HOOKS:-}" ]]; then
+  echo "  Enforcement hooks copied to $TARGET_DIR/hooks/."
+  echo "  To activate them, merge the following into $TARGET_DIR/settings.json"
+  echo "  (under the top-level \"permissions\" and \"hooks\" keys):"
+  echo ""
+  cat <<HOOKS_JSON
+  "permissions": {
+    "deny": [
+      "Edit(**/.git/hooks/**)",
+      "Write(**/.git/hooks/**)",
+      "Edit(~/.ssh/**)",
+      "Write(~/.ssh/**)",
+      "Edit(~/.aws/credentials)",
+      "Write(~/.aws/credentials)",
+      "Edit(~/.config/gcloud/**)",
+      "Write(~/.config/gcloud/**)",
+      "Edit(**/id_rsa)",
+      "Edit(**/id_ed25519)",
+      "Write(**/id_rsa)",
+      "Write(**/id_ed25519)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "$TARGET_DIR/hooks/pre-commit-gate.sh", "if": "Bash(git commit*)", "timeout": 600, "statusMessage": "Running make check + make test-e2e..." },
+          { "type": "command", "command": "$TARGET_DIR/hooks/main-branch-guard.sh", "if": "Bash(git commit*)", "timeout": 10 },
+          { "type": "command", "command": "$TARGET_DIR/hooks/commit-intent-guard.sh", "if": "Bash(git commit*)", "timeout": 10 }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          { "type": "command", "command": "$TARGET_DIR/hooks/aboutme-enforcer.sh", "timeout": 10 }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          { "type": "command", "command": "$TARGET_DIR/hooks/aboutme-enforcer.sh", "timeout": 10 },
+          { "type": "command", "command": "$TARGET_DIR/hooks/routing-advisor.sh", "timeout": 10 }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          { "type": "command", "command": "$TARGET_DIR/hooks/routing-advisor.sh", "timeout": 10 }
+        ]
+      },
+      {
+        "matcher": "MultiEdit",
+        "hooks": [
+          { "type": "command", "command": "$TARGET_DIR/hooks/routing-advisor.sh", "timeout": 10 }
+        ]
+      },
+      {
+        "matcher": "Agent",
+        "hooks": [
+          { "type": "command", "command": "$TARGET_DIR/hooks/routing-advisor.sh", "timeout": 10 }
+        ]
+      }
+    ]
+  }
+HOOKS_JSON
+  echo ""
+fi
+
+echo "Done. Restart Claude Code (or open /hooks) to pick up the new skills and hooks."
