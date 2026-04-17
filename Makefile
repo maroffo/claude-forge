@@ -9,12 +9,12 @@ help:
 	@echo "  test-e2e    skill schema smoke test (name=dir, description length)"
 
 check:
-	@python3 scripts/check_repo.py check
+	@uv run --no-project python3 scripts/check_repo.py check
 	@$(MAKE) --no-print-directory lint-shell
 	@$(MAKE) --no-print-directory lint-dockerfile
 
 test-e2e:
-	@python3 scripts/check_repo.py test-e2e
+	@uv run --no-project python3 scripts/check_repo.py test-e2e
 
 lint-shell:
 	@if command -v shellcheck >/dev/null 2>&1; then \
