@@ -64,6 +64,7 @@ cp claude-forge/CLAUDE.md.example ~/.claude/CLAUDE.md
 claude-forge repo
 ├── Makefile            → `make check` + `make test-e2e` (pre-commit gate)
 ├── scripts/            → check_repo.py (ABOUTME, em-dashes, frontmatter, schema)
+├── hooks/              → Source for the enforcement hooks (installed to ~/.claude/hooks/)
 │
 Obsidian Vault (Documents/)
 ├── Projects/           → Per-project artifacts (overview, log, solutions)
@@ -86,16 +87,20 @@ Obsidian Vault (Documents/)
 
 ## Enforcement Layer (Hooks + Gates)
 
-Text in rules tells Claude what to do; the enforcement layer makes sure it happens even if Claude forgets. Lives in `~/.claude/hooks/` and `~/.claude/settings.json` (local, not in this repo).
+Text in rules tells Claude what to do; the enforcement layer makes sure it happens even if Claude forgets. Hook scripts ship in `hooks/` and are copied to `~/.claude/hooks/` by `install.sh`. The settings.json fragment (hook registration + path-protection deny rules) is printed at the end of the installer for a manual merge; it's kept out of automated merge to avoid clobbering user-specific config.
 
 | Mechanism | Trigger | What it does |
 |-----------|---------|--------------|
-| `pre-commit-gate.sh` | PreToolUse on `git commit` | Runs `make check && make test-e2e`, blocks commit on failure or missing targets (points to `/project-checks`) |
+| `pre-commit-gate.sh` | PreToolUse on `git commit` | Runs `make check && make test-e2e`, blocks on failure or missing targets (points to `/project-checks`) |
 | `main-branch-guard.sh` | PreToolUse on `git commit` | Refuses commits directly on `main`/`master` |
+| `commit-intent-guard.py` | PreToolUse on `git commit` | Tier A intent checks: conventional-message regex (block), TODO/FIXME/NotImplementedError/placeholder in ADDED lines (block), unplanned file deletions (advisory) |
 | `aboutme-enforcer.py` | PreToolUse Write (block), PostToolUse Edit (advisory) | Requires 2 `# ABOUTME:` (or `// ABOUTME:`) lines on new source files; detects ABOUTME removals on edits. Exempts lock files, vendored/generated paths, uncommentable formats |
+| `routing-advisor.py` | PostToolUse Write/Edit/MultiEdit/Agent | Matches touched file paths against a routing table and nudges Claude via `additionalContext` to invoke the right reviewer (dependency-reviewer on `go.mod`, database-reviewer on migrations, etc.). Deduplicates per-session |
 | Path protection | `permissions.deny` in settings.json | Blocks edits to `.git/hooks/`, `~/.ssh/`, `~/.aws/credentials`, gcloud/gemini keys, `id_rsa`/`id_ed25519` |
 
-The repo itself ships `Makefile` + `scripts/check_repo.py` that implement `make check` (ABOUTME, em-dashes scoped to `skills/`, frontmatter basics, plus shellcheck/hadolint if installed) and `make test-e2e` (skill schema smoke: name matches dir, description length).
+The repo ships `Makefile` + `scripts/check_repo.py` implementing `make check` (ABOUTME, em-dashes scoped to `skills/`, frontmatter) and `make test-e2e` (skill schema smoke).
+
+`scripts/metrics-weekly.sh` computes three signals to decide whether the enforcement is working: revert rate, fix-up rate, median time-to-next-touch. Run it as a baseline, apply enforcement, re-run after two weeks. If drift indicators don't drop, upgrade Tier A to Tier B (semantic check) or Tier C (full LLM agent).
 
 ## Agents (On-Demand)
 
