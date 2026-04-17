@@ -1,29 +1,62 @@
 ---
 name: react-nextjs
-description: "React 19 + Next.js 16 App Router development. Use when working with .tsx/.jsx files, next.config, or user asks about Server Components, data fetching, state management, forms, or React testing."
+description: "React + Next.js App Router development. Use when working with .tsx/.jsx files, next.config, or user asks about Server Components, data fetching, state management, forms, or React testing."
 compatibility: "Requires Node.js and npm. Optional: Vitest, Playwright."
 allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ---
 
-# ABOUTME: React 19 + Next.js 16 development with App Router, Server Components, TypeScript
-# ABOUTME: Modern patterns for data fetching, state management, forms, testing, and styling
+# ABOUTME: React + Next.js App Router development with Server Components, TypeScript
+# ABOUTME: Patterns for data fetching, state management, forms, testing, and styling
 
-# React 19 + Next.js 16
+# React + Next.js
 
-## What's New (2025-2026)
-
-| React 19.2 | Next.js 16 | Tailwind v4 |
-|------------|------------|-------------|
-| useActionState | `use cache` directive | CSS-first config |
-| useFormStatus | proxy.ts | Oxide engine (100x faster) |
-| useOptimistic | Turbopack default | Container queries |
-| React Compiler | DevTools MCP | |
-
-## Commands
+## Quick Reference
 
 ```bash
 npm run dev && npm run build && npm run test && npm run typecheck
 ```
+
+**See also:** `_AST_GREP.md`, `_PATTERNS.md`, `source-control`
+
+---
+
+## Version (determine, don't assume)
+
+Never assume a React/Next.js/Node version from prior knowledge: it rots fast and you miss CVE fixes. Fetch the truth:
+
+```bash
+jq -r '.dependencies.react, .dependencies.next' package.json 2>/dev/null   # project React + Next
+cat .nvmrc 2>/dev/null                                                     # project Node
+node -v                                                                    # local Node
+npm view react version && npm view next version                            # latest upstream
+```
+
+For a new project, pin to the latest stable. For an existing one, read `package.json` and prefer idioms gated to that version or lower.
+
+---
+
+## Pre-Commit Verification (MANDATORY)
+
+Before every commit, both of these MUST pass:
+
+```bash
+make check       # project-wide gate (lint, types, tests, security)
+make test-e2e    # end-to-end tests (or the project's e2e target)
+```
+
+If `make check` is missing, scaffold it with the `project-checks` skill. If there is no e2e target, do NOT silently skip: flag it to the user and ask whether to proceed or add one.
+
+Full raw toolchain (what `make check` should expand to):
+
+```bash
+npm run lint         # ESLint
+npm run typecheck    # tsc --noEmit
+npm run test         # Vitest unit tests
+npm run build        # Next.js production build
+npm audit --omit=dev # Dependency CVEs
+```
+
+---
 
 ## Core Patterns
 
@@ -62,6 +95,8 @@ src/
 └── types/
 ```
 
+Organize by **feature**, not technical layer.
+
 ---
 
 ## Server vs Client Components
@@ -73,31 +108,6 @@ src/
 | Fetch data, DB access | onClick, onChange |
 | Sensitive data | useState, useEffect |
 | Large deps, SEO | Browser APIs |
-
----
-
-## Data Fetching
-
-```tsx
-// Server
-async function getPosts() {
-  const res = await fetch('https://api.example.com/posts', { next: { revalidate: 60 } })
-  return res.json()
-}
-
-// Next.js 16 Caching
-async function getData() {
-  'use cache'
-  cacheLife('minutes')
-  return fetchData()
-}
-
-// Client: TanStack Query
-'use client'
-export function usePosts() {
-  return useQuery({ queryKey: ['posts'], queryFn: api.posts.list })
-}
-```
 
 ---
 

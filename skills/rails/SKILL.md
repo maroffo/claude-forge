@@ -1,14 +1,14 @@
 ---
 name: rails
-description: "Ruby on Rails 8 with service-oriented architecture, Dry-validation, Sidekiq/Solid Queue, Hotwire. Use for Rails API, Rails services, Rails forms, RSpec, ActiveRecord, Rails migrations. Not for standalone Ruby gems (use ruby skill)."
-compatibility: "Requires Bundler and Rails 8+. Optional: lefthook, RSpec."
+description: "Ruby on Rails with service-oriented architecture, Dry-validation, Sidekiq/Solid Queue, Hotwire. Use for Rails API, Rails services, Rails forms, RSpec, ActiveRecord, Rails migrations. Not for standalone Ruby gems (use ruby skill)."
+compatibility: "Requires Bundler and Rails. Optional: lefthook, RSpec."
 allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ---
 
-# ABOUTME: Rails 8 service-oriented architecture, validation contracts, background jobs, Hotwire
-# ABOUTME: API development with thin controllers, services, forms, filters, and modern Rails stack
+# ABOUTME: Rails service-oriented architecture, validation contracts, background jobs, Hotwire
+# ABOUTME: API development with thin controllers, services, forms, filters
 
-# Ruby on Rails - Modern Development
+# Ruby on Rails
 
 ## Quick Reference
 
@@ -32,31 +32,49 @@ MyJob.perform_later(id)               # Solid Queue
 
 ---
 
-## Sacred Rules (NON-NEGOTIABLE)
+## Version (determine, don't assume)
 
-1. **NO LOGIC IN CONTROLLERS** - HTTP layer only
-2. **ALL LOGIC IN SERVICES/FORMS/FILTERS**
-3. **NO ACTIVERECORD VALIDATIONS** - Dry-validation contracts only
-4. **MINIMUM MODEL LOGIC** - Data structures + associations
-5. **NO MODEL CALLBACKS** - Exception: attachment destruction
+Never assume a Rails/Ruby version from prior knowledge: it rots fast and you miss CVE fixes. Fetch the truth:
+
+```bash
+bundle exec rails -v                                                      # project Rails version
+ruby -v && cat .ruby-version 2>/dev/null                                  # project Ruby version
+curl -s https://rubygems.org/api/v1/gems/rails.json | jq -r .version      # latest upstream Rails
+```
+
+For a new project, pin to the latest stable. For an existing one, read `Gemfile` and `Gemfile.lock` and prefer idioms gated to that version or lower.
 
 ---
 
-## Ruby 3.4 & Rails 8
+## Pre-Commit Verification (MANDATORY)
 
-**YJIT enabled by default** (15-30% faster). New `it` block parameter:
-```ruby
-users.map { it.name }  # replaces _1
+Before every commit, both of these MUST pass:
+
+```bash
+make check       # project-wide gate (lint, types, tests, security)
+make test-e2e    # end-to-end tests (or the project's e2e target)
 ```
 
-**Solid Trifecta** (DB-backed alternatives to Redis):
-| Component | Purpose | Use When |
-|-----------|---------|----------|
-| Solid Queue | Jobs | <100 jobs/sec, no Redis needed |
-| Solid Cache | Caching | 10TB+ possible |
-| Solid Cable | WebSockets | No Redis infra |
+If `make check` is missing, scaffold it with the `project-checks` skill. If there is no e2e target, do NOT silently skip: flag it to the user and ask whether to proceed or add one.
 
-**Use Sidekiq when:** latency <100ms required, 10k+ jobs/min
+Full raw toolchain (what `make check` should expand to):
+
+```bash
+bundle exec lefthook run all    # Rubocop, Brakeman, tests, etc.
+bundle exec rspec               # Full RSpec suite
+bundle exec brakeman --no-pager # Security scan
+bundle audit check --update     # Dependency CVEs
+```
+
+---
+
+## Sacred Rules (NON-NEGOTIABLE)
+
+1. **NO LOGIC IN CONTROLLERS**: HTTP layer only
+2. **ALL LOGIC IN SERVICES/FORMS/FILTERS**
+3. **NO ACTIVERECORD VALIDATIONS**: Dry-validation contracts only
+4. **MINIMUM MODEL LOGIC**: Data structures + associations
+5. **NO MODEL CALLBACKS**: Exception: attachment destruction
 
 ---
 
@@ -95,9 +113,20 @@ scope :recent, -> { order(created_at: :desc) }
 
 ---
 
-## Quality Checklist
+## Background Jobs
 
-Before commit: `bundle exec lefthook run all`
+| Component | Use When |
+|-----------|----------|
+| Solid Queue | <100 jobs/sec, no Redis needed |
+| Solid Cache | DB-backed caching |
+| Solid Cable | WebSockets, no Redis infra |
+| Sidekiq | Latency <100ms, 10k+ jobs/min |
+
+Jobs MUST be idempotent.
+
+---
+
+## Quality Checklist
 
 - [ ] NO controller logic
 - [ ] Validation in contracts only

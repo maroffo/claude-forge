@@ -10,45 +10,66 @@ allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 
 # Python Development
 
-## What's New (2025-2026)
-
-### Python 3.14 (Oct 2025)
-- **Template strings (PEP 750)**: `t"Hello {name}"` - safe SQL/HTML interpolation
-- **Incremental GC**: 10ms pauses (was 100ms)
-- **uuid7**: Time-ordered UUIDs (better for DBs)
-- **Remote pdb**: `python -p PID`
-
-### Tooling
-| Tool | Notes |
-|------|-------|
-| ty | Astral's type checker, 10-60x faster than mypy |
-| Ruff 0.8+ | Type-aware linting, 800+ rules |
-| uv 0.5+ | Stable, production-ready |
-
 ## Quick Reference
 
 ```bash
-uv init myproject && cd myproject              # New project
-uv add requests pydantic httpx                 # Add deps
-uv add --dev pytest ruff                       # Dev deps
-uv sync --locked                               # CI-safe sync
-uv run python main.py                          # Run code
-uv run ruff check . && uv run ruff format --check . && uvx ty check && uv run pytest  # Quality
+uv init myproject && cd myproject
+uv add requests pydantic httpx
+uv add --dev pytest ruff
+uv sync --locked
+uv run python main.py
+uv run ruff check . && uv run ruff format --check . && uvx ty check && uv run pytest
 ```
 
-**Target: Python 3.13** | **See also:** `_AST_GREP.md`, `_PATTERNS.md`, `source-control`
+**See also:** `_AST_GREP.md`, `_PATTERNS.md`, `source-control`
+
+---
+
+## Version (determine, don't assume)
+
+Never assume a Python version from prior knowledge: it rots fast and you miss CVE fixes. Fetch the truth:
+
+```bash
+python3 --version                                                      # local interpreter
+cat .python-version 2>/dev/null                                        # pin file (if present)
+grep -E '^python' pyproject.toml 2>/dev/null                           # project manifest
+curl -s https://endoflife.date/api/python.json | jq -r '.[0].latest'   # latest upstream stable
+```
+
+For a new project, pin to the latest stable. For an existing one, read `pyproject.toml` / `.python-version` and prefer idioms gated to that version or lower.
+
+---
+
+## Pre-Commit Verification (MANDATORY)
+
+Before every commit, both of these MUST pass:
+
+```bash
+make check       # project-wide gate (lint, types, tests, security)
+make test-e2e    # end-to-end tests (or the project's e2e target)
+```
+
+If `make check` is missing, scaffold it with the `project-checks` skill. If there is no e2e target, do NOT silently skip: flag it to the user and ask whether to proceed or add one.
+
+Full raw toolchain (what `make check` should expand to):
+
+```bash
+uv run ruff check .
+uv run ruff format --check .
+uvx ty check
+uv run pytest --cov=myproject
+```
 
 ---
 
 ## Package Management (uv)
 
-**UV is the ONLY way. Do NOT use pip/poetry/pipenv.** 10-100x faster, universal lockfile.
+**UV is the ONLY way. Do NOT use pip/poetry/pipenv.** Universal lockfile, fast resolver.
 
 ### pyproject.toml
 ```toml
 [project]
 name = "myproject"
-version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = ["httpx>=0.27.0", "pydantic>=2.10.0"]
 
@@ -64,40 +85,23 @@ asyncio_mode = "auto"
 
 ## Code Quality
 
-**Type checking:** `uvx ty check`
-
-**Linting (Ruff):** `uv run ruff check . && uv run ruff format --check .`
+**Ruff config:**
 
 ```toml
 [tool.ruff]
 line-length = 100
-target-version = "py313"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM", "TCH", "RUF", "PERF"]
 ```
 
-**Testing:** `uv run pytest --cov=myproject --cov-report=html`. Fixtures, AAA pattern, parametrize.
+**Testing:** pytest with fixtures, AAA pattern, parametrize. Coverage via `--cov`.
 
 ---
 
 ## Pydantic v2
 
-```python
-from pydantic import BaseModel, Field, field_validator
-
-class User(BaseModel):
-    id: int
-    name: str = Field(min_length=1, max_length=100)
-    email: str
-
-    @field_validator("email")
-    @classmethod
-    def validate_email(cls, v): return v.lower() if "@" in v else raise ValueError("Invalid")
-
-# Performance
-user = User.model_validate_json('{"id":1,"name":"Max","email":"m@x.com"}')  # Fast JSON
-```
+Use Pydantic for all external data boundaries (API I/O, config, queue payloads). Prefer `model_validate_json` over parse-then-validate. `Field(...)` for constraints, `@field_validator` for custom rules.
 
 ---
 

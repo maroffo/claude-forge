@@ -1,12 +1,12 @@
 ---
 name: apple-swift
-description: "Apple platform development with Swift 6, SwiftUI, async/await, and performance. Use when working with .swift files, Package.swift, Xcode projects, or building for iOS/macOS/watchOS/visionOS."
+description: "Apple platform development with Swift, SwiftUI, async/await, and performance. Use when working with .swift files, Package.swift, Xcode projects, or building for iOS/macOS/watchOS/visionOS."
 compatibility: "Requires Xcode and platform SDKs. Optional: SwiftLint."
 allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ---
 
-# ABOUTME: Apple platform guide - Swift 6, SwiftUI, concurrency, testing, performance
-# ABOUTME: Modern Swift (2025-2026): @Observable, SwiftData, NavigationStack, strict concurrency
+# ABOUTME: Apple platform guide, Swift, SwiftUI, concurrency, testing, performance
+# ABOUTME: Conventions, strict concurrency rules, MVVM + DI patterns, review checklists
 
 # Apple Platform Development
 
@@ -33,17 +33,43 @@ sg --pattern '@MainActor' --lang swift
 
 ---
 
-## Swift 6
+## Version (determine, don't assume)
 
-- **Strict concurrency** - Data-race safety at compile time
-- **@Observable** - Replaces ObservableObject
-- **@MainActor** - UI thread isolation
-- **Sendable** - Safe cross-actor value types
-- **Macros** - @Observable, @Model, #Preview
+Never assume a Swift/Xcode version from prior knowledge: it rots fast and you miss CVE fixes. Fetch the truth:
 
-**Migration:** Enable `swiftLanguageModes: [.v6]`, replace ObservableObject, add @MainActor to UI classes, add Sendable to value types, use actors for shared state, replace callbacks with `async throws`.
+```bash
+swift --version                                 # local toolchain
+xcodebuild -version                             # Xcode version
+cat .swift-version 2>/dev/null                  # pinned toolchain (if present)
+grep -E 'swift-tools-version' Package.swift     # SPM minimum
+curl -s https://api.github.com/repos/swiftlang/swift/releases/latest | jq -r .tag_name  # latest upstream
+```
 
-For detailed migration patterns, see `references/swift6-patterns.md`.
+For a new project, pin to the latest stable. For an existing one, read `Package.swift` (plus `.xcode-version` / `.tool-versions` if present) and prefer idioms gated to that version or lower.
+
+---
+
+## Pre-Commit Verification (MANDATORY)
+
+Before every commit, both of these MUST pass:
+
+```bash
+make check       # project-wide gate (lint, types, tests, security)
+make test-e2e    # end-to-end tests (UI tests, integration target, or project's e2e scheme)
+```
+
+If `make check` is missing, scaffold it with the `project-checks` skill. If there is no e2e target, do NOT silently skip: flag it to the user and ask whether to proceed or add one.
+
+Full raw toolchain (what `make check` should expand to):
+
+```bash
+swift build                                     # compilation check
+swift test                                      # unit tests
+swiftlint lint --strict                         # lint (fail on warnings)
+swift-format lint --recursive Sources Tests     # formatting check
+xcodebuild -scheme MyApp test \
+  -destination 'platform=iOS Simulator,name=iPhone 16'   # platform tests
+```
 
 ---
 
@@ -88,6 +114,8 @@ For NavigationStack, SwiftData, MVVM, and DI patterns, see `references/swiftui-p
 | Real-time streams | Combine / AsyncStream |
 | UI events, debounce | Combine |
 
+**NON-NEGOTIABLE:** UI updates always on `@MainActor`. Cross-actor value types must be `Sendable`. Respect task cancellation: check `Task.isCancelled` in long-running work.
+
 For MainActor, parallel execution, and actor patterns, see `references/concurrency-patterns.md`.
 
 ---
@@ -98,7 +126,9 @@ For MainActor, parallel execution, and actor patterns, see `references/concurren
 
 **DI:** Protocol-based with `EnvironmentKey` for SwiftUI injection.
 
-**Testing (Swift Testing, iOS 18+):** `@Suite`, `@Test`, `#expect`. Parameterized with `arguments:`. Mock via protocol injection.
+**Coordinator pattern:** For flow-heavy apps, lift navigation state out of views into a Coordinator type owning a `NavigationPath` (or route enum) and exposing intents.
+
+**Testing (Swift Testing):** `@Suite`, `@Test`, `#expect`. Parameterized with `arguments:`. Mock via protocol injection. XCTest still valid where needed (UI tests, legacy targets).
 
 For full code examples, see `references/swiftui-patterns.md` and `references/swift6-patterns.md`.
 
@@ -106,19 +136,19 @@ For full code examples, see `references/swiftui-patterns.md` and `references/swi
 
 ## Review Checklists
 
-**Concurrency:** MainActor for UI, Sendable for cross-actor data, task cancellation handled, no data races (Swift 6)
+**Concurrency:** MainActor for UI, Sendable for cross-actor data, task cancellation handled, no data races
 
-**SwiftUI:** @Observable not ObservableObject (iOS 17+), NavigationStack not NavigationView, .task not .onAppear + Task, LazyVStack for long lists
+**SwiftUI:** @Observable over ObservableObject where available, NavigationStack over NavigationView, `.task` over `.onAppear + Task`, LazyVStack for long lists
 
 **CRITICAL:** Force unwrap without safety, UI updates off MainActor, data races, retain cycles
 
-**HIGH:** ObservableObject when @Observable available, NavigationView instead of NavigationStack
+**HIGH:** Legacy ObservableObject when @Observable fits, NavigationView in new code
 
 ---
 
 ## Detailed References
 
-- `references/swift6-patterns.md` - Swift 6 migration, Sendable, actors, macros
+- `references/swift6-patterns.md` - Strict concurrency migration, Sendable, actors, macros
 - `references/swiftui-patterns.md` - NavigationStack, SwiftData, MVVM, dependency injection
 - `references/concurrency-patterns.md` - async/await, TaskGroup, MainActor, actors, AsyncStream
 - `references/performance.md` - Optimization, Instruments profiling, memory management

@@ -1,29 +1,41 @@
-# ABOUTME: Autonomous development loop — implement, verify, review, fix, score
+# ABOUTME: Autonomous development loop: implement, verify, review, fix, score
 # ABOUTME: Routes software-engineer and review agents, enforces quality gates
 
 # Orchestrator Protocol (Contractor Mode)
 
-After plan approval, execute autonomously until quality gates pass.
+Enter after the goal is confirmed. REFINE and RESEARCH (steps 0 / 0b) run pre-plan; the main IMPLEMENT loop runs after plan approval. Exit at quality gate (score ≥ threshold), escalation (global round ceiling), plan checkpoint yield, or abandonment.
+
+**Plan checkpoints** (`<!-- checkpoint:verify -->`, `<!-- checkpoint:decide -->`, see plan-first-workflow) halt the loop mid-IMPLEMENT: pause the current subtask, present state, resume only after human approval.
+
+## SKIP_SET
+
+Several steps skip for the same class of trivial tasks. "Skip for SKIP_SET" means:
+- Typos, one-liners, single-function fixes with passing tests
+- Config-only changes with no logic
+- Pure documentation edits
+- Any task with <10 changed lines and no new behavior
+
+If the whole task is in SKIP_SET, skip the protocol entirely and edit directly.
 
 ## Loop
 
 ```
-0.  REFINE       → requirements refinement (see plan-first-workflow) if request is ambiguous
+0.  REFINE       → see plan-first-workflow (gating rules live there)
 0b. RESEARCH     → (optional) research-analyst for unknowns before planning
 1.  IMPLEMENT    → software-engineer(s) with scoped subtasks (parallel if independent)
-    1a. LOCALIZE → (within IMPLEMENT) verify file list vs plan before editing
-    1b. REPRODUCE → (bug-fix only, after LOCALIZE) write script proving the bug exists
-    1c. DRIFT    → (multi-subtask) verify alignment after each subtask before next
-2.  VERIFY       → tests, lint, build (max 2 retries)
+    1a. LOCALIZE → verify file list vs plan before editing
+    1b. REPRODUCE → (bug-fix only) write script proving the bug exists
+    1c. DRIFT    → verify alignment after each subtask
+2.  VERIFY       → tests, lint, build, reproduction_confirmed
 3.  REVIEW       → review agents by file pattern
-4.  FIX          → software-engineer addresses CRITICAL/MAJOR findings (requirements, not suggestions)
+4.  FIX          → software-engineer addresses CRITICAL/MAJOR findings
 5.  RE-VERIFY    → rebuild, retest
 5b. BLAST-RADIUS → (conditional) check related files for contradictions/staleness
 6.  SCORE        → quality-gates thresholds
-7.  LOOP         → repeat 3-7 until score ≥ threshold or max 5 rounds
+7.  LOOP         → repeat 3-7; global ceiling 5 rounds across REVIEW + UAT → escalate
 8.  PRESENT      → summary: files changed, issues found/fixed, score, open items
-9.  UAT          → goal-backward verification with human (skip for docs-only, config, refactors)
-10. STORE        → save session log + plan status to vault (see plan-first-workflow)
+9.  UAT          → goal-backward verification with human (skip for SKIP_SET)
+10. STORE        → save session log + plan status (unconditional: also on escalation/abandonment, marking outcome)
 ```
 
 ## Research + Complexity (Step 0)
@@ -38,52 +50,21 @@ research-analyst searches docs/solutions/, LEARNING.md, MEMORY.md, vault, then e
 
 ## Implementation (Step 1)
 
-Split into independent workstreams. Each software-engineer gets: **scope** (files), **plan** (subtask + criteria), **context** (lang/framework). Max 3 parallel. Single-scope → implement directly.
+Split into independent workstreams. Each software-engineer receives: **scope** (files), **plan** (subtask + criteria), **context** (lang/framework). Single-scope: implement directly. See parallelism rules below.
 
-**Checkpoints:** see plan-first-workflow. Engineers apply deviation rules (R1-R6) for unplanned discoveries.
+### Sub-protocols
 
-### Localization Sub-Protocol (Step 1a)
+| Sub-step | When it runs | How | Trace data | Skip when |
+|----------|--------------|-----|------------|-----------|
+| **LOCALIZE** (1a) | Before any edits | Engineer outputs `files_to_edit`. Orchestrator checks files exist and align with plan. WARN on extras. STOP on missing planned files UNLESS engineer provides `scope_reduction_rationale` (e.g., "File `X` turned out not to need editing because ..."). | `{files_planned, files_proposed, precision, recall, mismatches, scope_reduction_rationale?}` | Plan lists exact files; single-file task |
+| **REPRODUCE** (1b) | Bug-fix only, after LOCALIZE | Script that FAILS on current code and PASSES after the fix. Target files from LOCALIZE. | `{script, fails_before_fix, passes_after_fix}` (passes_after_fix null until VERIFY) | Not a bug-fix; purely visual bug; plan says infeasible |
+| **DRIFT** (1c) | After each subtask (including parallel ones, using `git diff -- <files_for_subtask>` to avoid races) | Fresh-context agent receives: subtask description + scoped diff. One question: "Did we build exactly this, no more, no less?" Verdict: aligned / minor drift (WARN, proceed) / significant drift (STOP). | `{subtask_id, verdict, deviations}` | Single subtask; trivial (<10 LOC) |
 
-Before editing any files, the software-engineer outputs the list of files to modify. The orchestrator compares this against the plan's file scope (arxiv 2604.05013: atomic skill "localization").
+## VERIFY (Step 2)
 
-**How:** engineer includes a `files_to_edit` list at the start of implementation. Orchestrator checks:
-- All proposed files exist in the repo
-- Proposed files align with the plan scope (precision: correct/proposed, recall: correct/planned)
-- Mismatches flagged as WARN (extra files) or STOP (missing planned files)
+Run tests, lint, build. Max 2 retries on flake; on the 3rd failure, STOP and escalate (same flow as Step 7 escalation).
 
-**Trace:** `LOCALIZE` with `{files_planned, files_proposed, precision, recall, mismatches}`. The `localization_precision` is also recorded in `IMPLEMENT` data for correlation.
-
-**Skip when:** plan lists exact files (no ambiguity), single-file task, or trivial change (<10 lines).
-
-### Issue Reproduction (Step 1b, bug-fix only)
-
-After localization, prove the bug exists with a reproduction script (arxiv 2604.05013: atomic skill "reproduction"). Runs after LOCALIZE so the agent knows which files/entry points to target.
-
-**How:** write a script/test that triggers the reported failure on the current codebase. Two conditions for success:
-1. Script **fails** on the broken code (verified now)
-2. Script **passes** after the fix (verified during VERIFY, step 2)
-
-**Trace:** `REPRODUCE` with `{script, fails_before_fix, passes_after_fix}`. `passes_after_fix` is null until VERIFY completes.
-
-**Skip when:** not a bug-fix task, bug is purely visual (no scriptable assertion), or the plan explicitly states reproduction is not feasible.
-
-### Mid-Implementation Drift Check (Step 1c, multi-subtask only)
-
-When implementation has 2+ sequential subtasks, verify alignment after each subtask before launching the next. This prevents cascading deviations where subtask N+1 builds on a drifted subtask N.
-
-**How:** spawn a lightweight, isolated agent (fresh context) that receives ONLY:
-1. The subtask description from the plan (what was supposed to happen)
-2. The `git diff` of changes made during the subtask
-
-**The agent answers one question:** "Did we build exactly this, no more, no less?"
-
-| Verdict | Action |
-|---------|--------|
-| Aligned | Proceed to next subtask |
-| Minor drift (extra work, style) | Log as WARN, proceed |
-| Significant drift (wrong approach, missing requirements, scope creep) | STOP. Correct before next subtask |
-
-**Skip when:** single subtask, subtask is trivial (<10 lines changed), or subtasks are fully parallel (no sequential dependency).
+If REPRODUCE ran (step 1b), also confirm `reproduction_confirmed = true`: the script that previously FAILED must now PASS. If not, the fix didn't address the reported bug; return to FIX.
 
 ## Review Routing (Step 3)
 
@@ -97,71 +78,69 @@ When implementation has 2+ sequential subtasks, verify alignment after each subt
 | `docs/`, `README*`, `ADR/`, `*.md` | dx |
 | No match | architecture + security (minimum) |
 
-## Blast Radius Check (Step 5b, conditional)
+## Blast Radius (Step 5b, conditional)
 
-After RE-VERIFY, before SCORE. Detects entropy: documentation, tests, and imports that still reference pre-change behavior.
+After RE-VERIFY, before SCORE. Detects entropy: docs, tests, imports still referencing pre-change behavior.
 
-### Trigger conditions (ANY of)
+### Trigger (ANY of)
 
-- Changed files modify public APIs (exported functions, class interfaces, REST endpoints, CLI flags)
+- Changed files add/remove/rename **exported symbols**. Detect with `ast-grep` or a **fully-qualified** regex (e.g., `\bMyModule\.MyFunc\b`). **Never naked grep** on common names like `get`, `init`, `render`: they explode to hundreds of false matches.
 - More than 3 files changed
-- Schema/migration changes
+- Schema/migration changes, CLI flag definitions, REST/gRPC endpoint handlers
 
-**Skip when:** no trigger condition met, docs-only changes, pure refactors with no API change.
+### How
 
-### How it works
+1. **CLI pre-filter:** `ast-grep` or qualified regex for changed symbols; collect importers, docs, tests referencing them.
+2. **Fresh-context agent** receives only snippets of related files (not full files). Flags stale references, old-behavior assertions, comments describing removed logic, broken imports.
+3. **Report:** MAJOR (functional contradiction) or MINOR (stale comment/doc). CRITICAL contradictions re-enter FIX (step 4) before SCORE.
 
-1. **CLI pre-filter (cheap):** `grep`/`rg` for references to changed function names, class names, endpoints across the repo. Collect the set of "related files" (importers, docs, tests referencing changed symbols).
-2. **Fresh-context agent:** receives ONLY the list of changed files, what changed (summary), and the related files found by grep. Checks each related file for:
-   - Stale references to old behavior (doc says X, code now does Y)
-   - Tests asserting old behavior
-   - Comments describing removed/changed logic
-   - Import paths that no longer exist
-3. **Report:** each finding as MAJOR (functional contradiction) or MINOR (stale comment/doc). Findings feed into SCORE.
+### Skip when
 
-### Cost control
-
-- The grep pre-filter keeps agent input small: only files that actually reference changed symbols
-- Agent receives file snippets (relevant lines), not full files
-- If grep finds 0 related files outside the changed set, skip the agent entirely
+Docs-only; pure refactors with no API change; pre-filter found 0 related files.
 
 ## UAT: Goal-Backward Verification (Step 9)
 
-Verify the work achieves the user's goal, not just that code passes tests.
+UAT is **Outcome Verification with a human walkthrough**. The schema (observable truths → evidence → pass/fail) lives in `verification-protocol.md`; don't redefine it here.
 
-1. **Derive must-be-true list** from the goal (3-7 observable behaviors, not implementation details)
-2. **Walkthrough** each via `AskUserQuestion`: Pass / Fail / Skip
-3. **On failure:** feed into fix loop (step 4), re-verify, re-score, re-UAT failed items only
+Build the table from the goal (3-7 observable truths). Fill `Evidence` via CLI/output for every truth that can be verified mechanically. Use `AskUserQuestion` **only** for truths that need human judgment (visual, subjective, UX). On failure: feed into fix loop (step 4), re-verify, re-score, re-UAT failed items only. UAT→FIX rounds count against the global 5-round ceiling.
 
-**Skip when:** docs-only, config, pure refactors, single-function fixes with passing tests.
+**Skip when:** in SKIP_SET.
 
 ## Rules
 
-- Max 3 agents parallel
-- Review agents: read-only. software-engineer: read-write, scoped.
-- "Just do it" mode: skip final approval, auto-commit if score ≥ 80. Full review loop still runs.
+### Parallelism
+
+| Agent class | Default | Max | Condition for max |
+|-------------|---------|-----|-------------------|
+| Read-only (research-analyst, review agents, explorers) | 5 | 7 | Always |
+| Write (software-engineer) | 3 | 5 | File scopes disjoint AND no shared integration surfaces |
+
+**Shared integration surfaces** (even a 1-line change needs a sequential wave): routing tables, barrel exports / `index.*`, DI container config, dependency manifests (`go.mod`, `package.json`), migrations directory, shared test fixtures.
+
+If the plan requires edits to a shared surface, run the parallel batch first, then a **sequential INTEGRATE wave** for the shared files.
+
+### Permissions
+
+- Review agents: read-only.
+- software-engineer: read-write, scoped to assigned files.
+
+### Escalation (Step 7, global ceiling)
+
+`total_fix_rounds` counts every REVIEW→FIX cycle AND every UAT→FIX cycle. When it reaches 5 without meeting the score threshold, STOP and escalate.
+
+Present to the human:
+- Current score and threshold
+- Top 3 unresolved findings (CRITICAL/MAJOR)
+- Round-by-round score delta
+- Hypothesis on why progress stalled
+- Options: lower threshold, accept remaining risk, re-plan, abandon
+
+### Just-do-it mode
+
+Skip final approval and auto-commit when ALL of: SCORE ≥ 80, no CRITICAL findings, BLAST-RADIUS clean. **Bypasses UAT** (no human walkthrough possible in this mode). Stops at a local commit on the feature branch: does not push, does not open a PR.
 
 ## Trace Capture
 
-After each orchestrator step, append a JSONL line to `quality_reports/traces/YYYY-MM-DD_<session-slug>.jsonl`:
+Use the `harness-trace` skill (schema, JSONL format, capture logic).
 
-| Step | Data to capture |
-|------|-----------------|
-| REFINE | ambiguities_found, questions_asked |
-| RESEARCH | complexity, sources_consulted |
-| LOCALIZE | files_planned, files_proposed, files_actually_changed, precision, recall, mismatches |
-| REPRODUCE | script, fails_before_fix, passes_after_fix (null until VERIFY) |
-| IMPLEMENT | agents launched, files_changed, subtask_count, localization_precision |
-| DRIFT_CHECK | subtask_id, verdict (aligned/minor_drift/significant_drift), deviations [{desc}] |
-| VERIFY | tests_pass, lint_clean, build_ok, retries, reproduction_confirmed |
-| REVIEW | agents activated, findings {CRITICAL/MAJOR/MINOR: count}, review_validity |
-| FIX | findings_addressed, deviations [{rule, desc}] |
-| BLAST_RADIUS | triggered, trigger_reason, files_scanned, contradictions {MAJOR: count, MINOR: count} |
-| SCORE | score, threshold, gate |
-| LOOP | round, total_rounds, exit_reason |
-| UAT | performed, items, passed, failed |
-| SUMMARY | tokens_in, tokens_out, model, duration_min, files_changed, final_score |
-
-Format: `{"v":1,"session":"<slug>","ts":"<ISO>","step":"<STEP>","data":{...}}`
-
-Skip for: docs-only, config, single-function fixes. Trace files are local-only (gitignored).
+Trace is skipped for SKIP_SET. Trace files are local-only (gitignored).

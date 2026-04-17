@@ -6,7 +6,7 @@ allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ---
 
 # ABOUTME: Complete Go development guide - code, design, concurrency, performance, review
-# ABOUTME: Modern Go (1.22-1.26): error layering, stdlib router, Green Tea GC, modern stdlib prefs
+# ABOUTME: Conventions, error layering, concurrency rules, modern stdlib preferences
 
 # Go Development
 
@@ -24,11 +24,35 @@ golangci-lint run
 
 ---
 
+## Version (determine, don't assume)
+
+Never assume a Go version from prior knowledge: it rots fast and you miss CVE fixes. Fetch the truth:
+
+```bash
+go version                                      # project toolchain (for existing repos: also check go.mod)
+curl -s https://go.dev/VERSION?m=text | head -1 # latest upstream stable (for new projects)
+```
+
+For a new project, pin to the latest stable. For an existing one, read `go.mod` and prefer idioms gated to that version or lower.
+
+---
+
 ## Pre-Commit Verification (MANDATORY)
+
+Before every commit, both of these MUST pass:
+
+```bash
+make check       # project-wide gate (lint, vet, fmt, vuln, unit tests)
+make test-e2e    # end-to-end tests (or the project's e2e target: e2e, test-integration, etc.)
+```
+
+If `make check` is missing, scaffold it with the `project-checks` skill. If there is no e2e target, do NOT silently skip: flag it to the user and ask whether to proceed or add one.
+
+Full raw toolchain (what `make check` should expand to):
 
 ```bash
 gofmt -w .                    # Fix formatting FIRST (sqlc/codegen can misalign)
-go fix ./... && go fix ./...  # 1.26+: 25 modernizers (run twice for synergistic fixes)
+go fix ./... && go fix ./...  # Run twice for synergistic fixes
 go vet ./...                  # Static analysis
 go build ./...                # Compilation check
 go test -race -count=1 ./...  # Tests with race detector
@@ -38,21 +62,7 @@ golangci-lint run             # Lint
 
 **Why gofmt before build:** Code generators (sqlc, protoc) may produce code `gofmt` disagrees with. Always run `gofmt -w` after regeneration and before commit.
 
-**`go fix` in 1.26+:** Completely rewritten with 25 modernizers on the `go/analysis` framework. Auto-rewrites: `interface{}`→`any`, `sort.Slice`→`slices.Sort`, `wg.Add+go`→`wg.Go`, `errors.As`→`errors.AsType[T]`, `omitempty`→`omitzero`, C-style loops→`range int`, and more. Version-gated by `go.mod` directive. Run twice (synergistic fixes). Preview with `go fix -diff ./...`. List fixers: `go tool fix help`.
-
----
-
-## Modern Go (1.22+)
-
-**1.22:** Loop var fix (each iteration owns its variable). Range over int: `for i := range 10`. Stdlib router: `mux.HandleFunc("GET /api/v1/feed/{id}", h)` + `r.PathValue("id")`.
-
-**1.23:** `iter.Seq[T]` lazy sequences (use sparingly). `time.Tick` now GC-safe (no more leak). `maps.Keys`, `slices.Collect`, `slices.Sorted`.
-
-**1.24:** `t.Context()` auto-cancelled test context. `omitzero` JSON tag (fixes `omitempty` for Duration/structs). `b.Loop()` for benchmarks. `strings.SplitSeq` lazy iteration (avoids slice alloc).
-
-**1.25:** Container-aware GOMAXPROCS, Green Tea GC (experimental), `sync.WaitGroup.Go()`.
-
-**1.26:** Green Tea GC default ON (10-40% lower overhead), `new(42)`, `errors.AsType[T]`, self-referential generics, ~30% faster cgo, `go fix` rewritten (25 modernizers). Goroutine leak detection (`/debug/pprof/goroutineleak`) requires `GOEXPERIMENT=goroutineleakprofile`.
+**`go fix` modernizers** are version-gated by `go.mod`. Preview with `go fix -diff ./...`. List with `go tool fix help`.
 
 ---
 
@@ -76,45 +86,11 @@ if errors.Is(err, sql.ErrNoRows) { return nil, ErrUserNotFound }
 if errors.Is(err, ErrUserNotFound) { http.Error(w, "not found", 404); return }
 ```
 
-**Structured errors (APIs only):** For HTTP/gRPC APIs needing error codes in responses:
-```go
-type AppError struct {
-    Code    string // "USER_NOT_FOUND", machine-readable
-    Message string // Human-readable
-    Err     error  // Wrapped cause
-}
-func (e *AppError) Error() string { return fmt.Sprintf("%s: %s", e.Code, e.Message) }
-func (e *AppError) Unwrap() error { return e.Err }
-```
-Not needed for CLIs, workers, or internal packages: use sentinels + `%w` wrapping.
+**Structured errors (APIs only):** For HTTP/gRPC APIs needing machine-readable error codes in responses, define an `AppError` type with `Code`/`Message`/wrapped cause. Not needed for CLIs, workers, or internal packages: use sentinels + `%w` wrapping.
 
-**Testing:** Table-driven with `t.Run()`, use `t.Helper()` in helpers.
-```go
-tests := []struct{ name string; a, b, want int }{
-    {"positive", 2, 3, 5},
-}
-for _, tt := range tests {
-    t.Run(tt.name, func(t *testing.T) {
-        if got := Add(tt.a, tt.b); got != tt.want {
-            t.Errorf("Add(%d,%d)=%d; want %d", tt.a, tt.b, got, tt.want)
-        }
-    })
-}
-```
+**Testing:** Table-driven with `t.Run()`, `t.Helper()` in helpers, `t.Context()` for cancellation.
 
-**Function literals:** Extract complex callbacks into named vars. Especially with iterators and functional stdlib (`slices`, `maps`), nested literals hurt readability fast.
-```go
-// bad: nested, hard to scan
-for k, v := range slices.Sorted(func(yield func(string, int) bool) {
-    for k, v := range m { yield(k, v) }
-}) { fmt.Println(k, v) }
-
-// good: named, intent is clear
-byKey := func(yield func(string, int) bool) {
-    for k, v := range m { yield(k, v) }
-}
-for k, v := range slices.Sorted(byKey) { fmt.Println(k, v) }
-```
+**Function literals:** Extract complex callbacks into named vars. Nested literals around `slices`/`maps`/iterators hurt readability fast.
 
 **Build tags for simulation:** `//go:build simulation` in `driver_sim.go`, `//go:build !simulation` in `driver_real.go`. Same type, different impl. Use for hardware, external APIs, infra deps.
 
@@ -131,12 +107,7 @@ internal/repository/      # Data access
 ```
 Organize by **feature/domain**, not technical layer. Avoid `/src`, `/utils`, `/common`, `/helpers`.
 
-**Functional Options:**
-```go
-type Option func(*Server)
-func WithPort(p int) Option { return func(s *Server) { s.port = p } }
-func NewServer(opts ...Option) *Server { /* apply opts */ }
-```
+**Functional Options:** preferred for optional configuration (`WithX(...) Option` + `NewServer(opts ...Option)`).
 
 **Constructor Injection:** Accept interfaces, return structs. **No global mutable state**: pass deps explicitly.
 
@@ -152,7 +123,7 @@ func NewServer(opts ...Option) *Server { /* apply opts */ }
 - Always know WHEN and HOW a goroutine terminates
 - **Libraries are synchronous**: never launch goroutines from lib code unless concurrency IS the feature
 
-**errgroup** (preferred over WaitGroup), **context** always first param, **bounded pools** for load, **sender closes** channels. Pre-1.23: `time.After` in loops leaks timers, use `time.NewTicker`. **1.23+:** `time.Tick` is GC-safe (requires `go 1.23` in go.mod).
+**errgroup** (preferred over WaitGroup), **context** always first param, **bounded pools** for load, **sender closes** channels.
 
 For detailed concurrency patterns, performance optimization, profiling, and code review checklists, see `references/golang-patterns.md`.
 
