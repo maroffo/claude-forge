@@ -2,7 +2,14 @@
 
 ![Claude Forge](blog/cover.png)
 
-Token-optimized skills, orchestrated review agents, and always-on workflow rules for Claude Code. A three-tier system: **rules** (always active) + **agents** (on-demand reviewers) + **skills** (user-invoked).
+Token-optimized skills, orchestrated review agents, always-on workflow rules, and a deterministic enforcement layer for Claude Code. Four-tier system:
+
+- **Identity / rules** (always active, pure prose): `CLAUDE.md` + `rules/*` define who Claude is and how it works.
+- **Agents** (on-demand reviewers): launched by the orchestrator per file patterns.
+- **Skills** (user-invoked): progressive disclosure for languages, tools, and personal workflows.
+- **Extensions / hooks** (runtime, model-proof): `Makefile` gates, git-commit guards, ABOUTME enforcer, path protection. Text tells Claude what to do; hooks make sure it happens.
+
+Tuned for Claude Opus 4.7 (no stale version pins, no redundant didactics, fetch-don't-assume for language versions).
 
 ## Quick Start
 
@@ -45,11 +52,18 @@ cp claude-forge/CLAUDE.md.example ~/.claude/CLAUDE.md
 ```
 ~/.claude/
 ├── CLAUDE.md           → Identity, philosophy, routing tables
+├── AGENTS.md           → Symlink to CLAUDE.md (emerging cross-tool convention)
 ├── MEMORY.md           → Persistent [LEARN:x] corrections
 ├── rules/              → Always-on workflow guardrails (auto-loaded)
 ├── agents/             → On-demand agents (launched by orchestrator)
 ├── skills/             → User-invoked language/tool skills
+├── hooks/              → PreToolUse/PostToolUse enforcement scripts (local, not in repo)
+├── settings.json       → Hook registration + path-protection deny rules
 ├── docs/solutions/     → Categorized solved problems (searchable knowledge base)
+│
+claude-forge repo
+├── Makefile            → `make check` + `make test-e2e` (pre-commit gate)
+├── scripts/            → check_repo.py (ABOUTME, em-dashes, frontmatter, schema)
 │
 Obsidian Vault (Documents/)
 ├── Projects/           → Per-project artifacts (overview, log, solutions)
@@ -65,10 +79,23 @@ Obsidian Vault (Documents/)
 
 | Rule | Purpose |
 |------|---------|
-| `orchestrator-protocol` | Contractor mode: research → localize → reproduce (bug-fix) → implement → verify → review → fix → score → loop. Atomic skill metrics in traces for cascade analysis. |
+| `orchestrator-protocol` | Contractor mode: research → localize → reproduce (bug-fix) → implement → verify → review → fix → score → loop (global 5-round ceiling, then escalate). Atomic skill metrics in traces for cascade analysis. |
 | `plan-first-workflow` | Requirements refinement, append-only decisions register, checkpoints, context preservation ("never summarize summaries") |
 | `verification-protocol` | TDD process, mandatory test/lint/build cycle, outcome verification tables |
 | `quality-gates` | Scoring: 80 commit, 90 PR, 95 excellence |
+
+## Enforcement Layer (Hooks + Gates)
+
+Text in rules tells Claude what to do; the enforcement layer makes sure it happens even if Claude forgets. Lives in `~/.claude/hooks/` and `~/.claude/settings.json` (local, not in this repo).
+
+| Mechanism | Trigger | What it does |
+|-----------|---------|--------------|
+| `pre-commit-gate.sh` | PreToolUse on `git commit` | Runs `make check && make test-e2e`, blocks commit on failure or missing targets (points to `/project-checks`) |
+| `main-branch-guard.sh` | PreToolUse on `git commit` | Refuses commits directly on `main`/`master` |
+| `aboutme-enforcer.py` | PreToolUse Write (block), PostToolUse Edit (advisory) | Requires 2 `# ABOUTME:` (or `// ABOUTME:`) lines on new source files; detects ABOUTME removals on edits. Exempts lock files, vendored/generated paths, uncommentable formats |
+| Path protection | `permissions.deny` in settings.json | Blocks edits to `.git/hooks/`, `~/.ssh/`, `~/.aws/credentials`, gcloud/gemini keys, `id_rsa`/`id_ed25519` |
+
+The repo itself ships `Makefile` + `scripts/check_repo.py` that implement `make check` (ABOUTME, em-dashes scoped to `skills/`, frontmatter basics, plus shellcheck/hadolint if installed) and `make test-e2e` (skill schema smoke: name matches dir, description length).
 
 ## Agents (On-Demand)
 
@@ -110,9 +137,9 @@ Skills are markdown files that teach Claude domain-specific patterns. They load 
 | `rails/` | Service-oriented Rails, Dry-validation, Sidekiq, Hotwire |
 | `ruby/` | Gem development, RSpec, RuboCop, publishing |
 | `terraform/` | IaC patterns, modules, Terragrunt, OpenTofu |
-| `react-nextjs/` | React 19, Next.js 16, App Router, Server Components |
-| `android-kotlin/` | Kotlin 2.x, Jetpack Compose, Clean Architecture |
-| `apple-swift/` | Swift 6, SwiftUI, async/await, TCA, concurrency, performance |
+| `react-nextjs/` | React + Next.js App Router, Server Components (version via `npm view`) |
+| `android-kotlin/` | Kotlin, Jetpack Compose, Clean Architecture (version via `./gradlew`) |
+| `apple-swift/` | Swift, SwiftUI, async/await, concurrency (version via `swift --version`) |
 | `swiftui-liquid-glass/` | iOS 26+ Liquid Glass API |
 | `ios-debugger/` | Build, run, debug iOS apps via CLI (Xcode + Simulator) |
 | `cloud-infrastructure/` | AWS/GCP Well-Architected, security, cost, observability |
@@ -138,6 +165,8 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 |-------|-------------|
 | `source-control/` | Conventional commits, git workflow, hooks |
 | `commit/` | Redirects to `source-control/` |
+| `score/` | Run `make check` + `make test-e2e` and report commit/PR/excellence readiness |
+| `project-checks/` | Scaffold a Makefile with language-specific check/test-e2e targets |
 | `learning-docs/` | LEARNING.md retrospectives, session analysis, docs/solutions/ capture, vault pattern annotation |
 | `knowledge-sync/` | Vault-to-skills sync: scan Second Brain for recurring patterns, propose skill updates |
 | `releasing-software/` | Pre-release checklist, no-tag-without-green-CI |
