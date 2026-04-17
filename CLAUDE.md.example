@@ -91,6 +91,12 @@ Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes 
 # Writing
 - **NEVER use em dashes (—).** Use Italian punctuation: commas, colons, semicolons, or parentheses.
 
+# Python
+- **Always invoke via `uv`.** Use `uv run python3 script.py` (or `uv run --script` with PEP 723 inline deps), never bare `python3`. Applies to Makefiles, hooks, one-offs; stdlib-only scripts included.
+
+# Enforcement Layer (hooks)
+Rules are prose; hooks make them deterministic. Installed at `~/.claude/hooks/` with registration in `~/.claude/settings.json`. Key hooks: pre-commit-gate runs `make check && make test-e2e`; main-branch-guard refuses commits on main/master; aboutme-enforcer requires 2-line ABOUTME on new source files; routing-advisor nudges the right reviewer based on touched files; commit-intent-guard Tier A catches TODO/FIXME stubs and non-conventional messages. Plus `permissions.deny` path protection for `.git/hooks`, `~/.ssh`, credentials.
+
 # Second Opinion (auto-trigger)
 
 Call `/second-opinion` automatically (no user prompt needed) when:
