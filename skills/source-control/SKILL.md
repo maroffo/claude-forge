@@ -106,47 +106,11 @@ git branch -d feat/user-auth
 
 ---
 
-## Recovery
+## Rules
 
-| Situation | Command |
-|---|---|
-| Undo last commit (keep changes) | `git reset --soft HEAD~1` |
-| Undo staged files | `git reset HEAD <file>` |
-| Discard file changes | `git checkout -- <file>` |
-| Recover deleted branch | `git reflog` then `git checkout -b <branch> <sha>` |
-| Amend last commit | `git commit --amend -m "new message"` |
-| Revert pushed commit | `git revert <sha>` |
-
----
-
-## Conflicts
-
-Resolve: `git status` to see conflicts, edit files to remove markers, `git add <resolved>`, then `git rebase --continue` (or `git merge --continue`). Use `git rebase --abort` to bail out.
-
----
-
-## Hooks
-
-**Pre-commit:** `.git/hooks/pre-commit` -- run linters, formatters, tests per language.
-
-**Commit-msg:** Validate conventional format (commitlint, husky, lefthook).
-
----
-
-## Best Practices
-
-| DO | DON'T |
-|----|-------|
-| Conventional commits | Generic messages ("fix", "update") |
-| Small, logical commits | Huge unrelated changes |
-| Run tests before commit | Push broken code |
-| Use branches | Commit to main directly |
-| `--force-with-lease` | `--force` on shared branches |
-
----
-
-## Resources
-
-- https://www.conventionalcommits.org/
-- https://git-scm.com/doc
-- Tools: commitlint, husky, lefthook
+- NEVER push automatically (Max pushes manually)
+- NEVER work on `main`/`master` unless explicitly authorized
+- Small, logical commits; no huge unrelated changes
+- `--force-with-lease`, never bare `--force` on shared branches
+- Run `make check && make test-e2e` before committing (see language skills for the expansion)
+- Conflict resolution and recovery commands (reset, reflog, revert, amend): use standard git, no project-specific conventions here.

@@ -6,19 +6,9 @@ allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ---
 
 # ABOUTME: Ruby gem development guide - structure, testing, linting, CI/CD, publishing
-# ABOUTME: Modern Ruby (3.3-3.4): Prism parser, frozen strings, Ractor, attestation
+# ABOUTME: Conventions for gemspec, RSpec, RuboCop, publishing with attestation
 
 # Ruby Gem Development
-
-## What's New (2025-2026)
-
-| Ruby 3.4 | RubyGems 4.0 |
-|----------|--------------|
-| Prism default parser | Go extension support |
-| Frozen string warnings | 5 parallel connections |
-| Gem attestation (sigstore) | Reproducible builds |
-| Bundler checksums | |
-| Ractor require | |
 
 ## Quick Reference
 
@@ -29,7 +19,42 @@ gem build my_gem.gemspec
 gem push my_gem-1.0.0.gem --attestation
 ```
 
-**Target: Ruby 3.3+** | For Rails apps, use `rails` skill | **See also:** `_AST_GREP.md`, `_PATTERNS.md`
+For Rails apps, use `rails` skill. **See also:** `_AST_GREP.md`, `_PATTERNS.md`, `source-control`
+
+---
+
+## Version (determine, don't assume)
+
+Never assume a Ruby version from prior knowledge: it rots fast and you miss CVE fixes. Fetch the truth:
+
+```bash
+ruby -v                                                              # local interpreter
+cat .ruby-version 2>/dev/null                                        # pin file (if present)
+curl -s https://endoflife.date/api/ruby.json | jq -r '.[0].latest'   # latest upstream stable
+```
+
+For a new project, pin to the latest stable. For an existing one, read `.ruby-version` / `Gemfile` / `<gem>.gemspec` (`required_ruby_version`) and prefer idioms gated to that version or lower.
+
+---
+
+## Pre-Commit Verification (MANDATORY)
+
+Before every commit, both of these MUST pass:
+
+```bash
+make check       # project-wide gate (lint, tests, security)
+make test-e2e    # end-to-end tests (or the project's e2e target)
+```
+
+If `make check` is missing, scaffold it with the `project-checks` skill. If there is no e2e target, do NOT silently skip: flag it to the user and ask whether to proceed or add one.
+
+Full raw toolchain (what `make check` should expand to):
+
+```bash
+bundle exec rubocop
+bundle exec rspec
+bundle exec bundler-audit check --update
+```
 
 ---
 

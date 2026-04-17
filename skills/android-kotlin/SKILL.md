@@ -1,12 +1,12 @@
 ---
 name: android-kotlin
-description: "Android development with Kotlin 2.x, Jetpack Compose, Clean Architecture, and performance. Use when working with .kt files, build.gradle.kts, AndroidManifest.xml, or Compose UI."
+description: "Android development with Kotlin, Jetpack Compose, Clean Architecture, and performance. Use when working with .kt files, build.gradle.kts, AndroidManifest.xml, or Compose UI."
 compatibility: "Requires Android SDK, Gradle. Optional: ktlint."
 allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ---
 
-# ABOUTME: Android/Kotlin - Compose, architecture, testing, performance
-# ABOUTME: Kotlin 2.x, Compose 1.7+, type-safe navigation, Baseline Profiles
+# ABOUTME: Android/Kotlin, Compose, Clean Architecture, testing, performance
+# ABOUTME: MVVM + DI conventions, state/side-effect patterns, review checklists
 
 # Android/Kotlin
 
@@ -17,6 +17,46 @@ allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ```
 
 **See:** `_AST_GREP.md` (sg patterns) | `_PATTERNS.md` | `source-control`
+
+---
+
+## Version (determine, don't assume)
+
+Never assume Kotlin / AGP / Gradle versions from prior knowledge: they rot fast and you miss CVE fixes. Fetch the truth:
+
+```bash
+./gradlew --version                                         # Gradle + JVM
+grep -E 'kotlin|agp|compose' gradle/libs.versions.toml      # version catalog (preferred)
+grep -E 'kotlin|android' build.gradle.kts                   # fallback
+cat gradle.properties                                       # AGP / Kotlin flags
+curl -s https://api.github.com/repos/JetBrains/kotlin/releases/latest | jq -r .tag_name   # latest Kotlin
+curl -s https://api.github.com/repos/gradle/gradle/releases/latest | jq -r .tag_name      # latest Gradle
+```
+
+For a new project, pin to the latest stable. For an existing one, read `gradle/libs.versions.toml` / `build.gradle.kts` / `gradle.properties` and prefer idioms gated to that version or lower.
+
+---
+
+## Pre-Commit Verification (MANDATORY)
+
+Before every commit, both of these MUST pass:
+
+```bash
+make check       # project-wide gate (lint, detekt, ktlint, unit tests)
+make test-e2e    # end-to-end tests (connectedAndroidTest or the project's e2e target)
+```
+
+If `make check` is missing, scaffold it with the `project-checks` skill. If there is no e2e target, do NOT silently skip: flag it to the user and ask whether to proceed or add one.
+
+Full raw toolchain (what `make check` should expand to):
+
+```bash
+./gradlew ktlintCheck                           # formatting
+./gradlew detekt                                # static analysis
+./gradlew lint                                  # Android lint
+./gradlew test                                  # unit tests (all variants)
+./gradlew connectedAndroidTest                  # instrumented / e2e (device/emulator)
+```
 
 ---
 
@@ -83,22 +123,16 @@ See `references/compose-patterns.md` for setup examples.
 
 ## Compose Essentials
 
-**State hoisting:** Lift state to the caller, pass callbacks down.
-```kotlin
-@Composable
-fun UserCard(user: User, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Card(onClick = onClick, modifier = modifier) { /* content */ }
-}
-```
+**State hoisting:** lift state to the caller, pass callbacks down.
 
-**State management:**
+**State APIs:**
 - `remember { mutableStateOf() }`, lost on config change
 - `rememberSaveable { mutableStateOf() }`, survives config change
 - `derivedStateOf`, computed state
 
-**Side effects:** `LaunchedEffect(key)`, `DisposableEffect`
+**Side effects:** `LaunchedEffect(key)`, `DisposableEffect`. Collect flows with `collectAsStateWithLifecycle()` (not `collectAsState`).
 
-**Type-safe navigation:** `@Serializable` routes (2.8.0+)
+**Type-safe navigation:** `@Serializable` routes.
 
 See `references/compose-patterns.md` for detailed examples.
 
@@ -126,30 +160,24 @@ See `references/compose-patterns.md` for detailed examples.
 | Network/DB on main thread | Use case chaining in VM |
 | StateFlow for one-time events | Mutable state exposed from VM |
 | Hardcoded strings in UI | Missing `key` in LazyColumn |
-| Missing error handling | collectAsState vs collectAsStateWithLifecycle |
+| Missing error handling | `collectAsState` vs `collectAsStateWithLifecycle` |
 | R8 disabled in release | |
 
 ---
 
-## Quick Reference
+## Detailed References
 
-**Kotlin 2.x features:** Guard conditions (2.1), context parameters (2.2), K2 compiler benefits → `references/kotlin-features.md`
-
-**Compose patterns:** State, side effects, navigation, image loading → `references/compose-patterns.md`
-
-**Networking & Data:** Retrofit, Ktor, Room, DataStore → `references/data-layer.md`
-
-**Testing:** Compose UI tests, ViewModel tests, snapshot tests → `references/testing-patterns.md`
-
-**Performance:** R8, Baseline Profiles, Compose optimization → `references/performance.md`
+- `references/kotlin-features.md` - Kotlin language features and idioms
+- `references/compose-patterns.md` - State, side effects, navigation, image loading
+- `references/data-layer.md` - Retrofit, Ktor, Room, DataStore
+- `references/testing-patterns.md` - Compose UI tests, ViewModel tests, snapshot tests (Paparazzi), Turbine
+- `references/performance.md` - R8, Baseline Profiles, Compose optimization
 
 ---
 
 ## Resources
 
 **Official:** [android.com/kotlin](https://developer.android.com/kotlin) | [compose](https://developer.android.com/develop/ui/compose) | [architecture](https://developer.android.com/topic/architecture) | [type-safe nav](https://developer.android.com/guide/navigation/design/type-safety) | [baseline profiles](https://developer.android.com/topic/performance/baselineprofiles)
-
-**Kotlin:** [2.2](https://kotlinlang.org/docs/whatsnew22.html) | [2.1.20](https://kotlinlang.org/docs/whatsnew2120.html) | [2.3](https://blog.jetbrains.com/kotlin/2025/12/kotlin-2-3-0-released/)
 
 **Libraries:** [Coil](https://coil-kt.github.io/coil/) | [Koin](https://insert-koin.io/) | [Hilt](https://dagger.dev/hilt/) | [Retrofit](https://square.github.io/retrofit/) | [Ktor](https://ktor.io/docs/client.html) | [Room](https://developer.android.com/training/data-storage/room)
 
