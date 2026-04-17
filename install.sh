@@ -42,7 +42,7 @@ get_label() {
 # Skills per category
 CAT_SKILLS_0="commit source-control refine-requirements releasing-software"
 CAT_SKILLS_1="golang python apple-swift android-kotlin rails ruby react-nextjs terraform cloud-infrastructure swiftui-liquid-glass ios-debugger"
-CAT_SKILLS_2="gemini-review second-opinion test-design-reviewer cognitive-load-analyzer legacy-code-expert skill-forge project-analyzer harness-trace harness-mechanic"
+CAT_SKILLS_2="gemini-review advanced-review second-opinion test-design-reviewer cognitive-load-analyzer legacy-code-expert skill-forge project-analyzer harness-trace harness-mechanic"
 CAT_SKILLS_3="obsidian knowledge-sync learning-docs notion-sync"
 CAT_SKILLS_4="inbox-triage email-cleanup newsletter-digest process-clippings process-email-bookmarks bujo bujo-sync clickup"
 CAT_SKILLS_5="blog-writer humanizer cover-image table-image"

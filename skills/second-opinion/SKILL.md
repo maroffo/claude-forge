@@ -1,31 +1,34 @@
 ---
 name: second-opinion
-description: "Get a second opinion from Gemini CLI on a problem Claude is analyzing. Use when user says second opinion, ask gemini, what does gemini think, another perspective, or /second-opinion. Gathers context, writes a focused prompt, and synthesizes both viewpoints. Not for code review (use gemini-review)."
-compatibility: "Requires Gemini CLI installed and GEMINI_API_KEY in environment."
+description: "Get two independent second opinions (isolated Claude + isolated Gemini) on a problem Claude is analyzing. Use when user says second opinion, ask gemini, what does gemini think, another perspective, or /second-opinion. Gathers context, writes a focused prompt, calls both reviewers in isolated Docker containers, and synthesizes all viewpoints. Not for code review (use gemini-review)."
+compatibility: "Requires Docker running, claude-reviewer:latest and gemini-reviewer:latest images built, OAuth volume for Claude, API key file for Gemini."
 ---
 
-# ABOUTME: Second opinion from Gemini CLI to help Claude analyze problems
-# ABOUTME: Gathers context, writes prompt, calls Gemini, synthesizes both viewpoints
+# ABOUTME: Two independent second opinions from isolated Docker containers (Claude + Gemini)
+# ABOUTME: Same prompt/context to both, zero config contamination, three-way synthesis
 
-# Second Opinion
+# Second Opinion (Isolated)
 
-**MANDATORY: Always use `--model gemini-3.1-pro-preview`. No other model. No fallback. No substitution.**
+Both reviewers run in Docker containers with NO access to your `~/.claude/` config,
+memories, rules, or settings. This ensures genuinely independent opinions.
 
-## Quality Notes
+## Prerequisites
 
-- Invest time in writing a good prompt; garbage in, garbage out
-- Include ALL relevant context: files, errors, constraints, what you've tried
-- Synthesize thoughtfully; don't just relay Gemini's output
+Images built and auth configured:
+- `claude-reviewer:latest` (built from `claude-forge/docker/isolated-reviewer/`)
+- `gemini-reviewer:latest` (built from `claude-forge/docker/isolated-gemini/`)
+- Docker volume `claude-reviewer-auth` (populated via `docker run -it --rm -v claude-reviewer-auth:/home/node/.claude --entrypoint bash claude-reviewer:latest -c "claude login"`)
+- API key file at `~/.config/gemini-api-key`
 
 ## Execution Flow
 
 ### Step 1: Understand the problem
 
-Before calling Gemini, Claude MUST clearly articulate:
+Before calling reviewers, clearly articulate:
 1. **The problem** - what is being analyzed or decided
-2. **Claude's current analysis** - what Claude thinks so far
+2. **Your current analysis** - what you think so far
 3. **Relevant context** - code snippets, error messages, architecture constraints
-4. **Specific question** - what Claude wants a second opinion on
+4. **Specific question** - what you want a second opinion on
 
 ### Step 2: Gather context
 
@@ -37,43 +40,75 @@ Collect all relevant material:
 
 ### Step 3: Build the prompt
 
-Load the prompt template and compose the full request:
+Load the prompt template:
 
 ```bash
-PROMPT=$(cat ~/.claude/skills/second-opinion/prompts/default.md)
+PROMPT_TEMPLATE=$(cat ~/.claude/skills/second-opinion/prompts/default.md)
 ```
 
-Claude writes a `CONTEXT` block containing:
+Compose a `FULL_PROMPT` combining the template with a `## Problem Context` section containing:
 - Problem description
-- Claude's current analysis/hypothesis
+- Your current analysis/hypothesis
 - All gathered context (code, errors, docs)
-- The specific question for Gemini
+- The specific question for the reviewer
 
-### Step 4: Call Gemini CLI
+The FULL_PROMPT must be identical for both reviewers. Write it to a temp file:
 
 ```bash
-cd <project_root>
+PROMPT_FILE=$(mktemp)
+cat > "$PROMPT_FILE" <<'PROMPT_EOF'
+<the composed prompt here>
+PROMPT_EOF
+```
 
-gemini --model gemini-3.1-pro-preview --yolo <<EOF
-$PROMPT
+### Step 4: Call both reviewers in parallel
 
-## Problem Context
+Launch both containers simultaneously using **two parallel Bash tool calls in a single message**.
 
-$CONTEXT
-EOF
+Credentials never touch the host filesystem: Claude auth is mounted directly from
+the Docker volume, Gemini API key is read in-memory from a file.
+
+Call 1 - Isolated Claude:
+```bash
+docker run --rm \
+  -v claude-reviewer-auth:/home/node/.claude:ro \
+  -v <PROJECT_ROOT>:/workspace:ro \
+  claude-reviewer:latest \
+  --print \
+  --model opus \
+  "$(cat <PROMPT_FILE>)"
+```
+
+Call 2 - Isolated Gemini:
+```bash
+docker run --rm \
+  -e GEMINI_API_KEY="$(cat ~/.config/gemini-api-key)" \
+  -v <PROJECT_ROOT>:/workspace:ro \
+  gemini-reviewer:latest \
+  -p "$(cat <PROMPT_FILE>)" \
+  -m gemini-3.1-pro-preview \
+  --sandbox false \
+  2>&1 | grep -v "^\[WARN\] Skipping unreadable" | grep -v "^Warning: Could not read"
+```
+
+**Cleanup after both complete:**
+```bash
+rm -f "$PROMPT_FILE"
 ```
 
 ### Step 5: Synthesize
 
-After receiving Gemini's response, Claude presents a unified analysis:
+Present a three-way analysis:
 
-| Aspect | Claude | Gemini | Consensus |
-|--------|--------|--------|-----------|
-| Root cause | ... | ... | agree/differ |
-| Approach | ... | ... | agree/differ |
-| Risks | ... | ... | complementary |
+| Aspect | Claude (you) | Isolated Claude | Isolated Gemini | Consensus |
+|--------|-------------|-----------------|-----------------|-----------|
+| Root cause | ... | ... | ... | agree/differ |
+| Approach | ... | ... | ... | agree/differ |
+| Risks | ... | ... | ... | complementary |
 
-**Final recommendation:** Claude's updated position, incorporating Gemini's input where it adds value. Explain what changed (or didn't) and why.
+**Final recommendation:** Your updated position, incorporating both independent opinions.
+Explain what changed (or didn't) and why. Flag any point where both independent
+reviewers agree against your original analysis (strong signal to reconsider).
 
 ## When to Use
 
@@ -93,7 +128,9 @@ After receiving Gemini's response, Claude presents a unified analysis:
 
 | Issue | Solution |
 |-------|----------|
-| "gemini: command not found" | Install Gemini CLI: see https://github.com/google-gemini/gemini-cli |
-| API errors | Check `GEMINI_API_KEY` is set |
+| "docker: command not found" | Docker Desktop must be running |
+| Image not found | Build images: see Prerequisites |
+| Claude auth fails | Re-login: `docker run -it --rm -v claude-reviewer-auth:/home/node/.claude --entrypoint bash claude-reviewer:latest -c "claude login"` |
+| Gemini API errors | Check `~/.config/gemini-api-key` exists and is valid |
 | Timeout | Reduce context size; focus on the most relevant files |
-| Unhelpful response | Sharpen the specific question; vague asks get vague answers |
+| Both reviewers agree you're wrong | You're probably wrong. Reconsider. |
