@@ -347,72 +347,15 @@ echo ""
 
 if [[ -n "${INSTALLED_HOOKS:-}" ]]; then
   echo "  Enforcement hooks copied to $TARGET_DIR/hooks/."
-  echo "  To activate them, merge the following into $TARGET_DIR/settings.json"
+  echo "  To activate, merge the following into $TARGET_DIR/settings.json"
   echo "  (under the top-level \"permissions\" and \"hooks\" keys):"
   echo ""
-  cat <<HOOKS_JSON
-  "permissions": {
-    "deny": [
-      "Edit(**/.git/hooks/**)",
-      "Write(**/.git/hooks/**)",
-      "Edit(~/.ssh/**)",
-      "Write(~/.ssh/**)",
-      "Edit(~/.aws/credentials)",
-      "Write(~/.aws/credentials)",
-      "Edit(~/.config/gcloud/**)",
-      "Write(~/.config/gcloud/**)",
-      "Edit(**/id_rsa)",
-      "Edit(**/id_ed25519)",
-      "Write(**/id_rsa)",
-      "Write(**/id_ed25519)"
-    ]
-  },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          { "type": "command", "command": "$TARGET_DIR/hooks/pre-commit-gate.sh", "if": "Bash(git commit*)", "timeout": 600, "statusMessage": "Running make check + make test-e2e..." },
-          { "type": "command", "command": "$TARGET_DIR/hooks/main-branch-guard.sh", "if": "Bash(git commit*)", "timeout": 10 },
-          { "type": "command", "command": "$TARGET_DIR/hooks/commit-intent-guard.sh", "if": "Bash(git commit*)", "timeout": 10 }
-        ]
-      },
-      {
-        "matcher": "Write",
-        "hooks": [
-          { "type": "command", "command": "$TARGET_DIR/hooks/aboutme-enforcer.sh", "timeout": 10 }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit",
-        "hooks": [
-          { "type": "command", "command": "$TARGET_DIR/hooks/aboutme-enforcer.sh", "timeout": 10 },
-          { "type": "command", "command": "$TARGET_DIR/hooks/routing-advisor.sh", "timeout": 10 }
-        ]
-      },
-      {
-        "matcher": "Write",
-        "hooks": [
-          { "type": "command", "command": "$TARGET_DIR/hooks/routing-advisor.sh", "timeout": 10 }
-        ]
-      },
-      {
-        "matcher": "MultiEdit",
-        "hooks": [
-          { "type": "command", "command": "$TARGET_DIR/hooks/routing-advisor.sh", "timeout": 10 }
-        ]
-      },
-      {
-        "matcher": "Agent",
-        "hooks": [
-          { "type": "command", "command": "$TARGET_DIR/hooks/routing-advisor.sh", "timeout": 10 }
-        ]
-      }
-    ]
-  }
-HOOKS_JSON
+  if [[ -f "$SCRIPT_DIR/hooks/settings.example.json" ]]; then
+    # Render the template with the real hooks path substituted in
+    sed "s|{{HOOKS_DIR}}|$TARGET_DIR/hooks|g" "$SCRIPT_DIR/hooks/settings.example.json"
+  else
+    echo "  (see hooks/settings.example.json in the repo)"
+  fi
   echo ""
 fi
 
