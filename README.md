@@ -87,7 +87,9 @@ Obsidian Vault (Documents/)
 
 ## Enforcement Layer (Hooks + Gates)
 
-Text in rules tells Claude what to do; the enforcement layer makes sure it happens even if Claude forgets. Hook scripts ship in `hooks/` and are copied to `~/.claude/hooks/` by `install.sh`. The settings.json fragment (hook registration + path-protection deny rules) is printed at the end of the installer for a manual merge; it's kept out of automated merge to avoid clobbering user-specific config.
+Text in rules tells Claude what to do; the enforcement layer makes sure it happens even if Claude forgets. Hook scripts ship in `hooks/` and are copied to `~/.claude/hooks/` by `install.sh`.
+
+The matching settings fragment lives at [`hooks/settings.example.json`](hooks/settings.example.json): registration for all five hooks plus the `permissions.deny` path-protection rules. `install.sh` renders it at install time (replacing `{{HOOKS_DIR}}` with the real path) and prints it for a manual merge into `~/.claude/settings.json`. Merge stays manual to avoid clobbering user-specific config.
 
 | Mechanism | Trigger | What it does |
 |-----------|---------|--------------|
