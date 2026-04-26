@@ -58,16 +58,35 @@ gh pr view <N> --json commits --jq '.commits[] | "\(.oid) \(.messageHeadline)"'
 - > 1000 lines or > 15 files: large, commit-by-commit essential + flag scope concern
 - > 5000 lines or > 50 files: excessive, recommend reject-and-split
 
-### Phase 1: Build verification
+### Phase 1: Build verification (isolated clone)
 
-Checkout PR branch and run the project's build/test gate:
+**Never check out the PR on the active repo.** It would contaminate uncommitted work, staged changes, or an unrelated branch in progress. Review always happens in a throwaway clone.
 
 ```bash
-git fetch origin <branch> && git checkout <branch>
-make check    # or equivalent from CLAUDE.md
+# 1. Resolve the repo slug from the current working directory (PR is assumed to target the same repo)
+REPO_SLUG="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
+
+# 2. Fresh clone into a temp directory (full history: Phase 2 needs the commit narrative)
+PR_REVIEW_DIR="$(mktemp -d -t pr-review-<N>-XXXX)"
+gh repo clone "$REPO_SLUG" "$PR_REVIEW_DIR"
+
+# 3. Checkout the PR inside the clone (handles forks automatically)
+git -C "$PR_REVIEW_DIR" fetch origin
+gh -R "$REPO_SLUG" pr checkout <N> --repo "$REPO_SLUG"   # run from $PR_REVIEW_DIR
+# or, inside the clone: (cd "$PR_REVIEW_DIR" && gh pr checkout <N>)
+
+# 4. Run the project's build/test gate in the isolated clone
+(cd "$PR_REVIEW_DIR" && make check)    # or equivalent from CLAUDE.md
+
+# 5. Export the path for every subsequent phase
+export PR_REVIEW_DIR
 ```
 
-If build fails, determine if pre-existing (check base branch) or introduced by PR.
+All subsequent phases (Gemini batches, specialized agents, source verification for CRITICAL findings) MUST run with `$PR_REVIEW_DIR` as the working directory. The original repo is read-only from here on.
+
+If build fails, determine if pre-existing (check base branch **inside the clone**, e.g. `git -C "$PR_REVIEW_DIR" checkout <base> && make check`) or introduced by PR. Restore the PR branch afterward.
+
+**Disk/time budget:** a full clone of a large repo can be slow. For repos > 1 GB or > 100k commits, use `gh repo clone "$REPO_SLUG" "$PR_REVIEW_DIR" -- --filter=blob:none` (partial clone: objects fetched on demand). Do NOT use `--depth N`: Phase 2 needs the commit graph back to the PR's merge base.
 
 ### Phase 2: Commit narrative analysis
 
@@ -109,6 +128,7 @@ Launch review agents based on file patterns (max 3 parallel per orchestrator rul
 Each agent receives:
 - The full diff (`/tmp/pr<N>-diff.patch`)
 - The project's CLAUDE.md conventions
+- **The working directory: `$PR_REVIEW_DIR`** (the isolated clone from Phase 1). All source reads go there, never the active repo.
 - Instruction to read actual source files (not hallucinate)
 - Instruction to classify as Critical/Major/Minor with exact file:line
 
@@ -245,6 +265,17 @@ Structure:
 <If split: proposed PR breakdown>
 ```
 
+### Phase 10: Cleanup
+
+Always remove the temporary clone after the report is delivered, regardless of outcome (approve / fix / reject):
+
+```bash
+rm -rf "$PR_REVIEW_DIR"
+unset PR_REVIEW_DIR
+```
+
+If the review is interrupted mid-flow (build failure, agent timeout, user abort), still run the cleanup. Stale `pr-review-*` directories under `$TMPDIR` are safe to delete at any time.
+
 ## Quality Notes
 
 - **Never relay raw agent output**: synthesize, deduplicate, verify
@@ -263,3 +294,6 @@ Structure:
 | Build fails on base branch too | Note as pre-existing; still blocks merge |
 | Too many findings to present | Group MINOR as count; focus report on CRITICAL + MAJOR |
 | Commit messages are useless ("fix", "wip") | Fall back to diff-only review; note poor commit hygiene |
+| Clone fails (network, auth) | Review the diff only (`gh pr diff`); skip Phase 1 build verification and flag it as "unverified build" in the report |
+| Not enough disk for full clone | Re-run with `--filter=blob:none` (partial clone). Do NOT use `--depth`: commit history is needed for Phase 2 |
+| `$PR_REVIEW_DIR` survives after abort | `rm -rf "$TMPDIR"/pr-review-* ` is always safe; only temp clones live there |
