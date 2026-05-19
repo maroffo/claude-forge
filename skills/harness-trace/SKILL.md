@@ -37,12 +37,16 @@ uv run -- harness-trace baseline --base-dir /path/to/claude-forge
 | `count-tokens <path>` | Count tokens per file | Token counts per file |
 | `baseline --base-dir <dir>` | Full harness token baseline | TSV with tier classification |
 
-## Trace Schema (v1)
+## Trace Schema (v2)
 
-One JSONL line per orchestrator step:
+One JSONL line per orchestrator step. `v2` adds `rejected_alternatives` (top-level, attaches to any step), two new step types (`PERMISSION_EVENT`, `ROUTE`), and an end-of-task `metrics` mini-report inside `SUMMARY`. Based on "Code as Agent Harness" (arxiv 2605.18747 §3.5.1, §5.2.1).
+
+**Step taxonomy.** `step` mixes two kinds intentionally:
+- **Lifecycle phases** (`REFINE`, `RESEARCH`, ..., `SUMMARY`): at most once per round, sequential.
+- **Cross-cutting events** (`PERMISSION_EVENT`, `ROUTE`): fire opportunistically, possibly many per phase. Consumers that care about the distinction should filter by step name.
 
 ```jsonl
-{"v":1,"session":"slug","ts":"ISO8601","step":"STEP","data":{...}}
+{"v":2,"session":"slug","ts":"ISO8601","step":"STEP","data":{...},"rejected_alternatives":[...]}
 ```
 
 | Step | Data fields |
@@ -60,7 +64,26 @@ One JSONL line per orchestrator step:
 | SCORE | score, threshold, gate |
 | LOOP | round, total_rounds, exit_reason |
 | UAT | performed, items, passed, failed |
-| SUMMARY | tokens_in/out, model, duration, final_score |
+| SUMMARY | tokens_in/out, model, duration, final_score, **metrics** (v2) |
+| **PERMISSION_EVENT** (v2) | tool, action, outcome (granted/denied/denied_by_settings/auto_approved/error/timeout/bypassed), reason. Callers must redact secrets in `action`. |
+| **ROUTE** (v2) | router, target, alternatives_considered, decision_basis |
+
+### v2 cross-cutting fields
+
+- `rejected_alternatives` (top-level on TraceEntry): list of `{description, reason_rejected, cost_estimate?}`. Captures paths the agent considered but discarded. Useful for diagnosing decision quality without rerunning the agent.
+
+### v2 SUMMARY.metrics (6 harness dimensions, paper §5.2.1)
+
+Each dimension is an optional dict; populate only what was measured. `None` = not measured (do not infer 0).
+
+| Dimension | Suggested keys |
+|-----------|----------------|
+| trajectory_efficiency | tool_calls, tokens, edits, executions, wall_clock_min |
+| verification_strength | test_coverage_pct, oracles_count, false_accept_rate |
+| recovery_ability | failures, recovered, escalations |
+| state_consistency | memory_repo_synced, drift_detected |
+| safety_compliance | permission_denials, hitl_gates_hit, sandbox_used |
+| replayability | full_trace_captured, artifacts_persisted |
 
 ## Token Baseline TSV
 

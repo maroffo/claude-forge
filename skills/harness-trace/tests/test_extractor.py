@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 from harness_trace.extractor import extract_traces, write_traces
+from harness_trace.models import SCHEMA_VERSION
 
 
 class TestExtractTraces:
@@ -72,7 +73,7 @@ class TestExtractTraces:
 
     def test_entries_have_schema_version(self, sample_session_jsonl: Path):
         entries = extract_traces(sample_session_jsonl, session_slug="test")
-        assert all(e.v == 1 for e in entries)
+        assert all(e.v == SCHEMA_VERSION for e in entries)
 
     def test_empty_session_returns_empty(self, tmp_path: Path):
         empty = tmp_path / "empty.jsonl"
