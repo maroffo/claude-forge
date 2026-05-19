@@ -9,9 +9,13 @@ import pytest
 
 from harness_trace.models import (
     SCHEMA_VERSION,
+    HarnessMetrics,
     ImplementData,
+    PermissionEventData,
     RefineData,
+    RejectedAlternative,
     ReviewData,
+    RouteData,
     ScoreData,
     SummaryData,
     TraceEntry,
@@ -138,3 +142,108 @@ class TestValidateStepData:
         })
         assert isinstance(result, VerifyData)
         assert result.tests_pass is True
+
+
+class TestSchemaV2:
+    def test_schema_version_is_2(self):
+        assert SCHEMA_VERSION == 2
+
+    def test_rejected_alternative_on_entry(self):
+        entry = TraceEntry(
+            session="test",
+            ts=datetime(2026, 5, 19, tzinfo=UTC),
+            step="IMPLEMENT",
+            rejected_alternatives=[
+                RejectedAlternative(
+                    description="rewrite extractor in regex-free parser",
+                    reason_rejected="out of scope, deferred",
+                    cost_estimate="high effort",
+                ),
+            ],
+        )
+        assert len(entry.rejected_alternatives) == 1
+        assert entry.rejected_alternatives[0].reason_rejected.startswith("out of scope")
+
+    def test_rejected_alternatives_default_none(self):
+        # Default is None (not []) so empty rows omit the field on the wire.
+        entry = TraceEntry(
+            session="test", ts=datetime(2026, 5, 19, tzinfo=UTC), step="REFINE",
+        )
+        assert entry.rejected_alternatives is None
+        # exclude_none on serialize must drop the empty field.
+        assert "rejected_alternatives" not in entry.to_jsonl()
+
+    def test_permission_event_step(self):
+        entry = TraceEntry(
+            session="test",
+            ts=datetime(2026, 5, 19, tzinfo=UTC),
+            step="PERMISSION_EVENT",
+            data={
+                "tool": "Bash",
+                "action": "rm -rf node_modules",
+                "outcome": "denied",
+                "reason": "destructive-action-guard",
+            },
+        )
+        validated = validate_step_data("PERMISSION_EVENT", entry.data)
+        assert isinstance(validated, PermissionEventData)
+        assert validated.outcome == "denied"
+
+    def test_permission_event_invalid_outcome(self):
+        with pytest.raises(Exception):
+            PermissionEventData(tool="Bash", action="ls", outcome="maybe")
+
+    def test_route_step(self):
+        entry = TraceEntry(
+            session="test",
+            ts=datetime(2026, 5, 19, tzinfo=UTC),
+            step="ROUTE",
+            data={
+                "router": "routing-advisor",
+                "target": "architecture-reviewer",
+                "alternatives_considered": ["security-reviewer", "performance-reviewer"],
+                "decision_basis": "*.py file pattern",
+            },
+        )
+        validated = validate_step_data("ROUTE", entry.data)
+        assert isinstance(validated, RouteData)
+        assert validated.target == "architecture-reviewer"
+        assert "security-reviewer" in validated.alternatives_considered
+
+    def test_summary_with_harness_metrics(self):
+        data = SummaryData(
+            tokens_in=45000,
+            tokens_out=12000,
+            model="claude-opus-4-7",
+            duration_min=42,
+            files_changed=6,
+            final_score=92,
+            metrics=HarnessMetrics(
+                trajectory_efficiency={"tool_calls": 87, "tokens": 57000, "edits": 6},
+                safety_compliance={"permission_denials": 1, "hitl_gates_hit": 0},
+                replayability={"full_trace_captured": True},
+            ),
+        )
+        assert data.metrics is not None
+        assert data.metrics.trajectory_efficiency["edits"] == 6
+        assert data.metrics.recovery_ability is None  # not measured
+
+    def test_summary_without_metrics_backcompat(self):
+        # Existing v1 callers should still be able to skip the metrics field.
+        data = SummaryData(tokens_in=100, tokens_out=50, model="x")
+        assert data.metrics is None
+
+    def test_v2_jsonl_roundtrip(self):
+        entry = TraceEntry(
+            session="rt",
+            ts=datetime(2026, 5, 19, 12, 0, 0, tzinfo=UTC),
+            step="ROUTE",
+            data={"router": "r", "target": "t"},
+            rejected_alternatives=[
+                RejectedAlternative(description="d", reason_rejected="r"),
+            ],
+        )
+        parsed = parse_trace_entry(entry.to_jsonl())
+        assert parsed.v == 2
+        assert parsed.step == "ROUTE"
+        assert len(parsed.rejected_alternatives) == 1

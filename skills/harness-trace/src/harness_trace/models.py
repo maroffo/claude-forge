@@ -8,7 +8,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 StepName = Literal[
     "REFINE",
@@ -27,20 +27,40 @@ StepName = Literal[
     "PRESENT",
     "UAT",
     "SUMMARY",
+    # v2: cross-cutting events captured as first-class steps.
+    "PERMISSION_EVENT",
+    "ROUTE",
 ]
 
 
+class RejectedAlternative(BaseModel):
+    """A path the agent considered and discarded. Helps post-hoc decision analysis (paper §3.5.1)."""
+
+    description: str
+    reason_rejected: str
+    cost_estimate: str | None = None  # e.g. "high tokens", "needs approval"
+
+
 class TraceEntry(BaseModel):
-    """A single orchestrator step captured as a trace line."""
+    """A single orchestrator step captured as a trace line.
+
+    `step` is intentionally a flat enum spanning both lifecycle phases
+    (REFINE→SUMMARY) and cross-cutting events (PERMISSION_EVENT, ROUTE).
+    Consumers that care about the distinction should filter by step name
+    rather than expecting a discriminator field.
+    """
 
     v: int = SCHEMA_VERSION
     session: str
     ts: datetime
     step: StepName
     data: dict[str, Any] = Field(default_factory=dict)
+    # v2: optional, attaches to decision-bearing steps (RESEARCH, ROUTE, FIX, ...).
+    # Default `None` (not []) so empty rows omit the field on the wire.
+    rejected_alternatives: list[RejectedAlternative] | None = None
 
     def to_jsonl(self) -> str:
-        return self.model_dump_json()
+        return self.model_dump_json(exclude_none=True)
 
 
 class RefineData(BaseModel):
@@ -130,6 +150,58 @@ class UatData(BaseModel):
     failed: int = 0
 
 
+class PermissionEventData(BaseModel):
+    """A permission request/decision. v2 step type (paper §3.5.1, §5.2.5).
+
+    Note on `action`: callers are responsible for redacting secrets (API keys,
+    tokens, env-var assignments) before populating this field. Traces are
+    gitignored but still land on disk.
+    """
+
+    tool: str  # e.g. "Bash", "WebFetch", "Edit"
+    action: str  # short representation of what was requested (command, url, path)
+    outcome: Literal[
+        "granted",
+        "denied",
+        "denied_by_settings",
+        "auto_approved",
+        "error",
+        "timeout",
+        "bypassed",  # e.g. --no-verify or other safety-skip flag
+    ]
+    reason: str = ""  # rule that fired, allowlist hit, etc.
+
+
+class RouteData(BaseModel):
+    """A routing decision. v2 step type (paper §3.5.1: branch decisions)."""
+
+    router: str = ""  # which router fired (e.g. "routing-advisor", "review-pattern")
+    target: str  # the agent/reviewer/path selected
+    alternatives_considered: list[str] = Field(default_factory=list)
+    decision_basis: str = ""  # file pattern matched, rule name, etc.
+
+
+class HarnessMetrics(BaseModel):
+    """End-of-task mini-report on the 6 harness dimensions from paper §5.2.1.
+
+    Each field stays a flexible dict so callers can populate only what they have
+    without breaking on missing measurements. None means "not measured".
+    """
+
+    trajectory_efficiency: dict[str, Any] | None = None
+    # suggested keys: tool_calls, tokens, edits, executions, wall_clock_min
+    verification_strength: dict[str, Any] | None = None
+    # suggested keys: test_coverage_pct, oracles_count, false_accept_rate
+    recovery_ability: dict[str, Any] | None = None
+    # suggested keys: failures, recovered, escalations
+    state_consistency: dict[str, Any] | None = None
+    # suggested keys: memory_repo_synced, drift_detected
+    safety_compliance: dict[str, Any] | None = None
+    # suggested keys: permission_denials, hitl_gates_hit, sandbox_used
+    replayability: dict[str, Any] | None = None
+    # suggested keys: full_trace_captured, artifacts_persisted
+
+
 class SummaryData(BaseModel):
     tokens_in: int = 0
     tokens_out: int = 0
@@ -137,6 +209,7 @@ class SummaryData(BaseModel):
     duration_min: int = 0
     files_changed: int = 0
     final_score: int = 0
+    metrics: HarnessMetrics | None = None  # v2: end-of-task 6-dimension report
 
 
 STEP_DATA_MODELS: dict[StepName, type[BaseModel]] = {
@@ -154,6 +227,8 @@ STEP_DATA_MODELS: dict[StepName, type[BaseModel]] = {
     "LOOP": LoopData,
     "UAT": UatData,
     "SUMMARY": SummaryData,
+    "PERMISSION_EVENT": PermissionEventData,
+    "ROUTE": RouteData,
 }
 
 
