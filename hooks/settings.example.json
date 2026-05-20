@@ -60,6 +60,14 @@
           { "type": "command", "command": "{{HOOKS_DIR}}/routing-advisor.sh", "timeout": 10 }
         ]
       }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "{{HOOKS_DIR}}/session-end-trace.sh", "timeout": 10 }
+        ]
+      }
     ]
   }
 }

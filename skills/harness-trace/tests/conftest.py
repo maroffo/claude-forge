@@ -155,3 +155,55 @@ def sample_trace_entry() -> dict:
         "step": "SCORE",
         "data": {"score": 87, "threshold": 80, "gate": "commit"},
     }
+
+
+def _assistant(ts_ms: int, blocks: list[dict]) -> dict:
+    """Helper to build an assistant message with arbitrary content blocks."""
+    return {
+        "type": "assistant",
+        "timestamp": ts_ms,
+        "message": {"content": blocks},
+    }
+
+
+def _tool_use(name: str, **inputs) -> dict:
+    return {"type": "tool_use", "name": name, "input": inputs}
+
+
+def _text(t: str) -> dict:
+    return {"type": "text", "text": t}
+
+
+@pytest.fixture()
+def tool_use_session_jsonl(tmp_path: Path) -> Path:
+    """A session with realistic tool_use signals: edits, bash tests, reviewer Agents, WebFetch."""
+    base = 1715900000000  # ms epoch
+    messages = [
+        {"type": "user", "timestamp": base, "message": {"content": "Implement X"}},
+        # Two edits (IMPLEMENT signal).
+        _assistant(base + 10_000, [_tool_use("Edit", file_path="/a.py", old_string="x", new_string="y")]),
+        _assistant(base + 20_000, [_tool_use("Write", file_path="/b.py", content="...")]),
+        # A pytest run (VERIFY signal).
+        _assistant(base + 30_000, [_tool_use("Bash", command="uv run -- pytest tests/")]),
+        # A reviewer Agent call (ROUTE + REVIEW signals).
+        _assistant(base + 40_000, [
+            _tool_use("Agent", subagent_type="architecture-reviewer", description="review"),
+        ]),
+        # A non-reviewer Agent call (ROUTE only, no REVIEW).
+        _assistant(base + 50_000, [
+            _tool_use("Agent", subagent_type="software-engineer", description="implement subtask"),
+        ]),
+        # An ast-grep blast-radius call.
+        _assistant(base + 60_000, [_tool_use("Bash", command="ast-grep --pattern 'foo($A)'")]),
+        # A WebFetch to arxiv.
+        _assistant(base + 70_000, [_tool_use("WebFetch", url="https://arxiv.org/abs/1234.5678")]),
+        # One HITL gate.
+        _assistant(base + 80_000, [_tool_use("AskUserQuestion", questions=[])]),
+        # A final text-only summary with a SCORE (text-fallback should pick it up).
+        _assistant(base + 90_000, [_text("Quality score: 92. Threshold: 90. Gate: pr.")]),
+    ]
+    session_file = tmp_path / "tool-use-session.jsonl"
+    with session_file.open("w") as f:
+        for m in messages:
+            f.write(json.dumps(m) + "\n")
+    return session_file

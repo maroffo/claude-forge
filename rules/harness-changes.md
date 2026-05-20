@@ -3,45 +3,34 @@
 
 # Harness Changes
 
-The claude-forge harness IS the runtime that operates Claude. Edits to it change the future distribution of agent behavior, often in ways the editor did not predict. Therefore: any non-trivial change to the harness substrate must be preceded by a **change contract** that states what we expect, what we promise not to break, and how we will know if we were wrong.
+Any non-trivial edit to the harness substrate requires a six-field **change contract** committed alongside it. Source: arxiv 2605.18747 §5.2.3.
 
-This rule formalizes §5.2.3 of arxiv 2605.18747 ("Code as Agent Harness"): "every proposed edit should carry a change contract: which component is modified, which failure mode it targets, what improvement it predicts, which invariants it must preserve, which evaluation can falsify it, and how it can be rolled back".
+## Scope
 
-## When required (🔴)
+| Level | Examples | Contract |
+|-------|----------|----------|
+| 🔴 Required | `hooks/`, `rules/`, `agents/`, settings.json `Permissions`/`Hooks`/`Env`, a skill's SKILL.md description (controls auto-trigger), creating a new skill | Yes |
+| 🟡 Optional | Internal refactor of a skill that doesn't change trigger surface, test-only additions, ABOUTME tweaks | Recommended |
+| 🟢 Skip | App-side code, `README.md`, `LEARNING.md`, `blog/`, `docs/` | No |
 
-A change contract is REQUIRED for:
-- Adding or modifying a hook in `hooks/` (changes deterministic behavior of every future session).
-- Adding or modifying a rule in `rules/` (changes the orchestrator protocol or quality gates).
-- Modifying the `Permissions`, `Hooks`, or `Env` blocks of `settings.json` / `settings.local.json`.
-- Creating a new skill in `skills/` OR materially changing an existing skill's `SKILL.md` description (which controls when it auto-triggers).
-- Adding or modifying an agent definition in `agents/`.
+## The six fields
 
-## When optional (🟡)
-
-Recommended but not required for:
-- Typo fixes, link updates, ABOUTME tweaks.
-- Internal refactors of a skill that do not change the SKILL.md or its auto-trigger surface.
-- Test additions that exercise existing behavior.
-
-## When skipped (🟢)
-
-Skip entirely for:
-- Application-side code (anything outside `hooks/`, `rules/`, `agents/`, `skills/`, `settings*.json`).
-- Documentation-only changes in `README.md`, `LEARNING.md`, `blog/`, etc.
+| Field | Content |
+|-------|---------|
+| Component | File(s) modified |
+| Failure mode targeted | Specific observed or anticipated failure. One per contract |
+| Predicted improvement | Numeric where possible, qualitative + sample size otherwise |
+| Invariants preserved | Boundary conditions that, if broken, make this a regression |
+| Falsification | Concrete observation that would prove the change made things worse |
+| Rollback | How to undo, in one line |
 
 ## Process
 
-1. **Before editing**, copy `quality_reports/harness_changes/TEMPLATE.md` to `quality_reports/harness_changes/YYYY-MM-DD_<short-slug>.md` and fill in the six fields.
-2. **Commit the contract together with the change** (same commit or its immediate predecessor). Reference the contract path in the commit body.
-3. **After 10–20 sessions** (or whatever sample size the contract states), append a Result row. If the falsification condition fired, revert.
-4. **Do not edit the contract retroactively.** If the prediction was wrong, write a new contract that supersedes; keep the audit trail.
+1. Copy `quality_reports/harness_changes/TEMPLATE.md` to `YYYY-MM-DD_<slug>.md` and fill in.
+2. Commit the contract together with the change. Reference the contract path in the commit body.
+3. After 10-20 sessions, append a Result row. If falsification fired, revert.
+4. Never edit the contract retroactively. Write a superseding contract instead.
 
-## Why this is not optional
+## One change = one failure mode
 
-Without a contract, a harness edit looks identical to ordinary code. Reviewers cannot tell whether `s/3 retries/5 retries/` was a vibes-based tweak or a measured response. Six months later, no one remembers which class of failure the retry change was supposed to prevent, and the next editor undoes it for a different vibe-based reason. The contract is the difference between drift and engineering.
-
-## Pointers
-
-- Template: `quality_reports/harness_changes/TEMPLATE.md`
-- Existing contracts: `quality_reports/harness_changes/`
-- Inspiration: arxiv 2605.18747 §3.5.3 (Governed Harness Mutation), §5.2.3 (Self-Evolving Harnesses without Regression)
+Bundling multiple targets makes the Falsification field ambiguous. If you cannot phrase a single failure mode for the change, split it into two contracts.

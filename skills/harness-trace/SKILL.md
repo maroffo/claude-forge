@@ -37,6 +37,26 @@ uv run -- harness-trace baseline --base-dir /path/to/claude-forge
 | `count-tokens <path>` | Count tokens per file | Token counts per file |
 | `baseline --base-dir <dir>` | Full harness token baseline | TSV with tier classification |
 
+## Extraction strategy
+
+`extract` uses two signal sources, in order of precision:
+
+1. **Tool-use blocks** (primary, high precision). Walks every `tool_use` block in the assistant messages. The mapping below converts concrete tool invocations into trace entries with confidence:
+
+   | Tool / pattern | Emits |
+   |----------------|-------|
+   | `Agent(subagent_type=*-reviewer)` | `ROUTE` + `REVIEW` |
+   | `Agent(subagent_type=*)` (non-reviewer) | `ROUTE` |
+   | `Bash` matching `pytest\|make test\|go test\|npm test\|cargo test\|rspec` | `VERIFY` |
+   | `Bash` matching `ast-grep\|sg --pattern` | `BLAST_RADIUS` |
+   | `Edit` / `Write` / `MultiEdit` | counted into `IMPLEMENT` aggregate |
+   | `WebFetch` to `arxiv\|docs` | `RESEARCH` |
+   | `AskUserQuestion` | counted into `safety_compliance.hitl_gates_hit` |
+
+2. **Text regex** (fallback). Applied only to messages whose tool stream did not already surface the step, and only for steps that are typically pure text (`SCORE`, `FIX`, `LOOP`, `UAT`, plus `VERIFY`/`REVIEW` when no tool signal exists). This avoids the v1 problem where prose like "tests pass" in a chat triggered fake VERIFY entries.
+
+`SUMMARY` is always synthesized last from JSONL aggregates: `duration_min` (last_ts - first_ts), `files_changed` (Edit+Write count), and the 6-dimension `metrics` object (paper §5.2.1). No `SUMMARY` is emitted for sessions with zero other entries.
+
 ## Trace Schema (v2)
 
 One JSONL line per orchestrator step. `v2` adds `rejected_alternatives` (top-level, attaches to any step), two new step types (`PERMISSION_EVENT`, `ROUTE`), and an end-of-task `metrics` mini-report inside `SUMMARY`. Based on "Code as Agent Harness" (arxiv 2605.18747 §3.5.1, §5.2.1).
@@ -78,7 +98,7 @@ Each dimension is an optional dict; populate only what was measured. `None` = no
 
 | Dimension | Suggested keys |
 |-----------|----------------|
-| trajectory_efficiency | tool_calls, tokens, edits, executions, wall_clock_min |
+| trajectory_efficiency | tool_calls, tokens, edits, executions, active_min (gap-clamped working time, paired with SUMMARY.duration_min calendar span) |
 | verification_strength | test_coverage_pct, oracles_count, false_accept_rate |
 | recovery_ability | failures, recovered, escalations |
 | state_consistency | memory_repo_synced, drift_detected |

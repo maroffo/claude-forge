@@ -57,7 +57,7 @@ cp claude-forge/CLAUDE.md.example ~/.claude/CLAUDE.md
 ├── rules/              → Always-on workflow guardrails (auto-loaded)
 ├── agents/             → On-demand agents (launched by orchestrator)
 ├── skills/             → User-invoked language/tool skills
-├── hooks/              → PreToolUse/PostToolUse enforcement scripts (local, not in repo)
+├── hooks/              → PreToolUse/PostToolUse/SessionEnd enforcement scripts (local, not in repo)
 ├── settings.json       → Hook registration + path-protection deny rules
 ├── docs/solutions/     → Categorized solved problems (searchable knowledge base)
 │
@@ -65,6 +65,7 @@ claude-forge repo
 ├── Makefile            → `make check` + `make test-e2e` (pre-commit gate)
 ├── scripts/            → check_repo.py (ABOUTME, em-dashes, frontmatter, schema)
 ├── hooks/              → Source for the enforcement hooks (installed to ~/.claude/hooks/)
+├── quality_reports/    → traces/ (gitignored), token_baselines/ (gitignored), harness_changes/ (committed audit trail)
 │
 Obsidian Vault (Documents/)
 ├── Projects/           → Per-project artifacts (overview, log, solutions)
@@ -98,11 +99,34 @@ The matching settings fragment lives at [`hooks/settings.example.json`](hooks/se
 | `commit-intent-guard.py` | PreToolUse on `git commit` | Tier A intent checks: conventional-message regex (block), TODO/FIXME/NotImplementedError/placeholder in ADDED lines (block), unplanned file deletions (advisory) |
 | `aboutme-enforcer.py` | PreToolUse Write (block), PostToolUse Edit (advisory) | Requires 2 `# ABOUTME:` (or `// ABOUTME:`) lines on new source files; detects ABOUTME removals on edits. Exempts lock files, vendored/generated paths, uncommentable formats |
 | `routing-advisor.py` | PostToolUse Write/Edit/MultiEdit/Agent | Matches touched file paths against a routing table and nudges Claude via `additionalContext` to invoke the right reviewer (dependency-reviewer on `go.mod`, database-reviewer on migrations, etc.). Deduplicates per-session |
+| `session-end-trace.py` | SessionEnd | No-op outside claude-forge cwd. Otherwise auto-runs `harness-trace extract` against the session's transcript and writes the result under `quality_reports/traces/<date>_<session_id>.jsonl`. Closes the loop for the `harness-mechanic` Evolution Agent (see [Telemetry](#telemetry)) |
 | Path protection | `permissions.deny` in settings.json | Blocks edits to `.git/hooks/`, `~/.ssh/`, `~/.aws/credentials`, gcloud/gemini keys, `id_rsa`/`id_ed25519` |
 
 The repo ships `Makefile` + `scripts/check_repo.py` implementing `make check` (ABOUTME, em-dashes scoped to `skills/`, frontmatter) and `make test-e2e` (skill schema smoke).
 
 `scripts/metrics-weekly.sh` computes three signals to decide whether the enforcement is working: revert rate, fix-up rate, median time-to-next-touch. Run it as a baseline, apply enforcement, re-run after two weeks. If drift indicators don't drop, upgrade Tier A to Tier B (semantic check) or Tier C (full LLM agent).
+
+## Telemetry
+
+If enforcement is "make Claude follow the rules", telemetry is "see what Claude actually did". Two skills, one rule, one hook, all driven by arxiv 2605.18747 §3.5 (Agentic Harness Engineering).
+
+| Piece | Where | What it does |
+|-------|-------|--------------|
+| `harness-trace` skill | `skills/harness-trace/` | Parses a session JSONL into structured trace entries (schema v2). Tool-use blocks are the primary signal; text regex is fallback. Computes 6-dimension `HarnessMetrics` in the synthetic `SUMMARY` step (paper §5.2.1) |
+| `session-end-trace.py` hook | `hooks/`, fired on `SessionEnd` | Auto-runs `harness-trace extract` on every session that ends with cwd inside claude-forge. Output: `quality_reports/traces/<date>_<session_id>.jsonl`. Fail-silent, non-blocking |
+| `harness-mechanic` skill | `skills/harness-mechanic/` | Evolution Agent (paper §3.5.2) that reads accumulated traces, baselines, and prior change contracts; runs the 5-stage Observe-Diagnose-Propose-Evaluate-Promote loop; outputs proposals each carrying a draft change contract |
+| `rules/harness-changes.md` | `rules/` | Any non-trivial edit to `hooks/`, `rules/`, `skills/`, `agents/`, or `settings*.json` must be preceded by a six-field change contract (Component / Failure mode / Predicted improvement / Invariants / Falsification / Rollback). Template under `quality_reports/harness_changes/` |
+
+Trace JSONL and token baselines under `quality_reports/` are gitignored (`quality_reports/traces/*.jsonl`, `quality_reports/token_baselines/*.tsv`): they are local-only, regenerated continuously by the hook. Change contracts in `quality_reports/harness_changes/*.md` ARE committed: they are the audit trail of harness mutations.
+
+### Getting traces
+
+1. Run `install.sh` (copies `session-end-trace.sh` + `.py` into `~/.claude/hooks/`).
+2. Merge the printed `SessionEnd` block into `~/.claude/settings.json` (the installer prints the full hooks/permissions fragment at the end).
+3. Open a session in claude-forge and do real work. On `/exit`, Ctrl-C, or window close the hook fires automatically.
+4. Inspect `quality_reports/traces/<date>_<session_id>.jsonl`. To regenerate a token baseline: `cd skills/harness-trace && uv run -- harness-trace baseline --base-dir <repo-root> -o <repo-root>/quality_reports/token_baselines/`.
+
+The hook is no-op outside claude-forge: opening Claude Code in another project does not touch this directory.
 
 ## Agents (On-Demand)
 
