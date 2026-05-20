@@ -251,16 +251,46 @@ def _process_tool_use(
         return
 
 
+ACTIVE_GAP_CEILING_S = 300  # 5 minutes; longer inter-message gaps treated as idle.
+
+
+def _compute_active_min(message_timestamps: list[datetime]) -> int:
+    """Sum inter-message gaps clamped at ACTIVE_GAP_CEILING_S, return minutes.
+
+    Distinguishes active work time from session calendar span. A session that
+    sits idle for 3 days between two interactions only contributes the 5-minute
+    ceiling for the gap, not 3 days.
+    """
+    if len(message_timestamps) < 2:
+        return 0
+    total_s = 0.0
+    for prev, curr in zip(message_timestamps, message_timestamps[1:]):
+        gap = (curr - prev).total_seconds()
+        if gap <= 0:
+            continue
+        total_s += min(gap, ACTIVE_GAP_CEILING_S)
+    return int(total_s // 60)
+
+
 def _compute_summary(
     counters: dict[str, int],
     ts_start: datetime | None,
     ts_end: datetime | None,
+    message_timestamps: list[datetime],
 ) -> dict[str, Any]:
-    """Build SUMMARY.data with computed metrics (paper §5.2.1)."""
+    """Build SUMMARY.data with computed metrics (paper §5.2.1).
+
+    `duration_min` is calendar span (last_ts - first_ts). For sessions kept open
+    across days, this can be misleadingly large. `active_min` inside
+    `trajectory_efficiency` is the bounded-gap working time and is the right
+    metric for cross-session cost comparison.
+    """
     if ts_start and ts_end and ts_end > ts_start:
         duration_min = int((ts_end - ts_start).total_seconds() // 60)
     else:
         duration_min = 0
+
+    active_min = _compute_active_min(message_timestamps)
 
     return {
         "duration_min": duration_min,
@@ -270,6 +300,7 @@ def _compute_summary(
                 "tool_calls": counters["tool_calls"],
                 "edits": counters["edits"],
                 "executions": counters["bash_calls"],
+                "active_min": active_min,
             },
             "verification_strength": {
                 "oracles_count": counters["verify_runs"],
@@ -316,6 +347,7 @@ def extract_traces(session_path: Path, session_slug: str | None = None) -> list[
     seen_text_step_keys: set[str] = set()
     ts_start: datetime | None = None
     ts_end: datetime | None = None
+    message_timestamps: list[datetime] = []
 
     # First pass: walk JSONL, collect tool-use signals + record text candidates per message.
     text_candidates: list[tuple[datetime, str]] = []
@@ -336,6 +368,7 @@ def extract_traces(session_path: Path, session_slug: str | None = None) -> list[
             if ts_start is None:
                 ts_start = ts
             ts_end = ts
+            message_timestamps.append(ts)
 
             for name, tool_input in _iter_tool_uses(msg):
                 _process_tool_use(
@@ -380,11 +413,12 @@ def extract_traces(session_path: Path, session_slug: str | None = None) -> list[
 
     # Append a synthetic SUMMARY entry with computed metrics, but only when the
     # session actually did something. A pure chat with no tool calls and no text
-    # signals gets no SUMMARY (a SUMMARY of zeros is misleading).
-    if ts_end is not None and entries:
+    # signals gets no SUMMARY (a SUMMARY of zeros is misleading). Edit-only
+    # sessions DO get a SUMMARY: edits are real work even without other steps.
+    if ts_end is not None and (entries or counters["tool_calls"] > 0):
         entries.append(_new_entry(
             session_slug, ts_end, "SUMMARY",
-            _compute_summary(counters, ts_start, ts_end),
+            _compute_summary(counters, ts_start, ts_end, message_timestamps),
         ))
 
     return entries

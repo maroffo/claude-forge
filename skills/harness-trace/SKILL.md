@@ -98,7 +98,7 @@ Each dimension is an optional dict; populate only what was measured. `None` = no
 
 | Dimension | Suggested keys |
 |-----------|----------------|
-| trajectory_efficiency | tool_calls, tokens, edits, executions, wall_clock_min |
+| trajectory_efficiency | tool_calls, tokens, edits, executions, active_min (gap-clamped working time, paired with SUMMARY.duration_min calendar span) |
 | verification_strength | test_coverage_pct, oracles_count, false_accept_rate |
 | recovery_ability | failures, recovered, escalations |
 | state_consistency | memory_repo_synced, drift_detected |

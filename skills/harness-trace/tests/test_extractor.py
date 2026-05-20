@@ -151,9 +151,45 @@ class TestToolUseExtraction:
         assert traj["tool_calls"] == 8
         assert traj["edits"] == 2
         assert traj["executions"] == 2  # Bash calls
+        # Fixture spans 80s across 9 assistant messages with 10s gaps each (all
+        # under the 300s active ceiling), so active_min = 80s // 60 = 1.
+        assert traj["active_min"] == 1
         assert metrics["verification_strength"]["oracles_count"] == 1
         assert metrics["safety_compliance"]["hitl_gates_hit"] == 1
         assert metrics["replayability"]["full_trace_captured"] is True
+
+    def test_active_min_clamps_long_idle_gaps(self, tmp_path: Path):
+        """A session with a 3-day gap between two messages must not count those days as work."""
+        import json as _json
+        f = tmp_path / "spread.jsonl"
+        # Two assistant messages, one Edit each, separated by 3 days.
+        day1_ms = 1715900000000
+        day4_ms = day1_ms + 3 * 24 * 60 * 60 * 1000  # +3 days
+        with f.open("w") as fp:
+            for ts, blocks in [
+                (day1_ms, [{"type": "tool_use", "name": "Edit",
+                            "input": {"file_path": "/a.py", "old_string": "x", "new_string": "y"}}]),
+                (day4_ms, [{"type": "tool_use", "name": "Edit",
+                            "input": {"file_path": "/b.py", "old_string": "x", "new_string": "y"}}]),
+            ]:
+                fp.write(_json.dumps({
+                    "type": "assistant", "timestamp": ts,
+                    "message": {"content": blocks},
+                }) + "\n")
+        entries = extract_traces(f, session_slug="spread")
+        summary = next(e for e in entries if e.step == "SUMMARY")
+        # Calendar span is ~4320 min (3 days). Active work time must be ceiling
+        # only: one gap clamped to 300s = 5 min.
+        assert summary.data["duration_min"] >= 3 * 24 * 60 - 1  # ~4320 min
+        assert summary.data["metrics"]["trajectory_efficiency"]["active_min"] == 5
+
+    def test_active_min_never_exceeds_duration(self, tool_use_session_jsonl: Path):
+        entries = extract_traces(tool_use_session_jsonl, session_slug="tu")
+        summary = next(e for e in entries if e.step == "SUMMARY")
+        assert (
+            summary.data["metrics"]["trajectory_efficiency"]["active_min"]
+            <= summary.data["duration_min"] + 1  # +1 for floor() rounding tolerance
+        )
 
     def test_text_fallback_picks_up_score(self, tool_use_session_jsonl: Path):
         entries = extract_traces(tool_use_session_jsonl, session_slug="tu")
