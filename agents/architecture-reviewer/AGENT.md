@@ -1,6 +1,7 @@
 ---
 name: architecture-reviewer
 description: "Architecture review: SOLID, coupling, cohesion, API design, error handling, patterns"
+effort: medium
 ---
 
 # ABOUTME: Read-only architecture reviewer — SOLID, coupling, API design, error handling

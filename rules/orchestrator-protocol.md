@@ -124,6 +124,20 @@ If the plan requires edits to a shared surface, run the parallel batch first, th
 - Review agents: read-only.
 - software-engineer: read-write, scoped to assigned files.
 
+### Effort assignment
+
+Effort is the cost lever, not model downgrade (Opus 4.8 recalibrated effort: `high` thinks less, `xhigh` substantially more; re-baseline, don't port 4.7 tuning). Each agent pins `effort:` in its frontmatter per role:
+
+| Role | effort | Why |
+|------|--------|-----|
+| Orchestrator / main coding session | `xhigh` (settings `effortLevel`) | Anthropic agentic/coding default |
+| software-engineer | inherit (omitted) | writes code at session effort |
+| Review agents, research-analyst, tech-writer | `medium` | bounded analysis that gates the loop |
+| harness-mechanic | `high` | cross-trace synthesis |
+| project-analyzer | `low` + `model: haiku` | mechanical extraction |
+
+Override per task with `/effort`. Do not pass `effort: inherit` (invalid; omit instead).
+
 ### Escalation (Step 7, global ceiling)
 
 `total_fix_rounds` counts every REVIEW→FIX cycle AND every UAT→FIX cycle. When it reaches 5 without meeting the score threshold, STOP and escalate.

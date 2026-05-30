@@ -1,6 +1,7 @@
 ---
 name: dx-reviewer
 description: "Developer experience review: ADRs, C4 diagrams, comments, error messages, README, onboarding"
+effort: medium
 ---
 
 # ABOUTME: Read-only DX reviewer — documentation quality, ADRs, diagrams, error messages

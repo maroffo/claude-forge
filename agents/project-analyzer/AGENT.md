@@ -2,6 +2,7 @@
 name: project-analyzer
 description: Analyze codebase structure and create comprehensive CLAUDE.md documentation
 model: haiku
+effort: low
 ---
 
 # ABOUTME: Analyzes codebases and generates CLAUDE.md documentation

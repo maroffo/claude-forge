@@ -1,6 +1,7 @@
 ---
 name: security-reviewer
 description: "OWASP-focused security review: injection, auth, secrets, CORS, input validation"
+effort: medium
 ---
 
 # ABOUTME: Read-only security reviewer — OWASP top 10, secrets, auth, input validation

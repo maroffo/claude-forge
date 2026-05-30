@@ -1,6 +1,7 @@
 ---
 name: test-reviewer
 description: "Test quality review: coverage gaps, flaky patterns, edge cases, test architecture"
+effort: medium
 ---
 
 # ABOUTME: Read-only test reviewer — coverage gaps, flaky tests, missing edge cases

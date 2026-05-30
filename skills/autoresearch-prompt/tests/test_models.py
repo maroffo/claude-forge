@@ -24,12 +24,14 @@ class TestEvalExample:
 
     def test_from_jsonl_line(self):
         """Parse a JSONL line with expected_ prefix splitting."""
-        line = json.dumps({
-            "from": "Sender <s@x.com>",
-            "subject": "Sub",
-            "content": "Content here",
-            "expected_action": "skip",
-        })
+        line = json.dumps(
+            {
+                "from": "Sender <s@x.com>",
+                "subject": "Sub",
+                "content": "Content here",
+                "expected_action": "skip",
+            }
+        )
         ex = EvalExample.model_validate_json(line)
         assert ex.inputs["from"] == "Sender <s@x.com>"
         assert ex.expected["action"] == "skip"
@@ -73,12 +75,14 @@ class TestEvalExample:
 
 class TestLLMResponse:
     def test_from_dict(self):
-        resp = LLMResponse(fields={
-            "action": "extract",
-            "category": "Politics and Economics",
-            "content": "Key insight here",
-            "reason": "newsletter about policy",
-        })
+        resp = LLMResponse(
+            fields={
+                "action": "extract",
+                "category": "Politics and Economics",
+                "content": "Key insight here",
+                "reason": "newsletter about policy",
+            }
+        )
         assert resp.fields["action"] == "extract"
         assert resp.fields["category"] == "Politics and Economics"
 
@@ -89,19 +93,28 @@ class TestLLMResponse:
 
 class TestExampleResult:
     def test_defaults(self):
-        ex = EvalExample.model_validate({
-            "from": "a", "subject": "s", "content": "c",
-            "expected_action": "extract",
-        })
+        ex = EvalExample.model_validate(
+            {
+                "from": "a",
+                "subject": "s",
+                "content": "c",
+                "expected_action": "extract",
+            }
+        )
         result = ExampleResult(example=ex)
         assert result.field_correct == {}
         assert result.parse_error is False
 
     def test_field_correct_dict(self):
-        ex = EvalExample.model_validate({
-            "from": "a", "subject": "s", "content": "c",
-            "expected_action": "extract", "expected_category": "Dev",
-        })
+        ex = EvalExample.model_validate(
+            {
+                "from": "a",
+                "subject": "s",
+                "content": "c",
+                "expected_action": "extract",
+                "expected_category": "Dev",
+            }
+        )
         result = ExampleResult(
             example=ex,
             field_correct={"action": True, "category": False},

@@ -1,6 +1,7 @@
 ---
 name: research-analyst
 description: "Pre-plan research: best practices, external repos, docs, prior art before architectural decisions"
+effort: medium
 ---
 
 # ABOUTME: Research agent — investigates best practices, external repos, docs before planning

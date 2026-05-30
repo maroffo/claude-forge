@@ -8,7 +8,8 @@ import json
 import sys
 from pathlib import Path
 
-from .evaluator import DEFAULT_MODEL, classify_single, run_evaluation
+from .config import get_default_model
+from .evaluator import classify_single, run_evaluation
 
 
 def _parse_weights(raw: str) -> dict[str, float]:
@@ -24,6 +25,8 @@ def _parse_weights(raw: str) -> dict[str, float]:
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    default_model = get_default_model()
+
     parser = argparse.ArgumentParser(
         prog="autoresearch-prompt",
         description="Autonomous prompt optimization eval harness",
@@ -47,8 +50,8 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     eval_parser.add_argument(
         "--model",
         type=str,
-        default=DEFAULT_MODEL,
-        help=f"Model to use (default: {DEFAULT_MODEL})",
+        default=default_model,
+        help=f"Model to use (default: {default_model})",
     )
     eval_parser.add_argument(
         "--weights",
@@ -59,7 +62,8 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
     # classify
     cls_parser = sub.add_parser(
-        "classify", help="Classify a single input (stdin JSON)",
+        "classify",
+        help="Classify a single input (stdin JSON)",
     )
     cls_parser.add_argument(
         "--prompt",
@@ -70,8 +74,8 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     cls_parser.add_argument(
         "--model",
         type=str,
-        default=DEFAULT_MODEL,
-        help=f"Model to use (default: {DEFAULT_MODEL})",
+        default=default_model,
+        help=f"Model to use (default: {default_model})",
     )
 
     return parser.parse_args(argv)

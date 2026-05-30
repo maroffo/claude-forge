@@ -1,0 +1,12 @@
+# ABOUTME: Config data for model selection and token pricing (not source code)
+# ABOUTME: Read by config.py via tomllib; add a model = add a [pricing] row
+
+# Default model used when AUTORESEARCH_MODEL env var is unset.
+default_model = "claude-haiku-4-5-20251001"
+
+# Pricing per 1M tokens in USD: model_id = [input_per_1M, output_per_1M].
+# Prices are INFORMATIONAL only; verify against current Anthropic pricing.
+# Adding a model = add a row here. Do not invent prices you have not verified.
+[pricing]
+"claude-haiku-4-5-20251001" = [1.00, 5.00]
+"claude-sonnet-4-6" = [3.00, 15.00]

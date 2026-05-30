@@ -1,6 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "_comment_": "Merge this into ~/.claude/settings.json under 'permissions' and 'hooks'. Replace {{HOOKS_DIR}} with the absolute path to your installed hooks (typically /Users/<you>/.claude/hooks or /home/<you>/.claude/hooks).",
+  "_comment_": "Merge this into ~/.claude/settings.json under 'permissions', 'hooks', and the top-level keys below. Replace {{HOOKS_DIR}} with the absolute path to your installed hooks (typically /Users/<you>/.claude/hooks or /home/<you>/.claude/hooks).",
+  "_comment_effortLevel": "Tuned for Opus 4.8: xhigh is Anthropic's recommended effort for coding/agentic work. Drop the global default to 'high' if most sessions are light; bump heavy ones per-task with /effort. Omit the key entirely to use the model default. Note: 4.8 recalibrated effort, do not assume 4.7 token costs. To pin the model add \"model\": \"opus\" (alias resolves to latest Opus, never goes stale).",
+  "effortLevel": "xhigh",
   "permissions": {
     "deny": [
       "Edit(**/.git/hooks/**)",

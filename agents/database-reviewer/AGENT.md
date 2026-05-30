@@ -1,6 +1,7 @@
 ---
 name: database-reviewer
 description: "Database review: migration safety, indexes, schema design, query patterns, deadlocks"
+effort: medium
 ---
 
 # ABOUTME: Read-only database reviewer — migration safety, indexes, schema, deadlock patterns

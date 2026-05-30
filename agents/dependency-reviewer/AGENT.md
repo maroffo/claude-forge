@@ -1,6 +1,7 @@
 ---
 name: dependency-reviewer
 description: "Dependency review: CVEs, licenses, outdated packages, unnecessary deps, bloat"
+effort: medium
 ---
 
 # ABOUTME: Read-only dependency reviewer — CVEs, licenses, outdated, unnecessary imports

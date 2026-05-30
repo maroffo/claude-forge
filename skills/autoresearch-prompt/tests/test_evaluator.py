@@ -49,20 +49,29 @@ class TestComputeScore:
         # 6 correct extracts with correct categories
         for _ in range(6):
             r = ExampleResult(
-                example=EvalExample.model_validate({
-                    "from": "a", "subject": "s", "content": "c",
-                    "expected_action": "extract", "expected_category": "Cat",
-                }),
+                example=EvalExample.model_validate(
+                    {
+                        "from": "a",
+                        "subject": "s",
+                        "content": "c",
+                        "expected_action": "extract",
+                        "expected_category": "Cat",
+                    }
+                ),
                 field_correct={"action": True, "category": True},
             )
             results.append(r)
         # 14 correct skips (no category field)
         for _ in range(14):
             r = ExampleResult(
-                example=EvalExample.model_validate({
-                    "from": "a", "subject": "s", "content": "c",
-                    "expected_action": "skip",
-                }),
+                example=EvalExample.model_validate(
+                    {
+                        "from": "a",
+                        "subject": "s",
+                        "content": "c",
+                        "expected_action": "skip",
+                    }
+                ),
                 field_correct={"action": True},
             )
             results.append(r)
@@ -80,19 +89,28 @@ class TestComputeScore:
         # 16/20 correct actions, 4/6 correct categories
         for i in range(6):
             r = ExampleResult(
-                example=EvalExample.model_validate({
-                    "from": "a", "subject": "s", "content": "c",
-                    "expected_action": "extract", "expected_category": "Cat",
-                }),
+                example=EvalExample.model_validate(
+                    {
+                        "from": "a",
+                        "subject": "s",
+                        "content": "c",
+                        "expected_action": "extract",
+                        "expected_category": "Cat",
+                    }
+                ),
                 field_correct={"action": i < 4, "category": i < 4},
             )
             results.append(r)
         for i in range(14):
             r = ExampleResult(
-                example=EvalExample.model_validate({
-                    "from": "a", "subject": "s", "content": "c",
-                    "expected_action": "skip",
-                }),
+                example=EvalExample.model_validate(
+                    {
+                        "from": "a",
+                        "subject": "s",
+                        "content": "c",
+                        "expected_action": "skip",
+                    }
+                ),
                 field_correct={"action": i < 12},
             )
             results.append(r)
@@ -109,10 +127,14 @@ class TestComputeScore:
         """When no examples have a field, accuracy = 1.0 (vacuous truth)."""
         results = [
             ExampleResult(
-                example=EvalExample.model_validate({
-                    "from": "a", "subject": "s", "content": "c",
-                    "expected_action": "skip",
-                }),
+                example=EvalExample.model_validate(
+                    {
+                        "from": "a",
+                        "subject": "s",
+                        "content": "c",
+                        "expected_action": "skip",
+                    }
+                ),
                 field_correct={"action": True},
             )
         ]
@@ -124,10 +146,14 @@ class TestComputeScore:
     def test_errors_counted(self):
         results = [
             ExampleResult(
-                example=EvalExample.model_validate({
-                    "from": "a", "subject": "s", "content": "c",
-                    "expected_action": "skip",
-                }),
+                example=EvalExample.model_validate(
+                    {
+                        "from": "a",
+                        "subject": "s",
+                        "content": "c",
+                        "expected_action": "skip",
+                    }
+                ),
                 parse_error=True,
                 error_message="API error",
             )
@@ -139,11 +165,16 @@ class TestComputeScore:
         """Weights only score the specified fields, ignoring others."""
         results = [
             ExampleResult(
-                example=EvalExample.model_validate({
-                    "from": "a", "subject": "s", "content": "c",
-                    "expected_action": "extract", "expected_category": "Cat",
-                    "expected_content": "some insight",
-                }),
+                example=EvalExample.model_validate(
+                    {
+                        "from": "a",
+                        "subject": "s",
+                        "content": "c",
+                        "expected_action": "extract",
+                        "expected_category": "Cat",
+                        "expected_content": "some insight",
+                    }
+                ),
                 field_correct={"action": True, "category": True, "content": False},
             )
         ]
@@ -152,6 +183,39 @@ class TestComputeScore:
         assert summary.score == 1.0
         # content accuracy still reported
         assert summary.field_accuracies["content"] == 0.0
+
+
+class TestCost:
+    def _results_with_tokens(self, input_tokens: int, output_tokens: int) -> list[ExampleResult]:
+        return [
+            ExampleResult(
+                example=EvalExample.model_validate(
+                    {
+                        "from": "a",
+                        "subject": "s",
+                        "content": "c",
+                        "expected_action": "skip",
+                    }
+                ),
+                field_correct={"action": True},
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+            )
+        ]
+
+    def test_cost_uses_actual_model_pricing(self):
+        """Cost computed with the price of the model actually passed in."""
+        # 2,000,000 input + 1,000,000 output tokens, haiku = (1.00, 5.00) per 1M
+        results = self._results_with_tokens(2_000_000, 1_000_000)
+        summary = compute_score(results, model="claude-haiku-4-5-20251001")
+        # (2_000_000 * 1.00 + 1_000_000 * 5.00) / 1_000_000 = 2.0 + 5.0 = 7.0
+        assert summary.cost_usd == 7.0
+
+    def test_cost_zero_for_unknown_model(self):
+        """Unknown model -> (0, 0) pricing -> cost 0.0, no crash."""
+        results = self._results_with_tokens(2_000_000, 1_000_000)
+        summary = compute_score(results, model="claude-opus-does-not-exist")
+        assert summary.cost_usd == 0.0
 
 
 class TestEvaluateExample:
@@ -212,12 +276,16 @@ class TestLoadEvalSet:
     def test_load_from_file(self, tmp_path):
         data = [
             {
-                "from": "A <a@b.com>", "subject": "S1",
-                "content": "C1", "expected_action": "skip",
+                "from": "A <a@b.com>",
+                "subject": "S1",
+                "content": "C1",
+                "expected_action": "skip",
             },
             {
-                "from": "B <b@c.com>", "subject": "S2",
-                "content": "C2", "expected_action": "extract",
+                "from": "B <b@c.com>",
+                "subject": "S2",
+                "content": "C2",
+                "expected_action": "extract",
                 "expected_category": "Dev",
             },
         ]
