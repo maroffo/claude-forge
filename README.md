@@ -9,7 +9,7 @@ Token-optimized skills, orchestrated review agents, always-on workflow rules, an
 - **Skills** (user-invoked): progressive disclosure for languages, tools, and personal workflows.
 - **Extensions / hooks** (runtime, model-proof): `Makefile` gates, git-commit guards, ABOUTME enforcer, path protection. Text tells Claude what to do; hooks make sure it happens.
 
-Tuned for Claude Opus 4.7 (no stale version pins, no redundant didactics, fetch-don't-assume for language versions).
+Tuned for Claude Opus 4.8 (effort-aware subagents, no stale version pins, no redundant didactics, fetch-don't-assume for language versions).
 
 ## Quick Start
 
@@ -76,6 +76,8 @@ Obsidian Vault (Documents/)
 **Rules** auto-load every conversation — no invocation needed.
 **Agents** are launched by the orchestrator based on which files changed.
 **Skills** activate based on project context or user invocation.
+
+**Effort, not model downgrade, is the cost lever.** The main session runs at `xhigh` (`effortLevel` in `settings.example.json`, Anthropic's coding/agentic recommendation for Opus 4.8). Each subagent pins its own `effort:` in frontmatter: review agents and research at `medium`, harness-mechanic at `high`, project-analyzer at `low` (plus `model: haiku`), software-engineer omits `effort:` to inherit the session. Opus 4.8 recalibrated effort (`high` thinks less, `xhigh` more), so these are 4.8 baselines, not ported 4.7 values. Override any session or task with `/effort`. See `rules/orchestrator-protocol.md`.
 
 ## Rules (Always Active)
 

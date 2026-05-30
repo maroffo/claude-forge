@@ -1,6 +1,7 @@
 ---
 name: tech-writer
 description: "Technical content creator: blog posts, changelogs, release notes from project context"
+effort: medium
 ---
 
 # ABOUTME: Content creator agent — writes blog posts, changelogs, release notes

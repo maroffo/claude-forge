@@ -11,18 +11,11 @@ from pathlib import Path
 
 import anthropic
 
+from .config import get_default_model, price_for
 from .models import EvalExample, ExampleResult, LLMResponse, RunSummary
 from .prompt_loader import load_and_render
 
 EVAL_SET_PATH = Path(__file__).resolve().parent.parent.parent / "eval_set.jsonl"
-
-# Hardcoded pricing per 1M tokens (USD) - informational only
-MODEL_PRICING: dict[str, tuple[float, float]] = {
-    "claude-haiku-4-5-20251001": (1.00, 5.00),
-    "claude-sonnet-4-5-20250514": (3.00, 15.00),
-}
-
-DEFAULT_MODEL = "claude-haiku-4-5-20251001"
 
 _FENCE_RE = re.compile(r"^```(?:json)?\s*\n?(.*?)\n?\s*```$", re.DOTALL)
 
@@ -59,9 +52,10 @@ def call_llm(
     client: anthropic.Anthropic,
     system: str,
     user: str,
-    model: str = DEFAULT_MODEL,
+    model: str | None = None,
 ) -> tuple[str, int, int]:
     """Call Claude API. Returns (response_text, input_tokens, output_tokens)."""
+    model = model or get_default_model()
     response = client.messages.create(
         model=model,
         max_tokens=1024,
@@ -76,7 +70,7 @@ def evaluate_example(
     client: anthropic.Anthropic,
     example: EvalExample,
     prompt_path: Path | None = None,
-    model: str = DEFAULT_MODEL,
+    model: str | None = None,
 ) -> ExampleResult:
     """Evaluate a single example against the prompt."""
     result = ExampleResult(example=example)
@@ -121,11 +115,15 @@ def evaluate_example(
 def compute_score(
     results: list[ExampleResult],
     weights: dict[str, float] | None = None,
+    model: str | None = None,
 ) -> RunSummary:
     """Compute aggregate score from individual results.
 
     *weights*: ``{"action": 0.6, "category": 0.4}`` scores only those fields
     with the given weights. ``None`` means equal weight across all expected fields.
+
+    *model*: the model actually used, for cost estimation. ``None`` resolves to the
+    configured default. Unknown models price at ``(0, 0)`` so cost is ``0.0``.
     """
     total = len(results)
     errors = sum(1 for r in results if r.parse_error)
@@ -150,9 +148,9 @@ def compute_score(
 
     weight_sum = sum(scored_fields.values())
     if weight_sum > 0:
-        score = sum(
-            field_accuracies.get(f, 1.0) * w for f, w in scored_fields.items()
-        ) / weight_sum
+        score = (
+            sum(field_accuracies.get(f, 1.0) * w for f, w in scored_fields.items()) / weight_sum
+        )
     else:
         score = 0.0
 
@@ -161,11 +159,9 @@ def compute_score(
     latencies = [r.latency_ms for r in results if r.latency_ms > 0]
     avg_latency = int(sum(latencies) / len(latencies)) if latencies else 0
 
-    # Estimate cost
-    cost = 0.0
-    for _model_id, (input_price, output_price) in MODEL_PRICING.items():
-        cost = (total_input * input_price + total_output * output_price) / 1_000_000
-        break
+    # Estimate cost using the pricing of the model actually used
+    input_price, output_price = price_for(model or get_default_model())
+    cost = (total_input * input_price + total_output * output_price) / 1_000_000
 
     return RunSummary(
         total=total,
@@ -182,7 +178,7 @@ def compute_score(
 def classify_single(
     fields: dict[str, str],
     prompt_path: Path | None = None,
-    model: str = DEFAULT_MODEL,
+    model: str | None = None,
 ) -> LLMResponse:
     """Classify a single input. Returns parsed LLMResponse."""
     client = anthropic.Anthropic()
@@ -194,10 +190,11 @@ def classify_single(
 def run_evaluation(
     prompt_path: Path | None = None,
     eval_path: Path | None = None,
-    model: str = DEFAULT_MODEL,
+    model: str | None = None,
     weights: dict[str, float] | None = None,
 ) -> RunSummary:
     """Run full evaluation: load examples, call LLM, compute score."""
+    model = model or get_default_model()
     client = anthropic.Anthropic()
     examples = load_eval_set(eval_path)
 
@@ -217,4 +214,4 @@ def run_evaluation(
             wrong = [f for f, v in result.field_correct.items() if not v]
             print(f"    WRONG fields: {', '.join(wrong)}", file=sys.stderr)
 
-    return compute_score(results, weights)
+    return compute_score(results, weights, model=model)

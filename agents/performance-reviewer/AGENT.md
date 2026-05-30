@@ -1,6 +1,7 @@
 ---
 name: performance-reviewer
 description: "Performance review: N+1, memory, caching, complexity, allocations, resource pools"
+effort: medium
 ---
 
 # ABOUTME: Read-only performance reviewer — N+1, memory leaks, caching, allocations

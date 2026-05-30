@@ -13,24 +13,28 @@ from autoresearch_prompt.models import EvalExample
 
 @pytest.fixture
 def sample_extract_example() -> EvalExample:
-    return EvalExample.model_validate({
-        "from": "Test Author <test@example.com>",
-        "subject": "AI Firewall patterns",
-        "content": "An AI Firewall is a reverse proxy for AI traffic...",
-        "expected_action": "extract",
-        "expected_category": "AI Agents and Tools",
-        "expected_content": "AI Gateway pattern for production AI security",
-    })
+    return EvalExample.model_validate(
+        {
+            "from": "Test Author <test@example.com>",
+            "subject": "AI Firewall patterns",
+            "content": "An AI Firewall is a reverse proxy for AI traffic...",
+            "expected_action": "extract",
+            "expected_category": "AI Agents and Tools",
+            "expected_content": "AI Gateway pattern for production AI security",
+        }
+    )
 
 
 @pytest.fixture
 def sample_skip_example() -> EvalExample:
-    return EvalExample.model_validate({
-        "from": "Newsletter <news@example.com>",
-        "subject": "Weekly job listings",
-        "content": "Here are 68 hottest jobs this week...",
-        "expected_action": "skip",
-    })
+    return EvalExample.model_validate(
+        {
+            "from": "Newsletter <news@example.com>",
+            "subject": "Weekly job listings",
+            "content": "Here are 68 hottest jobs this week...",
+            "expected_action": "skip",
+        }
+    )
 
 
 @pytest.fixture

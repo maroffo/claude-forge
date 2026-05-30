@@ -4,6 +4,7 @@
 ---
 name: harness-mechanic
 description: "Harness optimization: reads execution traces, identifies systematic failures, proposes rule/skill rewrites with evidence. Launched via /harness-mechanic or when review loop is stuck."
+effort: high
 ---
 
 # Harness Mechanic

@@ -16,7 +16,8 @@ from autoresearch_prompt.models import LLMResponse, RunSummary
 class TestParseWeights:
     def test_two_fields(self):
         assert _parse_weights("action=0.6,category=0.4") == {
-            "action": 0.6, "category": 0.4,
+            "action": 0.6,
+            "category": 0.4,
         }
 
     def test_single_field(self):
@@ -24,7 +25,8 @@ class TestParseWeights:
 
     def test_spaces_tolerated(self):
         assert _parse_weights("action = 0.6 , category = 0.4") == {
-            "action": 0.6, "category": 0.4,
+            "action": 0.6,
+            "category": 0.4,
         }
 
     def test_trailing_comma(self):
@@ -46,15 +48,20 @@ class TestParseArgs:
     def test_evaluate_with_paths(self, tmp_path):
         prompt = tmp_path / "p.md"
         evalset = tmp_path / "e.jsonl"
-        args = _parse_args([
-            "evaluate",
-            "--prompt", str(prompt),
-            "--eval-set", str(evalset),
-            "--model", "claude-sonnet-4-5-20250514",
-        ])
+        args = _parse_args(
+            [
+                "evaluate",
+                "--prompt",
+                str(prompt),
+                "--eval-set",
+                str(evalset),
+                "--model",
+                "claude-sonnet-4-6",
+            ]
+        )
         assert args.prompt == prompt
         assert args.eval_set == evalset
-        assert args.model == "claude-sonnet-4-5-20250514"
+        assert args.model == "claude-sonnet-4-6"
 
     def test_classify_defaults(self):
         args = _parse_args(["classify"])
@@ -133,15 +140,19 @@ class TestMainEvaluate:
 
 class TestMainClassify:
     def test_classify_from_stdin(self):
-        response = LLMResponse(fields={
-            "action": "skip",
-            "reason": "job listings",
-        })
-        stdin_data = json.dumps({
-            "from": "Jobs <j@x.com>",
-            "subject": "68 Hot Jobs",
-            "content": "Apply now",
-        })
+        response = LLMResponse(
+            fields={
+                "action": "skip",
+                "reason": "job listings",
+            }
+        )
+        stdin_data = json.dumps(
+            {
+                "from": "Jobs <j@x.com>",
+                "subject": "68 Hot Jobs",
+                "content": "Apply now",
+            }
+        )
 
         with (
             patch(
