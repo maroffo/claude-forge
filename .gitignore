@@ -12,7 +12,6 @@ Thumbs.db
 # Temporary
 *.tmp
 *.bak
-.DS_Store
 
 # Python
 __pycache__/
@@ -26,5 +25,10 @@ quality_reports/token_baselines/*.tsv
 # Python virtual environments
 .venv/
 
-# Client-specific skills (private, not for public repo)
-skills/*-hikma/
+# Client-specific skills extracted to private repos, symlinked in.
+# No trailing slash: these are symlinks, which git treats as files, not dirs.
+skills/*-hikma
+skills/*-wishew
+skills/_wishew_shared
+# Standalone external skill repo, symlinked in (own repo: claude-advanced-review)
+skills/advanced-review
