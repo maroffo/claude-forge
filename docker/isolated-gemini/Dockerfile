@@ -18,6 +18,11 @@ RUN mkdir -p /usr/local/share/npm-global \
 ENV NPM_CONFIG_PREFIX=/usr/local/share/npm-global
 ENV PATH=$PATH:/usr/local/share/npm-global/bin
 
+# Trust the mounted workspace by default: Gemini CLI >=0.45 refuses non-interactive
+# runs in an untrusted directory. The image only ever sees read-only review mounts,
+# so trusting unconditionally is safe and removes the per-invocation flag.
+ENV GEMINI_CLI_TRUST_WORKSPACE=true
+
 USER node
 
 RUN npm install -g @google/gemini-cli@${GEMINI_CLI_VERSION} \

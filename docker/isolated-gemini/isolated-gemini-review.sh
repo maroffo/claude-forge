@@ -93,7 +93,6 @@ fi
 # Run isolated review
 docker run --rm \
   -e GEMINI_API_KEY="${API_KEY}" \
-  -e GEMINI_CLI_TRUST_WORKSPACE=true \
   -v "${PROJECT_PATH}:/workspace:ro" \
   "${IMAGE}" \
   -p "${PROMPT}" \

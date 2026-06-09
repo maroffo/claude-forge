@@ -132,5 +132,6 @@ reviewers agree against your original analysis (strong signal to reconsider).
 | Image not found | Build images: see Prerequisites |
 | Claude auth fails | Re-login: `docker run -it --rm -v claude-reviewer-auth:/home/node/.claude --entrypoint bash claude-reviewer:latest -c "claude login"` |
 | Gemini API errors | Check `~/.config/gemini-api-key` exists and is valid |
+| Gemini "not running in a trusted directory" | Image predates the trust fix. Rebuild: `docker/isolated-gemini/isolated-gemini-review.sh --build` (the Dockerfile sets `GEMINI_CLI_TRUST_WORKSPACE=true`) |
 | Timeout | Reduce context size; focus on the most relevant files |
 | Both reviewers agree you're wrong | You're probably wrong. Reconsider. |
