@@ -111,6 +111,8 @@ Use Pydantic for all external data boundaries (API I/O, config, queue payloads).
 - [ ] Pydantic for external data, `X | None` not `Optional[X]`
 - [ ] Ruff/type checker pass, no bare `except:`
 - [ ] Context managers, `asyncio.gather()` for concurrency
+- [ ] **Async is not concurrent**: no single stateful client (e.g. SQLAlchemy `AsyncSession`) shared across `gather()` tasks; one session per task via a factory. A shared session corrupts under concurrent use.
+- [ ] **No CPU-bound work inside `async def`** without `asyncio.to_thread` (parsing, hashing, rendering): it blocks the event loop and serializes every concurrent task. Rule of thumb: a function that `await`s nothing probably needs `to_thread`.
 - [ ] AAA tests, parametrized
 
 For Docker, CI/CD, async patterns, and detailed testing examples, see `references/python-patterns.md`.
