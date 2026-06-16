@@ -22,6 +22,9 @@ uv.lock
 quality_reports/traces/*.jsonl
 quality_reports/token_baselines/*.tsv
 
+# Cross-repo learning corpus (contains private war stories; local-only)
+quality_reports/learning_corpus/
+
 # Python virtual environments
 .venv/
 
