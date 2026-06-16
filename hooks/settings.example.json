@@ -26,7 +26,8 @@
         "hooks": [
           { "type": "command", "command": "{{HOOKS_DIR}}/pre-commit-gate.sh", "if": "Bash(git commit*)", "timeout": 600, "statusMessage": "Running make check + make test-e2e..." },
           { "type": "command", "command": "{{HOOKS_DIR}}/main-branch-guard.sh", "if": "Bash(git commit*)", "timeout": 10 },
-          { "type": "command", "command": "{{HOOKS_DIR}}/commit-intent-guard.sh", "if": "Bash(git commit*)", "timeout": 10 }
+          { "type": "command", "command": "{{HOOKS_DIR}}/commit-intent-guard.sh", "if": "Bash(git commit*)", "timeout": 10 },
+          { "type": "command", "command": "{{HOOKS_DIR}}/gitignore-anchor-lint.sh", "if": "Bash(git commit*)", "timeout": 10 }
         ]
       },
       {
