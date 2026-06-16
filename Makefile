@@ -1,12 +1,20 @@
 # ABOUTME: Static checks and skill schema smoke test for claude-forge
 # ABOUTME: `make check` + `make test-e2e` are the pre-commit gate
 
-.PHONY: help check test-e2e lint-shell lint-dockerfile
+.PHONY: help check test-e2e lint-shell lint-dockerfile learning-corpus
 
 help:
 	@echo "Targets:"
-	@echo "  check       static lints (ABOUTME, em-dashes, frontmatter) + shellcheck/hadolint if installed"
-	@echo "  test-e2e    skill schema smoke test (name=dir, description length)"
+	@echo "  check            static lints (ABOUTME, em-dashes, frontmatter) + shellcheck/hadolint if installed"
+	@echo "  test-e2e         skill schema smoke test (name=dir, description length)"
+	@echo "  learning-corpus  build the cross-repo atomic-learning corpus (phase 1 of the learning-loop skill)"
+
+# Deterministic phase 1 of the learning-loop skill. ROOT defaults to ~/Development.
+# Output is gitignored (contains private war stories). Recurrence detection is the agent pass.
+learning-corpus:
+	@uv run --no-project python3 scripts/learning_corpus.py \
+		--root $(or $(ROOT),$(HOME)/Development) \
+		--out quality_reports/learning_corpus/corpus.jsonl
 
 check:
 	@uv run --no-project python3 scripts/check_repo.py check
