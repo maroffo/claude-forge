@@ -125,6 +125,12 @@ Organize by **feature/domain**, not technical layer. Avoid `/src`, `/utils`, `/c
 
 **errgroup** (preferred over WaitGroup), **context** always first param, **bounded pools** for load, **sender closes** channels.
 
+**Cancellation traps (review these explicitly, they pass tests and hang/panic in prod):**
+- `for x := range ch` over an externally-produced channel (network stream, LLM provider) has no `ctx.Done()` injection point. If the producer hangs, the consumer hangs forever. Use `select { case x, ok := <-ch: ...; case <-ctx.Done(): return }`. Bare `range` is fine only when you own the channel's lifecycle and it is guaranteed to close.
+- `nil` passed as a `context.Context` argument: `<-nil` in a select never fires, so cancellation silently does nothing (and `ParseSSE(nil, ...)`-style calls panic on first cancel in prod). Grep for `nil` context args.
+- Unbuffered hub/notify channels that block forever if the receiving goroutine has already exited (shutdown deadlock). Pair every blocking send with a `select` on `ctx.Done()`.
+- A goroutine writing a shared buffer (`bytes.Buffer`) that another path reads: data race in tests, corruption in prod.
+
 For detailed concurrency patterns, performance optimization, profiling, and code review checklists, see `references/golang-patterns.md`.
 
 ---
