@@ -8,6 +8,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 IMAGE="deepseek-reviewer:latest"
 API_KEY_FILE="${HOME}/.config/deepseek-api-key"
 
+# Optional wall-clock guard: prefix docker run with timeout/gtimeout if available,
+# else run unguarded. Prevents a non-responsive reviewer from hanging forever when
+# invoked from a terminal (the orchestrated /second-opinion flow is already bounded
+# by the harness Bash-tool timeout). Override the limit with REVIEW_TIMEOUT.
+TIMEOUT_CMD="$(command -v timeout || command -v gtimeout || true)"
+REVIEW_TIMEOUT="${REVIEW_TIMEOUT:-300}"
+
 # --- Usage ---
 usage() {
   cat <<EOF
@@ -87,7 +94,7 @@ fi
 # Run isolated second opinion.
 # -t read: read-only tool access (parity with other reviewers, no edit/write/bash).
 # --no-session: ephemeral, leaves no session state behind.
-docker run --rm \
+${TIMEOUT_CMD:+${TIMEOUT_CMD} ${REVIEW_TIMEOUT}} docker run --rm \
   -e DEEPSEEK_API_KEY="${API_KEY}" \
   -v "${PROJECT_PATH}:/workspace:ro" \
   "${IMAGE}" \
