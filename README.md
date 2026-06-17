@@ -92,13 +92,14 @@ Obsidian Vault (Documents/)
 
 Text in rules tells Claude what to do; the enforcement layer makes sure it happens even if Claude forgets. Hook scripts ship in `hooks/` and are copied to `~/.claude/hooks/` by `install.sh`.
 
-The matching settings fragment lives at [`hooks/settings.example.json`](hooks/settings.example.json): registration for all five hooks plus the `permissions.deny` path-protection rules. `install.sh` renders it at install time (replacing `{{HOOKS_DIR}}` with the real path) and prints it for a manual merge into `~/.claude/settings.json`. Merge stays manual to avoid clobbering user-specific config.
+The matching settings fragment lives at [`hooks/settings.example.json`](hooks/settings.example.json): registration for all enforcement hooks plus the `permissions.deny` path-protection rules. `install.sh` renders it at install time (replacing `{{HOOKS_DIR}}` with the real path) and prints it for a manual merge into `~/.claude/settings.json`. Merge stays manual to avoid clobbering user-specific config.
 
 | Mechanism | Trigger | What it does |
 |-----------|---------|--------------|
 | `pre-commit-gate.sh` | PreToolUse on `git commit` | Runs `make check && make test-e2e`, blocks on failure or missing targets (points to `/project-checks`) |
 | `main-branch-guard.sh` | PreToolUse on `git commit` | Refuses commits directly on `main`/`master` |
 | `commit-intent-guard.py` | PreToolUse on `git commit` | Tier A intent checks: conventional-message regex (block), TODO/FIXME/NotImplementedError/placeholder in ADDED lines (block), unplanned file deletions (advisory) |
+| `gitignore-anchor-lint.py` | PreToolUse on `git commit` | Advisory: flags newly-added bare-name `.gitignore` lines that match a tracked directory (suggests anchoring with `/`), and `.env.*` globs missing a `!.env.example` negation. Never blocks |
 | `aboutme-enforcer.py` | PreToolUse Write (block), PostToolUse Edit (advisory) | Requires 2 `# ABOUTME:` (or `// ABOUTME:`) lines on new source files; detects ABOUTME removals on edits. Exempts lock files, vendored/generated paths, uncommentable formats |
 | `routing-advisor.py` | PostToolUse Write/Edit/MultiEdit/Agent | Matches touched file paths against a routing table and nudges Claude via `additionalContext` to invoke the right reviewer (dependency-reviewer on `go.mod`, database-reviewer on migrations, etc.). Deduplicates per-session |
 | `session-end-trace.py` | SessionEnd | No-op outside claude-forge cwd. Otherwise auto-runs `harness-trace extract` against the session's transcript and writes the result under `quality_reports/traces/<date>_<session_id>.jsonl`. Closes the loop for the `harness-mechanic` Evolution Agent (see [Telemetry](#telemetry)) |
@@ -202,6 +203,7 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | `project-checks/` | Scaffold a Makefile with language-specific check/test-e2e targets |
 | `learning-docs/` | LEARNING.md retrospectives, session analysis, docs/solutions/ capture, vault pattern annotation |
 | `knowledge-sync/` | Vault-to-skills sync: scan Second Brain for recurring patterns, propose skill updates |
+| `learning-loop/` | Cross-repo: mine all `LEARNING.md` for recurring failure-modes, propose harness changes with falsifiable change-contracts (retrospective-driven complement to trace-driven `harness-mechanic`) |
 | `releasing-software/` | Pre-release checklist, no-tag-without-green-CI |
 | `obsidian/` | Obsidian vault operations via CLI (CRUD, search, daily notes, graph, tasks) |
 | `refine-requirements/` | Structured requirements gathering before planning |
