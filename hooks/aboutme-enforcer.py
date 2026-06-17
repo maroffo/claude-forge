@@ -95,6 +95,27 @@ def content_is_trivial(text):
     return len([l for l in text.splitlines() if l.strip()]) < 3
 
 
+# Markdown files whose first non-empty line opens a YAML front matter block use that
+# as their header convention (Hugo/Jekyll posts, content pages), not ABOUTME. SKILL.md
+# and AGENT.md also carry front matter but DO require ABOUTME, so they are excluded.
+FRONTMATTER_ABOUTME_REQUIRED = {"SKILL.md", "AGENT.md"}
+
+
+def is_frontmatter_doc(path, text):
+    base = os.path.basename(path)
+    if base in FRONTMATTER_ABOUTME_REQUIRED:
+        return False
+    if os.path.splitext(base)[1].lower() != ".md":
+        return False
+    lines = text.splitlines()
+    i = 0
+    while i < len(lines) and not lines[i].strip():
+        i += 1
+    if i >= len(lines) or lines[i].strip() != "---":
+        return False
+    return any(l.strip() == "---" for l in lines[i + 1:])
+
+
 def main():
     try:
         payload = json.loads(sys.stdin.read() or "{}")
@@ -116,6 +137,8 @@ def main():
     if event == "PreToolUse" and tool == "Write":
         content = tool_input.get("content", "") or ""
         if content_is_trivial(content):
+            sys.exit(0)
+        if is_frontmatter_doc(path, content):
             sys.exit(0)
         if not has_aboutme(content, prefix):
             reason = (
