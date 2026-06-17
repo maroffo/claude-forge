@@ -8,6 +8,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 IMAGE_NAME="claude-reviewer:latest"
 CREDENTIALS_VOLUME="claude-reviewer-auth"
 
+# Optional wall-clock guard: prefix docker run with timeout/gtimeout if available,
+# else run unguarded. Prevents a non-responsive reviewer from hanging forever when
+# invoked from a terminal (the orchestrated /second-opinion flow is already bounded
+# by the harness Bash-tool timeout). Override the limit with REVIEW_TIMEOUT.
+TIMEOUT_CMD="$(command -v timeout || command -v gtimeout || true)"
+REVIEW_TIMEOUT="${REVIEW_TIMEOUT:-300}"
+
 # --- Usage ---
 usage() {
   cat <<EOF
@@ -117,7 +124,7 @@ fi
 check_credentials
 
 # Run isolated review (credentials stay in volume, never touch host filesystem)
-docker run --rm \
+${TIMEOUT_CMD:+${TIMEOUT_CMD} ${REVIEW_TIMEOUT}} docker run --rm \
   -v "${CREDENTIALS_VOLUME}:/home/node/.claude:ro" \
   -v "${PROJECT_PATH}:/workspace:ro" \
   "${IMAGE_NAME}" \

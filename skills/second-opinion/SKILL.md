@@ -114,6 +114,14 @@ docker run --rm \
 rm -f "$PROMPT_FILE"
 ```
 
+**Degrade gracefully on reviewer failure.** A reviewer can fail independently:
+expired Claude OAuth in the volume (`401`), a missing/invalid API key, a rate
+limit, or a hang (each `docker run` is bounded by the Bash-tool timeout). If one
+reviewer errors, do NOT abort: proceed to synthesize from the reviewers that did
+respond and explicitly flag which one is missing and why. A two-of-three synthesis
+is still useful; a silent drop is not. If Claude returns `401`, surface the
+re-login command from Troubleshooting.
+
 ### Step 5: Synthesize
 
 Present a four-way analysis:
