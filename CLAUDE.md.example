@@ -78,7 +78,8 @@ Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes 
 | Blog writing | `blog-writer` |
 | Skill creation/review | `skill-forge` |
 | Execution traces/token baseline | `harness-trace` |
-| Harness optimization | `harness-mechanic` |
+| Harness optimization (trace-driven) | `harness-mechanic` |
+| Cross-repo learning loop (retrospective-driven) | `learning-loop` |
 
 # Knowledge Capture
 - **Quick corrections:** Append `[LEARN:category]` to `MEMORY.md`
@@ -87,6 +88,7 @@ Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes 
 - **Plans:** Vault-first (`Plans/YYYY-MM-DD - description`), fallback `quality_reports/plans/`
 - **Session logs:** Vault-first (`<project> - Log`), fallback `quality_reports/session_logs/`
 - **Vault-to-skills sync:** Run `knowledge-sync` weekly to promote recurring patterns
+- **Cross-repo failure-modes:** Run `learning-loop` (monthly) to mine all LEARNING.md for recurring patterns and propose harness changes with change-contracts
 
 # Writing
 - **NEVER use em dashes (—).** Use Italian punctuation: commas, colons, semicolons, or parentheses.
