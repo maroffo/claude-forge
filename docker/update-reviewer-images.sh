@@ -78,6 +78,23 @@ trap 'rm -f "$LOCK_FILE"' EXIT
     echo "gemini-reviewer:latest not found, skipping"
   fi
 
+  # --- pi (DeepSeek) ---
+  if docker image ls --format '{{.Repository}}' deepseek-reviewer | grep -q deepseek-reviewer; then
+    installed=$(docker run --rm --entrypoint pi deepseek-reviewer:latest --version 2>/dev/null || echo "unknown")
+    latest=$(npm view @earendil-works/pi-coding-agent version 2>/dev/null || echo "unknown")
+    echo "pi (DeepSeek): installed=$installed latest=$latest"
+
+    if [[ "$latest" != "unknown" && "$installed" != "$latest" ]]; then
+      echo "Rebuilding deepseek-reviewer with v${latest}..."
+      docker build \
+        --build-arg PI_VERSION="$latest" \
+        -t deepseek-reviewer:latest \
+        "${FORGE_DIR}/docker/isolated-deepseek" && updated=true
+    fi
+  else
+    echo "deepseek-reviewer:latest not found, skipping"
+  fi
+
   if $updated; then
     echo "Images updated."
   else

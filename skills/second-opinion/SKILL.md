@@ -1,24 +1,28 @@
 ---
 name: second-opinion
-description: "Get two independent second opinions (isolated Claude + isolated Gemini) on a problem Claude is analyzing. Use when user says second opinion, ask gemini, what does gemini think, another perspective, or /second-opinion. Gathers context, writes a focused prompt, calls both reviewers in isolated Docker containers, and synthesizes all viewpoints. Not for code review (use gemini-review)."
-compatibility: "Requires Docker running, claude-reviewer:latest and gemini-reviewer:latest images built, OAuth volume for Claude, API key file for Gemini."
+description: "Get three independent second opinions (isolated Claude + isolated Gemini + isolated DeepSeek) on a problem Claude is analyzing. Use when user says second opinion, ask gemini, ask deepseek, what does gemini think, another perspective, or /second-opinion. Gathers context, writes a focused prompt, calls all reviewers in isolated Docker containers, and synthesizes all viewpoints. Not for code review (use gemini-review)."
+compatibility: "Requires Docker running, claude-reviewer:latest, gemini-reviewer:latest and deepseek-reviewer:latest images built, OAuth volume for Claude, API key files for Gemini and DeepSeek."
 ---
 
-# ABOUTME: Two independent second opinions from isolated Docker containers (Claude + Gemini)
-# ABOUTME: Same prompt/context to both, zero config contamination, three-way synthesis
+# ABOUTME: Three independent second opinions from isolated Docker containers (Claude + Gemini + DeepSeek)
+# ABOUTME: Same prompt/context to all, zero config contamination, four-way synthesis
 
 # Second Opinion (Isolated)
 
-Both reviewers run in Docker containers with NO access to your `~/.claude/` config,
-memories, rules, or settings. This ensures genuinely independent opinions.
+All reviewers run in Docker containers with NO access to your `~/.claude/` config,
+memories, rules, or settings. This ensures genuinely independent opinions. The three
+reviewers span three labs (Anthropic, Google, DeepSeek), so agreement across them is a
+strong signal rather than shared-model bias.
 
 ## Prerequisites
 
 Images built and auth configured:
 - `claude-reviewer:latest` (built from `claude-forge/docker/isolated-reviewer/`)
 - `gemini-reviewer:latest` (built from `claude-forge/docker/isolated-gemini/`)
+- `deepseek-reviewer:latest` (built from `claude-forge/docker/isolated-deepseek/`)
 - Docker volume `claude-reviewer-auth` (populated via `docker run -it --rm -v claude-reviewer-auth:/home/node/.claude --entrypoint bash claude-reviewer:latest -c "claude login"`)
 - API key file at `~/.config/gemini-api-key`
+- API key file at `~/.config/deepseek-api-key`
 
 ## Execution Flow
 
@@ -61,12 +65,12 @@ cat > "$PROMPT_FILE" <<'PROMPT_EOF'
 PROMPT_EOF
 ```
 
-### Step 4: Call both reviewers in parallel
+### Step 4: Call all reviewers in parallel
 
-Launch both containers simultaneously using **two parallel Bash tool calls in a single message**.
+Launch all containers simultaneously using **parallel Bash tool calls in a single message**.
 
 Credentials never touch the host filesystem: Claude auth is mounted directly from
-the Docker volume, Gemini API key is read in-memory from a file.
+the Docker volume, Gemini and DeepSeek API keys are read in-memory from files.
 
 Call 1 - Isolated Claude:
 ```bash
@@ -91,24 +95,39 @@ docker run --rm \
   2>&1 | grep -v "^\[WARN\] Skipping unreadable" | grep -v "^Warning: Could not read"
 ```
 
-**Cleanup after both complete:**
+Call 3 - Isolated DeepSeek (pi):
+```bash
+docker run --rm \
+  -e DEEPSEEK_API_KEY="$(cat ~/.config/deepseek-api-key)" \
+  -v <PROJECT_ROOT>:/workspace:ro \
+  deepseek-reviewer:latest \
+  --provider deepseek \
+  --model deepseek-reasoner \
+  -p \
+  -t read \
+  --no-session \
+  "$(cat <PROMPT_FILE>)"
+```
+
+**Cleanup after all complete:**
 ```bash
 rm -f "$PROMPT_FILE"
 ```
 
 ### Step 5: Synthesize
 
-Present a three-way analysis:
+Present a four-way analysis:
 
-| Aspect | Claude (you) | Isolated Claude | Isolated Gemini | Consensus |
-|--------|-------------|-----------------|-----------------|-----------|
-| Root cause | ... | ... | ... | agree/differ |
-| Approach | ... | ... | ... | agree/differ |
-| Risks | ... | ... | ... | complementary |
+| Aspect | Claude (you) | Isolated Claude | Isolated Gemini | Isolated DeepSeek | Consensus |
+|--------|-------------|-----------------|-----------------|-------------------|-----------|
+| Root cause | ... | ... | ... | ... | agree/differ |
+| Approach | ... | ... | ... | ... | agree/differ |
+| Risks | ... | ... | ... | ... | complementary |
 
-**Final recommendation:** Your updated position, incorporating both independent opinions.
-Explain what changed (or didn't) and why. Flag any point where both independent
-reviewers agree against your original analysis (strong signal to reconsider).
+**Final recommendation:** Your updated position, incorporating all independent opinions.
+Explain what changed (or didn't) and why. Flag any point where the independent
+reviewers agree against your original analysis (the more of the three that agree, the
+stronger the signal to reconsider).
 
 ## When to Use
 
@@ -133,5 +152,7 @@ reviewers agree against your original analysis (strong signal to reconsider).
 | Claude auth fails | Re-login: `docker run -it --rm -v claude-reviewer-auth:/home/node/.claude --entrypoint bash claude-reviewer:latest -c "claude login"` |
 | Gemini API errors | Check `~/.config/gemini-api-key` exists and is valid |
 | Gemini "not running in a trusted directory" | Image predates the trust fix. Rebuild: `docker/isolated-gemini/isolated-gemini-review.sh --build` (the Dockerfile sets `GEMINI_CLI_TRUST_WORKSPACE=true`) |
+| DeepSeek "No API key found" | Check `~/.config/deepseek-api-key` exists and is valid; it is passed as `DEEPSEEK_API_KEY` |
+| DeepSeek image not found | Build it: `docker/isolated-deepseek/isolated-deepseek-review.sh --build` |
 | Timeout | Reduce context size; focus on the most relevant files |
 | Both reviewers agree you're wrong | You're probably wrong. Reconsider. |
