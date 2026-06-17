@@ -12,6 +12,15 @@ if ! printf '%s' "$cmd" | grep -qE '(^|[;&|[:space:]])git[[:space:]]+commit([[:s
   exit 0
 fi
 
+# Evaluate the repo the commit actually targets (cd/-C), not the session cwd,
+# so a cross-repo commit on a feature branch is not blocked because cwd sits on main.
+HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$HOOK_DIR/_commit_target.sh" ]; then
+  # shellcheck source=/dev/null
+  . "$HOOK_DIR/_commit_target.sh"
+  cd_to_commit_target "$cmd"
+fi
+
 branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
 case "$branch" in
   main|master)

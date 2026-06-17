@@ -14,6 +14,15 @@ if ! printf '%s' "$cmd" | grep -qE '(^|[;&|[:space:]])git[[:space:]]+commit([[:s
   exit 0
 fi
 
+# Run the gate against the repo the commit actually targets (cd/-C), not the
+# session cwd, so a cross-repo commit is gated by the right repo's Makefile.
+HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$HOOK_DIR/_commit_target.sh" ]; then
+  # shellcheck source=/dev/null
+  . "$HOOK_DIR/_commit_target.sh"
+  cd_to_commit_target "$cmd"
+fi
+
 deny() {
   local reason="$1"
   jq -cn --arg r "$reason" '{
