@@ -69,6 +69,11 @@ PROMPT_EOF
 
 Launch all containers simultaneously using **parallel Bash tool calls in a single message**.
 
+**Set an explicit Bash-tool timeout per call.** These `docker run` commands are inline,
+not the `.sh` scripts, so the only wall-clock bound is the Bash-tool `timeout`. The default
+(120s) will kill `deepseek-reasoner` mid-reasoning. Pass `timeout: 600000` (600s) for the
+DeepSeek call and at least `timeout: 300000` for Claude and Gemini.
+
 Credentials never touch the host filesystem: Claude auth is mounted directly from
 the Docker volume, Gemini and DeepSeek API keys are read in-memory from files.
 
@@ -109,22 +114,35 @@ docker run --rm \
   "$(cat <PROMPT_FILE>)"
 ```
 
-**Cleanup after all complete:**
+**Cleanup.** Set the trap right after creating the temp file in Step 3, so it is
+removed even if a call times out before this point is reached:
 ```bash
-rm -f "$PROMPT_FILE"
+trap 'rm -f "$PROMPT_FILE"' EXIT
 ```
 
-**Degrade gracefully on reviewer failure.** A reviewer can fail independently:
-expired Claude OAuth in the volume (`401`), a missing/invalid API key, a rate
-limit, or a hang (each `docker run` is bounded by the Bash-tool timeout). If one
-reviewer errors, do NOT abort: proceed to synthesize from the reviewers that did
-respond and explicitly flag which one is missing and why. A two-of-three synthesis
-is still useful; a silent drop is not. If Claude returns `401`, surface the
-re-login command from Troubleshooting.
+**Degrade gracefully on reviewer failure. This is a procedure, not a suggestion.**
+A reviewer can fail independently: expired Claude OAuth in the volume (`401`), a
+missing/invalid API key, a rate limit, or a timeout.
+
+1. **Classify each reviewer as OK or FAILED** before synthesizing. A reviewer is
+   FAILED if its Bash call exited non-zero OR its output matches `401`,
+   `timed out`, `API Error`, `No API key`, or is empty. Do NOT treat a `401`
+   body or an error trace as if it were an opinion.
+2. **Never abort if at least one reviewer is OK.** Synthesize from the survivors.
+   A two-of-three (or one-of-three) synthesis is useful; a silent drop is not.
+3. **Account for every reviewer in the output** via the status line in Step 5.
+4. If Claude returns `401`, surface the re-login command from Troubleshooting.
 
 ### Step 5: Synthesize
 
-Present a four-way analysis:
+**Required first line: reviewer status.** Before the table, state which reviewers
+responded, so a missing one can never be glossed over:
+
+```
+Reviewer status: Claude ✅ | Gemini ✅ | DeepSeek ❌ (401, expired OAuth; see Troubleshooting)
+```
+
+Then present a four-way analysis (drop the column of any FAILED reviewer):
 
 | Aspect | Claude (you) | Isolated Claude | Isolated Gemini | Isolated DeepSeek | Consensus |
 |--------|-------------|-----------------|-----------------|-------------------|-----------|
@@ -158,6 +176,7 @@ stronger the signal to reconsider).
 | "docker: command not found" | Docker Desktop must be running |
 | Image not found | Build images: see Prerequisites |
 | Claude auth fails | Re-login: `docker run -it --rm -v claude-reviewer-auth:/home/node/.claude --entrypoint bash claude-reviewer:latest -c "claude login"` |
+| Claude `401` recurs across runs | The OAuth token in the volume expires periodically. Optional preflight before a run: `docker run --rm -v claude-reviewer-auth:/home/node/.claude:ro claude-reviewer:latest --print "ping"`; a non-zero/`401` means re-login first. Skip it for speed; structured degradation (Step 4) handles a mid-run `401` anyway. |
 | Gemini API errors | Check `~/.config/gemini-api-key` exists and is valid |
 | Gemini "not running in a trusted directory" | Image predates the trust fix. Rebuild: `docker/isolated-gemini/isolated-gemini-review.sh --build` (the Dockerfile sets `GEMINI_CLI_TRUST_WORKSPACE=true`) |
 | DeepSeek "No API key found" | Check `~/.config/deepseek-api-key` exists and is valid; it is passed as `DEEPSEEK_API_KEY` |

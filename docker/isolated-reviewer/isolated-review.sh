@@ -131,4 +131,10 @@ ${TIMEOUT_CMD:+${TIMEOUT_CMD} ${REVIEW_TIMEOUT}} docker run --rm \
   --print \
   --model "${MODEL}" \
   --output-format "${OUTPUT_FORMAT}" \
-  "${PROMPT}"
+  "${PROMPT}" || {
+  rc=$?
+  if [[ $rc -eq 124 ]]; then
+    echo "ERROR: Claude reviewer timed out after ${REVIEW_TIMEOUT}s (override with REVIEW_TIMEOUT=<seconds>)." >&2
+  fi
+  exit $rc
+}

@@ -12,8 +12,10 @@ API_KEY_FILE="${HOME}/.config/deepseek-api-key"
 # else run unguarded. Prevents a non-responsive reviewer from hanging forever when
 # invoked from a terminal (the orchestrated /second-opinion flow is already bounded
 # by the harness Bash-tool timeout). Override the limit with REVIEW_TIMEOUT.
+# Default is higher than the other reviewers: deepseek-reasoner (R1) can spend
+# several minutes in its reasoning phase before emitting the answer.
 TIMEOUT_CMD="$(command -v timeout || command -v gtimeout || true)"
-REVIEW_TIMEOUT="${REVIEW_TIMEOUT:-300}"
+REVIEW_TIMEOUT="${REVIEW_TIMEOUT:-600}"
 
 # --- Usage ---
 usage() {
@@ -103,4 +105,10 @@ ${TIMEOUT_CMD:+${TIMEOUT_CMD} ${REVIEW_TIMEOUT}} docker run --rm \
   -p \
   -t read \
   --no-session \
-  "${PROMPT}"
+  "${PROMPT}" || {
+  rc=$?
+  if [[ $rc -eq 124 ]]; then
+    echo "ERROR: DeepSeek reviewer timed out after ${REVIEW_TIMEOUT}s (override with REVIEW_TIMEOUT=<seconds>)." >&2
+  fi
+  exit $rc
+}

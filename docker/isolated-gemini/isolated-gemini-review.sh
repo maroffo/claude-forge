@@ -106,4 +106,10 @@ ${TIMEOUT_CMD:+${TIMEOUT_CMD} ${REVIEW_TIMEOUT}} docker run --rm \
   -m "${MODEL}" \
   --output-format "${OUTPUT_FORMAT}" \
   --sandbox false \
-  2>&1 | grep -v "^\[WARN\] Skipping unreadable" | grep -v "^Warning: Could not read"
+  2>&1 | grep -v "^\[WARN\] Skipping unreadable" | grep -v "^Warning: Could not read" || {
+  rc=$?
+  if [[ $rc -eq 124 ]]; then
+    echo "ERROR: Gemini reviewer timed out after ${REVIEW_TIMEOUT}s (override with REVIEW_TIMEOUT=<seconds>)." >&2
+  fi
+  exit $rc
+}
