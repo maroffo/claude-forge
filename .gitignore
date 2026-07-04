@@ -35,3 +35,6 @@ skills/*-wishew
 skills/_wishew_shared
 # Standalone external skill repo, symlinked in (own repo: claude-advanced-review)
 skills/advanced-review
+
+# Machine-local symlink into the claude-advanced-review repo (deployed skill, lives elsewhere)
+/skills/advanced-review
