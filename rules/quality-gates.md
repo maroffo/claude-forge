@@ -37,6 +37,17 @@
 - TODO without tracking issue
 - Stale comment or doc referencing removed/changed logic
 
+## Severity Vocabulary (canonical)
+
+Every review path scores in **Critical / Major / Minor**. Tools that emit other vocabularies map here once; skills reference this table and never re-inline it (copies drift):
+
+| Source | Their term | Maps to |
+|--------|-----------|---------|
+| advanced-review | CRITICAL | Critical |
+| advanced-review | WARNING | Major |
+| advanced-review | INFO | Minor |
+| advanced-review | DISPUTED (unresolved after cross-check) | Major |
+
 ## How to Score
 
 After review agents report findings:

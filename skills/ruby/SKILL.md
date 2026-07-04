@@ -25,7 +25,7 @@ For Rails apps, use `rails` skill. **See also:** `_AST_GREP.md`, `_PATTERNS.md`,
 
 ## Version (determine, don't assume)
 
-Never assume a Ruby version from prior knowledge: it rots fast and you miss CVE fixes. Fetch the truth:
+See `../_LANG_COMMON.md`. Fetch the truth:
 
 ```bash
 ruby -v                                                              # local interpreter
@@ -33,22 +33,13 @@ cat .ruby-version 2>/dev/null                                        # pin file 
 curl -s https://endoflife.date/api/ruby.json | jq -r '.[0].latest'   # latest upstream stable
 ```
 
-For a new project, pin to the latest stable. For an existing one, read `.ruby-version` / `Gemfile` / `<gem>.gemspec` (`required_ruby_version`) and prefer idioms gated to that version or lower.
+Read `.ruby-version` / `Gemfile` / `<gem>.gemspec` (`required_ruby_version`) for the project's floor.
 
 ---
 
 ## Pre-Commit Verification (MANDATORY)
 
-Before every commit, both of these MUST pass:
-
-```bash
-make check       # project-wide gate (lint, tests, security)
-make test-e2e    # end-to-end tests (or the project's e2e target)
-```
-
-If `make check` is missing, scaffold it with the `project-checks` skill. If there is no e2e target, do NOT silently skip: flag it to the user and ask whether to proceed or add one.
-
-Full raw toolchain (what `make check` should expand to):
+`make check && make test-e2e` must pass (enforced by the `pre-commit-gate` hook; see `../_LANG_COMMON.md`). What `make check` expands to for a gem:
 
 ```bash
 bundle exec rubocop
@@ -102,7 +93,7 @@ end
 Gem::Specification.new do |spec|
   spec.name = "my_gem"
   spec.version = MyGem::VERSION
-  spec.required_ruby_version = ">= 3.3.0"  # Always specify!
+  spec.required_ruby_version = ">= <current stable minus one>"  # Always specify! Check `ruby -v` / endoflife.date, do not hardcode from memory
 
   spec.metadata = {
     "rubygems_mfa_required" => "true",  # Required!
@@ -121,7 +112,7 @@ end
 
 **RSpec:** `describe`/`it` with `expect` syntax, `subject(:name)`, WebMock for HTTP, SimpleCov >= 90%.
 
-**RuboCop:** `rubocop-rspec` + `rubocop-performance`, `TargetRubyVersion: 3.3`, `NewCops: enable`, max line 120, max method 10.
+**RuboCop:** `rubocop-rspec` + `rubocop-performance`, `TargetRubyVersion` set to the gem's `required_ruby_version` floor (do not hardcode from memory), `NewCops: enable`, max line 120, max method 10.
 
 **Thread safety:** `Mutex.new` + `@mutex.synchronize { ... }` for shared state.
 
@@ -137,7 +128,7 @@ For detailed testing examples, CI config, HTTP client pattern, and publishing st
 | Gemspec | `required_ruby_version`, `rubygems_mfa_required`, metadata URIs |
 | Testing | RSpec expect syntax, SimpleCov >= 90%, WebMock, no real HTTP |
 | Quality | RuboCop passes, thread-safe if async, custom error classes |
-| CI | Ruby 3.3+3.4, `ruby/setup-ruby`, bundler-cache |
+| CI | Matrix on the two latest stable Ruby minors (check endoflife.date, do not hardcode), `ruby/setup-ruby`, bundler-cache |
 
 ---
 
@@ -145,4 +136,4 @@ For detailed testing examples, CI config, HTTP client pattern, and publishing st
 
 - [Bundler: Creating Gems](https://bundler.io/guides/creating_gem.html)
 - [RubyGems Patterns](https://guides.rubygems.org/patterns/)
-- [Ruby 3.4 Changes](https://rubyreferences.github.io/rubychanges/3.4.html)
+- [Ruby version changes](https://rubyreferences.github.io/rubychanges/) (pick the entry for the project's Ruby version)

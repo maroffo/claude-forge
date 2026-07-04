@@ -27,12 +27,14 @@ compatibility: "Requires Xcode and iOS Simulator. Optionally XcodeBuildMCP for e
 
 ```bash
 # Ensure XcodeBuildMCP is available
-# Check if simulator is booted
+# Check if simulator is booted (pick <booted device> from this list, do not hardcode a model)
 xcrun simctl list devices | grep Booted
 
 # Boot simulator if needed
-xcrun simctl boot "iPhone 16 Pro"
+xcrun simctl boot "<booted device>"
 ```
+
+Throughout this file, `<booted device>` is a placeholder: substitute the device name or UDID from `xcrun simctl list devices | grep Booted`.
 
 ## Build and Run
 
@@ -41,7 +43,7 @@ xcrun simctl boot "iPhone 16 Pro"
 xcodebuild -workspace MyApp.xcworkspace \
     -scheme MyApp \
     -sdk iphonesimulator \
-    -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+    -destination 'platform=iOS Simulator,name=<booted device>' \
     build
 
 # Install app on simulator
@@ -92,11 +94,11 @@ xcrun simctl spawn booted log stream \
 ### Reset Simulator
 ```bash
 # Erase all data
-xcrun simctl erase "iPhone 16 Pro"
+xcrun simctl erase "<booted device>"
 
 # Shutdown and boot
-xcrun simctl shutdown "iPhone 16 Pro"
-xcrun simctl boot "iPhone 16 Pro"
+xcrun simctl shutdown "<booted device>"
+xcrun simctl boot "<booted device>"
 ```
 
 ## Tips
@@ -112,6 +114,6 @@ xcrun simctl boot "iPhone 16 Pro"
 xcodebuild test \
     -workspace App.xcworkspace \
     -scheme App \
-    -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+    -destination 'platform=iOS Simulator,name=<booted device>' \
     -resultBundlePath TestResults.xcresult
 ```

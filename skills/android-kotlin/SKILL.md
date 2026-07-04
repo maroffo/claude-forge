@@ -22,7 +22,7 @@ allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 
 ## Version (determine, don't assume)
 
-Never assume Kotlin / AGP / Gradle versions from prior knowledge: they rot fast and you miss CVE fixes. Fetch the truth:
+See `../_LANG_COMMON.md`. Fetch the truth:
 
 ```bash
 ./gradlew --version                                         # Gradle + JVM
@@ -33,22 +33,11 @@ curl -s https://api.github.com/repos/JetBrains/kotlin/releases/latest | jq -r .t
 curl -s https://api.github.com/repos/gradle/gradle/releases/latest | jq -r .tag_name      # latest Gradle
 ```
 
-For a new project, pin to the latest stable. For an existing one, read `gradle/libs.versions.toml` / `build.gradle.kts` / `gradle.properties` and prefer idioms gated to that version or lower.
-
 ---
 
 ## Pre-Commit Verification (MANDATORY)
 
-Before every commit, both of these MUST pass:
-
-```bash
-make check       # project-wide gate (lint, detekt, ktlint, unit tests)
-make test-e2e    # end-to-end tests (connectedAndroidTest or the project's e2e target)
-```
-
-If `make check` is missing, scaffold it with the `project-checks` skill. If there is no e2e target, do NOT silently skip: flag it to the user and ask whether to proceed or add one.
-
-Full raw toolchain (what `make check` should expand to):
+`make check && make test-e2e` must pass (enforced by the `pre-commit-gate` hook; see `../_LANG_COMMON.md`). What `make check` expands to for Android:
 
 ```bash
 ./gradlew ktlintCheck                           # formatting
@@ -70,37 +59,8 @@ feature/
 └── presentation/screen/, viewmodel/
 ```
 
-### Use Cases
-Single responsibility, orchestration here (NOT in ViewModel).
-```kotlin
-class SignInUseCase(private val auth: AuthRepository, private val user: UserRepository) {
-    suspend operator fun invoke(email: String, password: String): Result<User> {
-        val result = auth.signIn(email, password).getOrElse { return Result.failure(it) }
-        user.saveUserLocally(result)
-        return Result.success(result)
-    }
-}
-```
-
-### ViewModel Pattern
-```kotlin
-class FeedViewModel(private val getFeed: GetFeedUseCase) : ViewModel() {
-    private val _uiState = MutableStateFlow<FeedUiState>(FeedUiState.Loading)
-    val uiState = _uiState.asStateFlow()
-
-    private val _sideEffects = Channel<FeedSideEffect>(Channel.BUFFERED)
-    val sideEffects = _sideEffects.receiveAsFlow()
-
-    fun loadFeed() = viewModelScope.launch {
-        _uiState.value = FeedUiState.Loading
-        getFeed().onSuccess { _uiState.value = FeedUiState.Success(it) }
-                 .onFailure { _uiState.value = FeedUiState.Error(it.message) }
-    }
-}
-
-sealed interface FeedUiState { /* Loading, Success, Error */ }
-sealed interface FeedSideEffect { /* NavigateToDetail, ShowSnackbar */ }
-```
+### Use Cases and ViewModels
+Use cases: single responsibility, orchestration here (NOT in ViewModel). ViewModels expose immutable `StateFlow` UI state and one-time events via `Channel`/`SharedFlow` (never StateFlow). For the full `SignInUseCase` + `FeedViewModel` + `UiState`/`SideEffect` code, see `references/compose-patterns.md`.
 
 ---
 
