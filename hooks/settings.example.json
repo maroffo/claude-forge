@@ -64,6 +64,14 @@
         ]
       }
     ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "{{HOOKS_DIR}}/verify-before-stop.sh", "timeout": 15 }
+        ]
+      }
+    ],
     "SessionEnd": [
       {
         "matcher": "",

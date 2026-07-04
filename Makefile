@@ -28,6 +28,10 @@ check:
 
 test-e2e:
 	@uv run --no-project python3 scripts/check_repo.py test-e2e
+	@for t in hooks/tests/test_*.py; do \
+		[ -f "$$t" ] || continue; \
+		uv run --no-project python3 "$$t" || exit 1; \
+	done
 
 lint-shell:
 	@if command -v shellcheck >/dev/null 2>&1; then \
