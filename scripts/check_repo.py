@@ -146,12 +146,14 @@ def check_skill_schema(files):
 
 
 def check_frontmatter_first(files):
-    """SKILL.md must OPEN with the YAML frontmatter. ABOUTME (or anything else)
-    above the first `---` makes the registry publish the wrong description
-    (2026-07-04 audit: four skills shipped this way)."""
+    """SKILL.md and AGENT.md must OPEN with the YAML frontmatter. ABOUTME (or
+    anything else) above the first `---` makes the registry publish the wrong
+    description, or not register the definition at all (2026-07-04 audit: four
+    skills shipped this way; the harness-mechanic AGENT was invisible to the
+    Agent tool for the same reason)."""
     failures = []
     for f in files:
-        if f.name != "SKILL.md":
+        if f.name not in ("SKILL.md", "AGENT.md"):
             continue
         for line in f.read_text().splitlines():
             if not line.strip():
@@ -185,7 +187,7 @@ def main():
         rc |= report("ABOUTME headers (SKILL.md)", check_aboutme(files))
         rc |= report("em-dashes", check_em_dash(files))
         rc |= report("frontmatter basics", check_frontmatter(files))
-        rc |= report("frontmatter first (SKILL.md opens with ---)", check_frontmatter_first(files))
+        rc |= report("frontmatter first (SKILL.md/AGENT.md opens with ---)", check_frontmatter_first(files))
         # Schema also runs here so the pre-commit gate can safely skip
         # test-e2e on docs-only commits without losing SKILL.md validation.
         rc |= report("skill schema (name=dir, description length)", check_skill_schema(files))
