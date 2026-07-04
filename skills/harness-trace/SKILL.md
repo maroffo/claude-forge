@@ -41,17 +41,20 @@ uv run -- harness-trace baseline --base-dir /path/to/claude-forge
 
 `extract` uses two signal sources, in order of precision:
 
-1. **Tool-use blocks** (primary, high precision). Walks every `tool_use` block in the assistant messages. The mapping below converts concrete tool invocations into trace entries with confidence:
+1. **Tool-use blocks** (primary, high precision). Walks every `tool_use` block in the assistant messages, then resolves outcomes from the paired `tool_result` blocks (matched by `tool_use_id`) in the user messages:
 
    | Tool / pattern | Emits |
    |----------------|-------|
-   | `Agent(subagent_type=*-reviewer)` | `ROUTE` + `REVIEW` |
+   | `Agent(subagent_type=*-reviewer)` | `ROUTE` + `REVIEW`; findings parsed from the reviewer's returned report (section-style `### MAJOR` + one bullet per finding, or explicit `MAJOR: 1` counts) |
    | `Agent(subagent_type=*)` (non-reviewer) | `ROUTE` |
-   | `Bash` matching `pytest\|make test\|go test\|npm test\|cargo test\|rspec` | `VERIFY` |
+   | `Bash` matching `pytest\|make test\|go test\|npm test\|cargo test\|rspec` | `VERIFY`, `tests_pass` resolved from the result |
+   | `Bash` matching `make check` | `VERIFY`, `lint_clean` resolved from the result |
    | `Bash` matching `ast-grep\|sg --pattern` | `BLAST_RADIUS` |
    | `Edit` / `Write` / `MultiEdit` | counted into `IMPLEMENT` aggregate |
    | `WebFetch` to `arxiv\|docs` | `RESEARCH` |
    | `AskUserQuestion` | counted into `safety_compliance.hitl_gates_hit` |
+
+   Outcome resolution is fail-safe: a result that never arrives (truncated session, async agent) or says nothing about an axis leaves it unknown; failure markers in output override a clean exit (`pytest || true` chains); counts are never fabricated from prose.
 
 2. **Text regex** (fallback). Applied only to messages whose tool stream did not already surface the step, and only for steps that are typically pure text (`SCORE`, `FIX`, `LOOP`, `UAT`, plus `VERIFY`/`REVIEW` when no tool signal exists). This avoids the v1 problem where prose like "tests pass" in a chat triggered fake VERIFY entries.
 
@@ -77,7 +80,7 @@ One JSONL line per orchestrator step. `v2` adds `rejected_alternatives` (top-lev
 | REPRODUCE | script, fails_before_fix, passes_after_fix |
 | IMPLEMENT | agents, files_changed, subtask_count, localization_precision |
 | DRIFT_CHECK | subtask_id, verdict, deviations |
-| VERIFY | tests_pass, lint_clean, build_ok, retries, reproduction_confirmed |
+| VERIFY | tests_pass, lint_clean, build_ok (each tri-state: true/false/null, null = unknown), retries, reproduction_confirmed |
 | REVIEW | agents, findings (CRITICAL/MAJOR/MINOR), review_validity |
 | FIX | findings_addressed, deviations |
 | BLAST_RADIUS | triggered, trigger_reason, files_scanned, contradictions |
@@ -114,6 +117,15 @@ skills/golang/SKILL.md	2890	1050	145	skill	on-demand
 ```
 
 Tiers: `rule` (always-on), `skill`/`skill-ref` (on-demand), `agent` (on-demand), `config` (always-on).
+
+## Common Issues
+
+| Issue | Solution |
+|-------|----------|
+| VERIFY outcomes all `null` | Session predates outcome capture, or results truncated: re-extract from the raw session JSONL with the current extractor |
+| REVIEW findings `{}` despite a visible report | Async-launched reviewer (metadata-only tool_result): the report never passed through the Agent result; expected, not a bug |
+| No SCORE entries | Step 6 must report `SCORE: <n>/100` literally (rules/orchestrator-protocol.md, Score Reporting) |
+| Extraction slow or hangs | Session over ~500 MB or malformed JSONL: check file size, extractor scans bounded windows of tool output by design |
 
 ## Architecture
 
