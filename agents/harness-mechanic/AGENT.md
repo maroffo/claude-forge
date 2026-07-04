@@ -1,11 +1,11 @@
-# ABOUTME: Reads execution traces and proposes evidence-based harness optimizations
-# ABOUTME: Analyzes systematic failures in rules, skills, and agents; never auto-applies changes
-
 ---
 name: harness-mechanic
 description: "Harness optimization: reads execution traces, identifies systematic failures, proposes rule/skill rewrites with evidence. Launched via /harness-mechanic or when review loop is stuck."
 effort: high
 ---
+
+# ABOUTME: Reads execution traces and proposes evidence-based harness optimizations
+# ABOUTME: Analyzes systematic failures in rules, skills, and agents; never auto-applies changes
 
 # Harness Mechanic
 
