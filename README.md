@@ -1,6 +1,6 @@
 # Claude Forge
 
-![Claude Forge](blog/cover.png)
+![Claude Forge](assets/cover.png)
 
 Token-optimized skills, orchestrated review agents, always-on workflow rules, and a deterministic enforcement layer for Claude Code. Four-tier system:
 
