@@ -59,6 +59,15 @@ VERIFY_BASH_PATTERNS = [
     "uv run pytest",
 ]
 
+# Verify commands that gate lint/static checks rather than tests.
+LINT_BASH_PATTERNS = ["make check"]
+
+# Output markers that mean failure even when the command exited 0
+# (e.g. `pytest || true` chains). "0 failed" must NOT match.
+VERIFY_FAIL_PATTERN = re.compile(
+    r"[1-9]\d*\s+(?:failed|errors?)\b|\bFAILED\b|(?:^|\n)\s*FAIL\b"
+)
+
 # Bash command substrings indicating blast-radius analysis.
 BLAST_BASH_PATTERNS = ["ast-grep", "sg --pattern", "sg -p ", "ast_grep"]
 
@@ -94,13 +103,54 @@ def _get_message_text(msg: dict[str, Any]) -> str:
 
 
 def _iter_tool_uses(msg: dict[str, Any]):
-    """Yield (name, input_dict) for every tool_use block in an assistant message."""
+    """Yield (block_id, name, input_dict) for every tool_use block in an assistant message."""
     content = msg.get("message", {}).get("content")
     if not isinstance(content, list):
         return
     for block in content:
         if isinstance(block, dict) and block.get("type") == "tool_use":
-            yield block.get("name", ""), block.get("input", {}) or {}
+            yield block.get("id", ""), block.get("name", ""), block.get("input", {}) or {}
+
+
+def _iter_tool_results(msg: dict[str, Any]):
+    """Yield (tool_use_id, is_error, text) for every tool_result block in a user message."""
+    content = msg.get("message", {}).get("content")
+    if not isinstance(content, list):
+        return
+    for block in content:
+        if not (isinstance(block, dict) and block.get("type") == "tool_result"):
+            continue
+        tool_use_id = block.get("tool_use_id", "")
+        if not tool_use_id:
+            continue
+        raw = block.get("content")
+        if isinstance(raw, list):
+            text = "\n".join(
+                b.get("text", "") for b in raw
+                if isinstance(b, dict) and b.get("type") == "text"
+            )
+        else:
+            text = raw if isinstance(raw, str) else ""
+        yield tool_use_id, bool(block.get("is_error", False)), text
+
+
+def _verify_target_fields(cmd: str) -> list[str]:
+    """Which VerifyData axes a verify command speaks to (lint vs tests)."""
+    cmd_lower = cmd.lower()
+    fields = []
+    if any(p in cmd_lower for p in LINT_BASH_PATTERNS):
+        fields.append("lint_clean")
+    test_patterns = [p for p in VERIFY_BASH_PATTERNS if p not in LINT_BASH_PATTERNS]
+    if any(p in cmd_lower for p in test_patterns):
+        fields.append("tests_pass")
+    return fields
+
+
+def _apply_verify_result(entry: TraceEntry, cmd: str, is_error: bool, text: str) -> None:
+    """Resolve a pending VERIFY entry's outcome from its tool_result."""
+    success = not is_error and not VERIFY_FAIL_PATTERN.search(text)
+    for field in _verify_target_fields(cmd):
+        entry.data[field] = success
 
 
 def _bash_command(tool_input: dict[str, Any]) -> str:
@@ -173,6 +223,7 @@ def _new_entry(session_slug: str, ts: datetime, step: str, data: dict[str, Any])
 
 
 def _process_tool_use(
+    block_id: str,
     name: str,
     tool_input: dict[str, Any],
     ts: datetime,
@@ -180,6 +231,7 @@ def _process_tool_use(
     counters: dict[str, int],
     entries: list[TraceEntry],
     tool_signaled_steps: set[str],
+    pending_verify: dict[str, tuple[TraceEntry, str]],
 ) -> None:
     """Emit trace entries derived from a single tool_use block."""
 
@@ -219,11 +271,15 @@ def _process_tool_use(
         cmd = _bash_command(tool_input)
         if _matches_any(cmd, VERIFY_BASH_PATTERNS):
             counters["verify_runs"] += 1
-            entries.append(_new_entry(
+            entry = _new_entry(
                 session_slug, ts, "VERIFY",
-                # Tool-use signal can't tell pass/fail from the call alone; leave defaults.
-                {"tests_pass": False, "lint_clean": False, "build_ok": False},
-            ))
+                # Tri-state: outcome resolved later from the paired tool_result;
+                # None means unknown (result missing or axis not addressed).
+                {"tests_pass": None, "lint_clean": None, "build_ok": None},
+            )
+            entries.append(entry)
+            if block_id:
+                pending_verify[block_id] = (entry, cmd)
             tool_signaled_steps.add("VERIFY")
         elif _matches_any(cmd, BLAST_BASH_PATTERNS):
             entries.append(_new_entry(
@@ -344,6 +400,8 @@ def extract_traces(session_path: Path, session_slug: str | None = None) -> list[
         "commits": 0,
     }
     tool_signaled_steps: set[str] = set()
+    # tool_use_id -> (VERIFY entry, bash command); outcome filled by the paired tool_result.
+    pending_verify: dict[str, tuple[TraceEntry, str]] = {}
     seen_text_step_keys: set[str] = set()
     ts_start: datetime | None = None
     ts_end: datetime | None = None
@@ -361,6 +419,14 @@ def extract_traces(session_path: Path, session_slug: str | None = None) -> list[
                 msg = json.loads(raw)
             except json.JSONDecodeError:
                 continue
+            if msg.get("type") == "user":
+                # Resolve pending verify outcomes from tool_result blocks.
+                for tool_use_id, is_error, result_text in _iter_tool_results(msg):
+                    pending = pending_verify.pop(tool_use_id, None)
+                    if pending is not None:
+                        v_entry, v_cmd = pending
+                        _apply_verify_result(v_entry, v_cmd, is_error, result_text)
+                continue
             if msg.get("type") != "assistant":
                 continue
 
@@ -370,10 +436,10 @@ def extract_traces(session_path: Path, session_slug: str | None = None) -> list[
             ts_end = ts
             message_timestamps.append(ts)
 
-            for name, tool_input in _iter_tool_uses(msg):
+            for block_id, name, tool_input in _iter_tool_uses(msg):
                 _process_tool_use(
-                    name, tool_input, ts, session_slug,
-                    counters, entries, tool_signaled_steps,
+                    block_id, name, tool_input, ts, session_slug,
+                    counters, entries, tool_signaled_steps, pending_verify,
                 )
 
             text = _get_message_text(msg)

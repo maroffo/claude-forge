@@ -170,8 +170,65 @@ def _tool_use(name: str, **inputs) -> dict:
     return {"type": "tool_use", "name": name, "input": inputs}
 
 
+def _tool_use_id(block_id: str, name: str, **inputs) -> dict:
+    return {"type": "tool_use", "id": block_id, "name": name, "input": inputs}
+
+
+def _user_result(ts_ms: int, block_id: str, text: str, is_error: bool = False) -> dict:
+    """Helper to build a user message carrying a tool_result block."""
+    return {
+        "type": "user",
+        "timestamp": ts_ms,
+        "message": {
+            "content": [
+                {
+                    "type": "tool_result",
+                    "tool_use_id": block_id,
+                    "is_error": is_error,
+                    "content": [{"type": "text", "text": text}],
+                }
+            ]
+        },
+    }
+
+
 def _text(t: str) -> dict:
     return {"type": "text", "text": t}
+
+
+@pytest.fixture()
+def tool_result_session_jsonl(tmp_path: Path) -> Path:
+    """A session with tool_use/tool_result pairs carrying real command outcomes.
+
+    Covers: green pytest, green make check, red pytest (is_error), a verify
+    call whose result never arrives (truncated session), and a reviewer Agent
+    whose result text reports severity counts.
+    """
+    base = 1715900000000  # ms epoch
+    messages = [
+        {"type": "user", "timestamp": base, "message": {"content": "Fix the bug"}},
+        # Green pytest run.
+        _assistant(base + 10_000, [_tool_use_id("tu_pytest_ok", "Bash", command="uv run -- pytest tests/")]),
+        _user_result(base + 15_000, "tu_pytest_ok", "==== 12 passed in 1.23s ===="),
+        # Green make check (lint gate).
+        _assistant(base + 20_000, [_tool_use_id("tu_check_ok", "Bash", command="make check")]),
+        _user_result(base + 25_000, "tu_check_ok", "PASS  em-dashes\nPASS  frontmatter basics\nAll checks passed"),
+        # Red pytest run (non-zero exit -> is_error).
+        _assistant(base + 30_000, [_tool_use_id("tu_pytest_fail", "Bash", command="uv run pytest tests/")]),
+        _user_result(base + 35_000, "tu_pytest_fail", "==== 2 failed, 10 passed in 1.10s ====", is_error=True),
+        # Verify call with no result in the stream (truncated session).
+        _assistant(base + 40_000, [_tool_use_id("tu_orphan", "Bash", command="go test ./...")]),
+        # Reviewer Agent whose final report carries severity counts.
+        _assistant(base + 50_000, [
+            _tool_use_id("tu_review", "Agent", subagent_type="architecture-reviewer", description="review"),
+        ]),
+        _user_result(base + 55_000, "tu_review", "Review complete.\nCRITICAL: 0\nMAJOR: 1\nMINOR: 2\nRecommendation: fix before merge."),
+    ]
+    session_file = tmp_path / "tool-result-session.jsonl"
+    with session_file.open("w") as f:
+        for m in messages:
+            f.write(json.dumps(m) + "\n")
+    return session_file
 
 
 @pytest.fixture()

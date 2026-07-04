@@ -210,6 +210,72 @@ class TestToolUseExtraction:
         assert entries == []
 
 
+class TestVerifyOutcomeCapture:
+    """VERIFY entries must reflect the tool_result outcome, not hard-coded defaults."""
+
+    def _verifies(self, path: Path):
+        entries = extract_traces(path, session_slug="tr")
+        return [e for e in entries if e.step == "VERIFY"]
+
+    def test_green_pytest_sets_tests_pass_true(self, tool_result_session_jsonl: Path):
+        verifies = self._verifies(tool_result_session_jsonl)
+        pytest_ok = verifies[0]  # first verify: green pytest
+        assert pytest_ok.data.get("tests_pass") is True
+
+    def test_green_make_check_sets_lint_clean_true(self, tool_result_session_jsonl: Path):
+        verifies = self._verifies(tool_result_session_jsonl)
+        check_ok = verifies[1]  # second verify: make check
+        assert check_ok.data.get("lint_clean") is True
+
+    def test_red_pytest_sets_tests_pass_false(self, tool_result_session_jsonl: Path):
+        verifies = self._verifies(tool_result_session_jsonl)
+        pytest_fail = verifies[2]  # third verify: failing pytest
+        assert pytest_fail.data.get("tests_pass") is False
+
+    def test_failure_marker_in_text_overrides_clean_exit(self, tmp_path: Path):
+        """`pytest || true` chains exit 0 but the output still says failed."""
+        base = 1715900000000
+        msgs = [
+            {
+                "type": "assistant", "timestamp": base,
+                "message": {"content": [{
+                    "type": "tool_use", "id": "tu_masked", "name": "Bash",
+                    "input": {"command": "pytest tests/ || true"},
+                }]},
+            },
+            {
+                "type": "user", "timestamp": base + 5_000,
+                "message": {"content": [{
+                    "type": "tool_result", "tool_use_id": "tu_masked",
+                    "is_error": False,
+                    "content": [{"type": "text", "text": "==== 3 failed, 9 passed ===="}],
+                }]},
+            },
+        ]
+        f = tmp_path / "masked.jsonl"
+        with f.open("w") as fp:
+            for m in msgs:
+                fp.write(json.dumps(m) + "\n")
+        verifies = self._verifies(f)
+        assert len(verifies) == 1
+        assert verifies[0].data.get("tests_pass") is False
+
+    def test_orphan_verify_stays_unknown(self, tool_result_session_jsonl: Path):
+        """No tool_result in the stream -> outcome unknown, never a fabricated false."""
+        verifies = self._verifies(tool_result_session_jsonl)
+        orphan = verifies[3]  # fourth verify: go test with no result
+        assert orphan.data.get("tests_pass") is None
+        assert orphan.data.get("lint_clean") is None
+        assert orphan.data.get("build_ok") is None
+
+    def test_unresolved_fields_stay_unknown_on_green_run(self, tool_result_session_jsonl: Path):
+        """A pytest result says nothing about lint or build."""
+        verifies = self._verifies(tool_result_session_jsonl)
+        pytest_ok = verifies[0]
+        assert pytest_ok.data.get("lint_clean") is None
+        assert pytest_ok.data.get("build_ok") is None
+
+
 class TestWriteTraces:
     def test_write_and_read_back(self, sample_session_jsonl: Path, tmp_path: Path):
         entries = extract_traces(sample_session_jsonl, session_slug="test")
