@@ -35,7 +35,7 @@ If the whole task is in SKIP_SET, skip the protocol entirely and edit directly.
 7.  LOOP         → repeat 3-7; global ceiling 5 rounds across REVIEW + UAT → escalate
 8.  PRESENT      → summary: files changed, issues found/fixed, score, open items
 9.  UAT          → goal-backward verification with human (skip for SKIP_SET)
-10. STORE        → save session log + plan status (unconditional: also on escalation/abandonment, marking outcome)
+10. STORE        → save session log + close the plan: fill Outcomes & Retrospective, move active/ → completed/ (unconditional: also on escalation/abandonment, marking outcome)
 ```
 
 ## Research + Complexity (Step 0)
