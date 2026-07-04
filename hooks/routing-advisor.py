@@ -4,11 +4,14 @@
 
 import json
 import os
+import re
 import sys
+import time
 import fnmatch
 from pathlib import Path
 
 STATE_DIR = Path.home() / ".claude" / "tmp"
+STALE_STATE_SECONDS = 7 * 24 * 3600
 
 # Routing rules: (patterns, agents). First match wins per pattern group.
 ROUTES = [
@@ -57,7 +60,21 @@ def reviewers_for(paths):
 
 def state_path(session_id):
     STATE_DIR.mkdir(parents=True, exist_ok=True)
-    return STATE_DIR / f"routing-{session_id}.json"
+    safe = re.sub(r"[^A-Za-z0-9_-]", "_", session_id or "unknown")[:64]
+    return STATE_DIR / f"routing-{safe}.json"
+
+
+def sweep_stale(current):
+    """Best-effort GC of state files from old sessions (same policy as doom-loop-detector)."""
+    cutoff = time.time() - STALE_STATE_SECONDS
+    try:
+        for p in STATE_DIR.glob("routing-*.json"):
+            if p == current:
+                continue
+            if p.stat().st_mtime < cutoff:
+                p.unlink()
+    except OSError:
+        pass
 
 
 def load_state(session_id):
@@ -71,7 +88,11 @@ def load_state(session_id):
 
 
 def save_state(session_id, state):
-    state_path(session_id).write_text(json.dumps(state))
+    p = state_path(session_id)
+    tmp = p.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(state))
+    os.replace(tmp, p)
+    sweep_stale(p)
 
 
 def advise(msg):

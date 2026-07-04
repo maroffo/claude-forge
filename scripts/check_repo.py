@@ -145,6 +145,23 @@ def check_skill_schema(files):
     return failures
 
 
+def check_frontmatter_first(files):
+    """SKILL.md must OPEN with the YAML frontmatter. ABOUTME (or anything else)
+    above the first `---` makes the registry publish the wrong description
+    (2026-07-04 audit: four skills shipped this way)."""
+    failures = []
+    for f in files:
+        if f.name != "SKILL.md":
+            continue
+        for line in f.read_text().splitlines():
+            if not line.strip():
+                continue
+            if line.strip() != "---":
+                failures.append(f"{f.relative_to(ROOT)}: first content is not frontmatter (found: {line.strip()[:40]!r})")
+            break
+    return failures
+
+
 def report(label, failures, max_show=20):
     if not failures:
         print(f"PASS  {label}")
@@ -168,6 +185,10 @@ def main():
         rc |= report("ABOUTME headers (SKILL.md)", check_aboutme(files))
         rc |= report("em-dashes", check_em_dash(files))
         rc |= report("frontmatter basics", check_frontmatter(files))
+        rc |= report("frontmatter first (SKILL.md opens with ---)", check_frontmatter_first(files))
+        # Schema also runs here so the pre-commit gate can safely skip
+        # test-e2e on docs-only commits without losing SKILL.md validation.
+        rc |= report("skill schema (name=dir, description length)", check_skill_schema(files))
     elif args.mode == "test-e2e":
         rc |= report("skill schema (name=dir, description length)", check_skill_schema(files))
     sys.exit(1 if rc else 0)
