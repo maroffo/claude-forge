@@ -57,7 +57,7 @@ cp claude-forge/CLAUDE.md.example ~/.claude/CLAUDE.md
 ├── rules/              → Always-on workflow guardrails (auto-loaded)
 ├── agents/             → On-demand agents (launched by orchestrator)
 ├── skills/             → User-invoked language/tool skills
-├── hooks/              → PreToolUse/PostToolUse/SessionEnd enforcement scripts (local, not in repo)
+├── hooks/              → PreToolUse/PostToolUse/Stop/SessionEnd enforcement scripts (copied from the repo)
 ├── settings.json       → Hook registration + path-protection deny rules
 ├── docs/solutions/     → Categorized solved problems (searchable knowledge base)
 │
@@ -96,16 +96,18 @@ The matching settings fragment lives at [`hooks/settings.example.json`](hooks/se
 
 | Mechanism | Trigger | What it does |
 |-----------|---------|--------------|
-| `pre-commit-gate.sh` | PreToolUse on `git commit` | Runs `make check && make test-e2e`, blocks on failure or missing targets (points to `/project-checks`) |
-| `main-branch-guard.sh` | PreToolUse on `git commit` | Refuses commits directly on `main`/`master` |
-| `commit-intent-guard.py` | PreToolUse on `git commit` | Tier A intent checks: conventional-message regex (block), TODO/FIXME/NotImplementedError/placeholder in ADDED lines (block), unplanned file deletions (advisory) |
+| `pre-commit-gate.sh` | PreToolUse on `git commit` | Runs `make check && make test-e2e`, blocks on failure or missing targets (points to `/project-checks`). Docs/assets-only staged diffs skip the e2e half; `make check` always runs. Fails closed if `jq` is missing |
+| `main-branch-guard.sh` | PreToolUse on `git commit` | Refuses commits directly on `main`/`master`. Honors chained `git checkout -b X && git commit` (judges the chain's target branch). Fails closed if `jq` is missing |
+| `verify-before-stop.py` | Stop | Blocks the FIRST stop of a turn where source files were edited with no test/lint/build (or `git commit`) run afterwards; one nudge per turn, current turn only, sidechains ignored, fail-open on any error |
+| `doom-loop-detector.py` | PostToolUse Edit/Write/MultiEdit | Advisory nudge at edit #5 to the same file (then every 3rd): stop, classify the error, re-plan, consider `/second-opinion`. Never blocks |
+| `commit-intent-guard.py` | PreToolUse on `git commit` | Tier A intent checks: hook-bypass flags `--no-verify`/`--no-hooks`/`--no-pre-commit-hook` (block), conventional-message regex (block), TODO/FIXME/NotImplementedError/placeholder in ADDED lines (block), unplanned file deletions (advisory) |
 | `gitignore-anchor-lint.py` | PreToolUse on `git commit` | Advisory: flags newly-added bare-name `.gitignore` lines that match a tracked directory (suggests anchoring with `/`), and `.env.*` globs missing a `!.env.example` negation. Never blocks |
 | `aboutme-enforcer.py` | PreToolUse Write (block), PostToolUse Edit (advisory) | Requires 2 `# ABOUTME:` (or `// ABOUTME:`) lines on new source files; detects ABOUTME removals on edits. Exempts lock files, vendored/generated paths, uncommentable formats |
 | `routing-advisor.py` | PostToolUse Write/Edit/MultiEdit/Agent | Matches touched file paths against a routing table and nudges Claude via `additionalContext` to invoke the right reviewer (dependency-reviewer on `go.mod`, database-reviewer on migrations, etc.). Deduplicates per-session |
 | `session-end-trace.py` | SessionEnd | No-op outside claude-forge cwd. Otherwise auto-runs `harness-trace extract` against the session's transcript and writes the result under `quality_reports/traces/<date>_<session_id>.jsonl`. Closes the loop for the `harness-mechanic` Evolution Agent (see [Telemetry](#telemetry)) |
 | Path protection | `permissions.deny` in settings.json | Blocks edits to `.git/hooks/`, `~/.ssh/`, `~/.aws/credentials`, gcloud/gemini keys, `id_rsa`/`id_ed25519` |
 
-The repo ships `Makefile` + `scripts/check_repo.py` implementing `make check` (ABOUTME, em-dashes scoped to `skills/`, frontmatter) and `make test-e2e` (skill schema smoke).
+The repo ships `Makefile` + `scripts/check_repo.py` implementing `make check` (ABOUTME, em-dashes scoped to `skills/`, frontmatter basics, frontmatter-first on SKILL.md, skill schema), `make test-e2e` (skill schema + the hook regression suite under `hooks/tests/`, 70+ cases), and `make doc-garden` (stale cross-reference scan of the governance docs, phase 1 of the learning-loop doc-gardening pass). All commit gates also match the `git -C <path> commit` form.
 
 `scripts/metrics-weekly.sh` computes three signals to decide whether the enforcement is working: revert rate, fix-up rate, median time-to-next-touch. Run it as a baseline, apply enforcement, re-run after two weeks. If drift indicators don't drop, upgrade Tier A to Tier B (semantic check) or Tier C (full LLM agent).
 
