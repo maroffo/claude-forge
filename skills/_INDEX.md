@@ -28,12 +28,19 @@
 | Write code | Language-specific | `_PATTERNS.md`, `_AST_GREP.md` |
 | Search/refactor code | `_AST_GREP.md` | Language-specific |
 | Commit changes | `source-control` | (`commit` redirects here) |
-| Review code | `gemini-review` | Language review sections |
+| Review code (pre-commit) | `gemini-review` | Language review sections |
+| Review a PR (commit-aware) | `pr-review` | `gemini-review`, `second-opinion` |
+| Deep multi-LLM review | `advanced-review` | deployed via symlink from the claude-advanced-review repo |
+| Score commit/PR readiness | `score` | quality-gates rule |
 | Second opinion | `second-opinion` | `gemini-review` |
 | Assess test quality | `test-design-reviewer` | `gemini-review`, `_PATTERNS.md` |
 | Setup/analyze project | `project-analyzer` | Language-specific |
+| Scaffold make check targets | `project-checks` | - |
 | Release/tag | `releasing-software` | `source-control` |
+| Architecture decision record | `adr` | `refine-requirements` |
 | Document learnings | `learning-docs` | - |
+| Mine cross-repo failure modes | `learning-loop` | `learning-docs`, `harness-mechanic` |
+| Optimize a prompt via evals | `autoresearch-prompt` | - |
 | Sync vault knowledge to skills | `knowledge-sync` | `_VAULT_CONTEXT.md`, `learning-docs` |
 | Task management | `clickup` | `source-control` |
 | Bullet Journal (daily/weekly/monthly) | `bujo` | `obsidian`, `bujo-sync` |
@@ -50,7 +57,9 @@
 | Generate cover image | `cover-image` | `_generate_image.py` |
 | Render table as image | `table-image` | `_generate_image.py` |
 | Edit/review text for AI patterns | `humanizer` | - |
-| Write blog posts | `blog-writer` | `humanizer`, `cover-image`, `_SECOND_BRAIN.md` |
+| Write blog posts (Max) | `blog-writer` | `humanizer`, `cover-image`, `_SECOND_BRAIN.md` |
+| Write blog posts (Mauro Medda) | `mauro-blogger` | `blog-writer`, `humanizer` |
+| Publish LinkedIn post | `linkedin-post` | `blog-writer` |
 | Analyze code cognitive load | `cognitive-load-analyzer` | `gemini-review`, language-specific |
 | Create/improve skills | `skill-forge` | `_INDEX.md`, `CLAUDE.md.example` |
 | Capture execution traces | `harness-trace` | orchestrator-protocol rule |
