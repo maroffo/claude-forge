@@ -42,19 +42,22 @@
         "matcher": "Edit",
         "hooks": [
           { "type": "command", "command": "{{HOOKS_DIR}}/aboutme-enforcer.sh", "timeout": 10 },
-          { "type": "command", "command": "{{HOOKS_DIR}}/routing-advisor.sh", "timeout": 10 }
+          { "type": "command", "command": "{{HOOKS_DIR}}/routing-advisor.sh", "timeout": 10 },
+          { "type": "command", "command": "{{HOOKS_DIR}}/doom-loop-detector.sh", "timeout": 10 }
         ]
       },
       {
         "matcher": "Write",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/routing-advisor.sh", "timeout": 10 }
+          { "type": "command", "command": "{{HOOKS_DIR}}/routing-advisor.sh", "timeout": 10 },
+          { "type": "command", "command": "{{HOOKS_DIR}}/doom-loop-detector.sh", "timeout": 10 }
         ]
       },
       {
         "matcher": "MultiEdit",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/routing-advisor.sh", "timeout": 10 }
+          { "type": "command", "command": "{{HOOKS_DIR}}/routing-advisor.sh", "timeout": 10 },
+          { "type": "command", "command": "{{HOOKS_DIR}}/doom-loop-detector.sh", "timeout": 10 }
         ]
       },
       {
