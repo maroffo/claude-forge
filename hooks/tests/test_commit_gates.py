@@ -64,6 +64,13 @@ def main():
         # non-commit commands ignored
         assert run_sh("main-branch-guard.sh", "git log --grep commit") is None, "non-commit-ignored"
         assert run_sh("main-branch-guard.sh", "git commit-tree abc") is None, "commit-tree-ignored"
+        # chained checkout -b before the commit lands on the NEW branch: allow even from main
+        assert run_sh("main-branch-guard.sh", 'git checkout -b feat/y && git commit -m "feat: x"', cwd=main_repo) is None, "checkout-chain-ok"
+        assert run_sh("main-branch-guard.sh", 'git switch -c feat/y && git commit -m "feat: x"', cwd=main_repo) is None, "switch-chain-ok"
+        # ...but chaining INTO main still denies
+        assert is_deny(run_sh("main-branch-guard.sh", 'git checkout -b main && git commit -m "feat: x"', cwd=feat_repo)), "checkout-chain-to-main"
+        # a branch name mentioned only inside the commit message does not spoof the check
+        assert is_deny(run_sh("main-branch-guard.sh", 'git commit -m "feat: mention git checkout -b feat/z"', cwd=main_repo)), "spoof-in-message"
 
         # pre-commit-gate: -C into a repo with no Makefile must fire and deny
         assert is_deny(run_sh("pre-commit-gate.sh", f'git -C {feat_repo} commit -m "feat: x"')), "gate-git-C-fires"
@@ -80,7 +87,7 @@ def main():
         shutil.rmtree(main_repo, ignore_errors=True)
         shutil.rmtree(feat_repo, ignore_errors=True)
 
-    print("PASS  commit-gates (12 cases)")
+    print("PASS  commit-gates (16 cases)")
 
 
 if __name__ == "__main__":
