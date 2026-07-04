@@ -189,7 +189,6 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | `_AST_GREP.md` | Structural code search (mandates ast-grep over grep) |
 | `_INDEX.md` | Quick skill lookup by language/task |
 | `_PATTERNS.md` | Cross-language patterns (DI, errors, testing, jobs) |
-| `_GMAIL.md` | Gmail account config, gog CLI commands |
 | `_OBSIDIAN.md` | Obsidian CLI config, vault commands |
 | `_SECOND_BRAIN.md` | Category routing, content templates, rules |
 | `_VAULT_CONTEXT.md` | Vault context injection, token budget, breadcrumbs |
@@ -236,11 +235,11 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 |-------|-------------|
 | `bujo/` | Bullet Journal: daily/weekly/monthly logs, task migration, reviews |
 | `bujo-sync/` | Bidirectional task sync between Bullet Journal and ClickUp/Linear |
-| `inbox-triage/` | Gmail inbox review and prioritization |
-| `email-cleanup/` | Archive old emails, manage storage |
-| `newsletter-digest/` | Process newsletters into Second Brain (via Obsidian CLI) |
 | `process-clippings/` | Web clippings to Second Brain (via Obsidian CLI) |
-| `process-email-bookmarks/` | Gmail bookmarks processing (via Obsidian CLI) |
+
+### Private Skills (pattern)
+
+Skills with personal PII or third-party content (Gmail account config and the email cluster, LinkedIn publishing, another person's blog voice) don't live in this public repo. They sit in a separate private repo and are symlinked machine-locally into `skills/<name>` (each link gitignored here), so the runtime registry sees them exactly like the public ones. `advanced-review` follows the same pattern from its own repo. If you fork this setup, keep anything with accounts, tokens paths, or label IDs on that side of the line.
 
 ## Vault Integration (Obsidian)
 
@@ -315,9 +314,7 @@ The protocol is defined in `_VAULT_CONTEXT.md` (Project Onboarding section). It'
 | Skill/File | Type | Purpose |
 |------------|------|---------|
 | `obsidian/` | Invocable (`/obsidian`) | Vault CRUD, search, daily notes, graph, tasks |
-| `newsletter-digest/` | Invocable (`/newsletter-digest`) | Process newsletters into Second Brain |
 | `process-clippings/` | Invocable (`/process-clippings`) | Web clippings to Second Brain |
-| `process-email-bookmarks/` | Invocable (`/process-email-bookmarks`) | Gmail bookmarks to Second Brain |
 | `knowledge-sync/` | Invocable (`/knowledge-sync`) | Vault-to-skills sync (monthly) |
 | `learning-docs/` | Invocable (`/learning-docs`) | Retrospectives + vault pattern annotation |
 | `_OBSIDIAN.md` | Reference | CLI config and commands |
