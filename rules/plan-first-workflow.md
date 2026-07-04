@@ -36,8 +36,25 @@ Can also be invoked explicitly via `/refine-requirements`.
 
 1. Requirements refinement (above) — only for ambiguous requests
 2. Plan mode → draft: files, approach, dependencies, verification, risks
-3. Save plan: `obsidian create name="Plans/YYYY-MM-DD - description" content="..." silent` (fallback: `quality_reports/plans/`)
+3. Save plan: `quality_reports/plans/active/YYYY-MM-DD_<slug>.md` in the working repo — a fresh session can only see what is in the repo. Mirror to vault (`obsidian create name="Plans/YYYY-MM-DD - description" content="..." silent`) for cross-project tracking; the repo copy is the source of truth
 4. Approve → orchestrator
+
+## Living Plans (ExecPlans)
+
+For complex tasks (research verdict = complex) or work expected to span sessions, the plan is a living document updated DURING execution, not a snapshot. Self-containment test: a fresh session must be able to resume from the plan file alone, without chat history.
+
+Mandatory sections, kept current:
+
+| Section | Content | Updated |
+|---------|---------|---------|
+| `## Progress` | Timestamped checklist, actual current state | After each subtask |
+| `## Surprises & Discoveries` | Unexpected behavior/insights, with evidence (output, diff) | When they happen |
+| `## Decisions` | Append-only table (see Requirements Refinement) | Every execution-time decision, not just refinement-time |
+| `## Outcomes & Retrospective` | What shipped, gaps, lessons — feeds learning-docs | At close |
+
+The plan's work steps (tracked in `## Progress`) state observable outcomes ("`curl :8080/health` returns 200"), not implementation detail, and are independently verifiable.
+
+Lifecycle (ALL plans, living or not): create in `quality_reports/plans/active/`, move to `quality_reports/plans/completed/` at close — for living plans, with the retrospective filled. Tech debt discovered but not addressed: one line in `quality_reports/plans/tech-debt.md` pointing back to the plan.
 
 ## Annotation Cycle (complex only)
 
@@ -70,7 +87,7 @@ Append to project log in vault: `obsidian append file="<project> - Log" content=
 
 When compressing or summarizing session state, regenerate from source files (code, tests, git log), never compress an existing summary. Summaries drift; the codebase is the lossless source of truth.
 
-When pausing mid-task or before context gets large, write `.continue-here.md` in the working directory:
+When pausing mid-task: if a living plan exists (see Living Plans), update its `## Progress` and `## Decisions` sections instead — the plan is the resume point, and it accumulates instead of being deleted. Only for unplanned/simple work, write `.continue-here.md` in the working directory:
 
 ```markdown
 ## Current State
