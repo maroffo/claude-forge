@@ -86,8 +86,11 @@ class TestStepDataModels:
         assert data.ambiguities_found == 3
 
     def test_verify_data_defaults(self):
+        # Tri-state: unknown (None) by default, never a fabricated False.
         data = VerifyData()
-        assert data.tests_pass is False
+        assert data.tests_pass is None
+        assert data.lint_clean is None
+        assert data.build_ok is None
         assert data.retries == 0
 
     def test_review_data_findings(self):

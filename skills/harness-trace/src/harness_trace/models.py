@@ -106,9 +106,11 @@ class DriftCheckData(BaseModel):
 
 
 class VerifyData(BaseModel):
-    tests_pass: bool = False
-    lint_clean: bool = False
-    build_ok: bool = False
+    # Tri-state: True/False = outcome observed in the tool_result; None = unknown
+    # (result missing from the stream, or the command says nothing about this axis).
+    tests_pass: bool | None = None
+    lint_clean: bool | None = None
+    build_ok: bool | None = None
     retries: int = 0
     reproduction_confirmed: bool | None = None  # True if reproduce script passes after fix
 

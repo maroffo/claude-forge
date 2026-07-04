@@ -26,9 +26,14 @@ STEP_PATTERNS: list[tuple[str, str]] = [
     (r"uat|goal-backward\s+verification|user\s+acceptance", "UAT"),
 ]
 
-FINDINGS_PATTERN = re.compile(r"(CRITICAL|MAJOR|MINOR)\s*[:\-]?\s*(\d+)", re.IGNORECASE)
-SCORE_PATTERN = re.compile(r"score\s*[:\-=]?\s*(\d+)", re.IGNORECASE)
-FILES_CHANGED_PATTERN = re.compile(r"(\d+)\s+files?\s+changed", re.IGNORECASE)
+# Same-line separator required and digits bounded: cross-newline slack let
+# "### MAJOR\n1. foo" read as "MAJOR: 1", and unbounded digit runs overflow
+# int() (Python's 4300-digit str-to-int limit) on crafted input.
+FINDINGS_PATTERN = re.compile(
+    r"(CRITICAL|MAJOR|MINOR)[ \t]*[:\-][ \t]*(\d{1,6})\b", re.IGNORECASE
+)
+SCORE_PATTERN = re.compile(r"score\s*[:\-=]?\s*(\d{1,6})\b", re.IGNORECASE)
+FILES_CHANGED_PATTERN = re.compile(r"(\d{1,6})\s+files?\s+changed", re.IGNORECASE)
 AGENT_PATTERN = re.compile(
     r"(software-engineer|research-analyst|security-reviewer|performance-reviewer|"
     r"architecture-reviewer|test-reviewer|dependency-reviewer|database-reviewer|"
@@ -58,6 +63,25 @@ VERIFY_BASH_PATTERNS = [
     "uv run -- pytest",
     "uv run pytest",
 ]
+
+# Verify commands that gate lint/static checks rather than tests.
+# No build command patterns exist yet, so VerifyData.build_ok is a dead axis
+# (always None) until one is added under its own contract.
+LINT_BASH_PATTERNS = ["make check"]
+
+# Output markers that mean failure even when the command exited 0
+# (e.g. `pytest || true` chains). "0 failed" must NOT match, nor must
+# fixed-error summaries like ruff's "Found 3 errors (3 fixed, 0 remaining)".
+# `[^\S\n]*` (not `\s*`) after the newline: a whitespace class that can eat
+# newlines backtracks quadratically on blank-line-heavy output.
+VERIFY_FAIL_PATTERN = re.compile(
+    r"[1-9]\d*\s+failed\b|\bFAILED\b|(?:^|\n)[^\S\n]*FAIL\b"
+)
+
+# Only the tail of huge tool outputs is scanned: test-runner verdicts print
+# last, and an unbounded scan is a DoS surface on crafted multi-MB outputs.
+VERIFY_SCAN_TAIL = 100_000
+REVIEW_SCAN_HEAD = 200_000
 
 # Bash command substrings indicating blast-radius analysis.
 BLAST_BASH_PATTERNS = ["ast-grep", "sg --pattern", "sg -p ", "ast_grep"]
@@ -94,13 +118,105 @@ def _get_message_text(msg: dict[str, Any]) -> str:
 
 
 def _iter_tool_uses(msg: dict[str, Any]):
-    """Yield (name, input_dict) for every tool_use block in an assistant message."""
+    """Yield (block_id, name, input_dict) for every tool_use block in an assistant message."""
     content = msg.get("message", {}).get("content")
     if not isinstance(content, list):
         return
     for block in content:
         if isinstance(block, dict) and block.get("type") == "tool_use":
-            yield block.get("name", ""), block.get("input", {}) or {}
+            yield block.get("id", ""), block.get("name", ""), block.get("input", {}) or {}
+
+
+def _iter_tool_results(msg: dict[str, Any]):
+    """Yield (tool_use_id, is_error, text) for every tool_result block in a user message."""
+    content = msg.get("message", {}).get("content")
+    if not isinstance(content, list):
+        return
+    for block in content:
+        if not (isinstance(block, dict) and block.get("type") == "tool_result"):
+            continue
+        tool_use_id = block.get("tool_use_id", "")
+        if not tool_use_id:
+            continue
+        raw = block.get("content")
+        if isinstance(raw, list):
+            text = "\n".join(
+                b.get("text", "") for b in raw
+                if isinstance(b, dict) and b.get("type") == "text"
+            )
+        else:
+            text = raw if isinstance(raw, str) else ""
+        yield tool_use_id, bool(block.get("is_error", False)), text
+
+
+def _verify_target_fields(cmd: str) -> list[str]:
+    """Which VerifyData axes a verify command speaks to (lint vs tests)."""
+    cmd_lower = cmd.lower()
+    fields = []
+    if any(p in cmd_lower for p in LINT_BASH_PATTERNS):
+        fields.append("lint_clean")
+    test_patterns = [p for p in VERIFY_BASH_PATTERNS if p not in LINT_BASH_PATTERNS]
+    if any(p in cmd_lower for p in test_patterns):
+        fields.append("tests_pass")
+    return fields
+
+
+def _apply_verify_result(entry: TraceEntry, cmd: str, is_error: bool, text: str) -> None:
+    """Resolve a pending VERIFY entry's outcome from its tool_result."""
+    success = not is_error and not VERIFY_FAIL_PATTERN.search(text[-VERIFY_SCAN_TAIL:])
+    fields = _verify_target_fields(cmd)
+    if success:
+        for field in fields:
+            entry.data[field] = True
+    elif len(fields) == 1:
+        entry.data[fields[0]] = False
+    # A failing compound command (e.g. `make check && make test`) can't attribute
+    # the failure to one axis; all its axes stay None (unknown).
+
+
+# Markdown heading (or bold line) opening a severity section in a reviewer report,
+# e.g. "### MAJOR (internal contradictions)" or "**CRITICAL**".
+REVIEW_SECTION_PATTERN = re.compile(
+    r"^(?:#{1,6}\s*|\*\*)(CRITICAL|MAJOR|MINOR)\b", re.MULTILINE
+)
+REVIEW_BULLET_PATTERN = re.compile(r"^(?:[-*]|\d+\.)\s+", re.MULTILINE)
+
+
+def _parse_review_sections(text: str) -> dict[str, int]:
+    """Count findings from '### SEVERITY' sections: one bullet = one finding."""
+    # Fenced code blocks may quote bullets verbatim; they are not findings.
+    text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
+    matches = list(REVIEW_SECTION_PATTERN.finditer(text))
+    findings: dict[str, int] = {}
+    for i, m in enumerate(matches):
+        sev = m.group(1).upper()
+        section_end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        body = text[m.end():section_end]
+        # Cut at the next non-severity heading so trailing sections don't bleed in.
+        next_heading = re.search(r"^#{1,6}\s", body, re.MULTILINE)
+        if next_heading:
+            body = body[:next_heading.start()]
+        findings[sev] = findings.get(sev, 0) + len(REVIEW_BULLET_PATTERN.findall(body))
+    return findings
+
+
+def _apply_review_result(entry: TraceEntry, text: str) -> None:
+    """Fill a pending REVIEW entry's findings from the reviewer's returned report.
+
+    Two formats are recognized: section-style reports ("### MAJOR" followed by
+    one bullet per finding) and explicit counts ("MAJOR: 1"). Section format
+    wins when present: real reports mix headings with prose that the count
+    pattern could misread. Anything else leaves findings empty rather than
+    fabricating counts.
+    """
+    text = text[:REVIEW_SCAN_HEAD]
+    findings = _parse_review_sections(text)
+    if not findings:
+        for sm in FINDINGS_PATTERN.finditer(text):
+            sev = sm.group(1).upper()
+            findings[sev] = findings.get(sev, 0) + int(sm.group(2))
+    if findings:
+        entry.data["findings"] = findings
 
 
 def _bash_command(tool_input: dict[str, Any]) -> str:
@@ -173,6 +289,7 @@ def _new_entry(session_slug: str, ts: datetime, step: str, data: dict[str, Any])
 
 
 def _process_tool_use(
+    block_id: str,
     name: str,
     tool_input: dict[str, Any],
     ts: datetime,
@@ -180,6 +297,8 @@ def _process_tool_use(
     counters: dict[str, int],
     entries: list[TraceEntry],
     tool_signaled_steps: set[str],
+    pending_verify: dict[str, tuple[TraceEntry, str]],
+    pending_review: dict[str, TraceEntry],
 ) -> None:
     """Emit trace entries derived from a single tool_use block."""
 
@@ -197,12 +316,16 @@ def _process_tool_use(
                 "decision_basis": "explicit subagent_type",
             },
         ))
-        # If the agent is a reviewer, also emit a REVIEW entry.
+        # If the agent is a reviewer, also emit a REVIEW entry; findings are
+        # filled from the reviewer's tool_result when it arrives.
         if subagent.endswith("-reviewer"):
-            entries.append(_new_entry(
+            entry = _new_entry(
                 session_slug, ts, "REVIEW",
                 {"agents": [subagent], "findings": {}},
-            ))
+            )
+            entries.append(entry)
+            if block_id:
+                pending_review[block_id] = entry
             tool_signaled_steps.add("REVIEW")
         elif subagent == "software-engineer":
             counters["engineer_calls"] += 1
@@ -219,11 +342,15 @@ def _process_tool_use(
         cmd = _bash_command(tool_input)
         if _matches_any(cmd, VERIFY_BASH_PATTERNS):
             counters["verify_runs"] += 1
-            entries.append(_new_entry(
+            entry = _new_entry(
                 session_slug, ts, "VERIFY",
-                # Tool-use signal can't tell pass/fail from the call alone; leave defaults.
-                {"tests_pass": False, "lint_clean": False, "build_ok": False},
-            ))
+                # Tri-state: outcome resolved later from the paired tool_result;
+                # None means unknown (result missing or axis not addressed).
+                {"tests_pass": None, "lint_clean": None, "build_ok": None},
+            )
+            entries.append(entry)
+            if block_id:
+                pending_verify[block_id] = (entry, cmd)
             tool_signaled_steps.add("VERIFY")
         elif _matches_any(cmd, BLAST_BASH_PATTERNS):
             entries.append(_new_entry(
@@ -344,6 +471,10 @@ def extract_traces(session_path: Path, session_slug: str | None = None) -> list[
         "commits": 0,
     }
     tool_signaled_steps: set[str] = set()
+    # tool_use_id -> (VERIFY entry, bash command); outcome filled by the paired tool_result.
+    pending_verify: dict[str, tuple[TraceEntry, str]] = {}
+    # tool_use_id -> REVIEW entry; findings filled from the reviewer's tool_result.
+    pending_review: dict[str, TraceEntry] = {}
     seen_text_step_keys: set[str] = set()
     ts_start: datetime | None = None
     ts_end: datetime | None = None
@@ -361,6 +492,17 @@ def extract_traces(session_path: Path, session_slug: str | None = None) -> list[
                 msg = json.loads(raw)
             except json.JSONDecodeError:
                 continue
+            if msg.get("type") == "user":
+                # Resolve pending verify outcomes from tool_result blocks.
+                for tool_use_id, is_error, result_text in _iter_tool_results(msg):
+                    pending = pending_verify.pop(tool_use_id, None)
+                    if pending is not None:
+                        v_entry, v_cmd = pending
+                        _apply_verify_result(v_entry, v_cmd, is_error, result_text)
+                    r_entry = pending_review.pop(tool_use_id, None)
+                    if r_entry is not None and not is_error:
+                        _apply_review_result(r_entry, result_text)
+                continue
             if msg.get("type") != "assistant":
                 continue
 
@@ -370,10 +512,11 @@ def extract_traces(session_path: Path, session_slug: str | None = None) -> list[
             ts_end = ts
             message_timestamps.append(ts)
 
-            for name, tool_input in _iter_tool_uses(msg):
+            for block_id, name, tool_input in _iter_tool_uses(msg):
                 _process_tool_use(
-                    name, tool_input, ts, session_slug,
+                    block_id, name, tool_input, ts, session_slug,
                     counters, entries, tool_signaled_steps,
+                    pending_verify, pending_review,
                 )
 
             text = _get_message_text(msg)
