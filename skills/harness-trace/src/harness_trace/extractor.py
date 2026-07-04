@@ -26,9 +26,14 @@ STEP_PATTERNS: list[tuple[str, str]] = [
     (r"uat|goal-backward\s+verification|user\s+acceptance", "UAT"),
 ]
 
-FINDINGS_PATTERN = re.compile(r"(CRITICAL|MAJOR|MINOR)\s*[:\-]?\s*(\d+)", re.IGNORECASE)
-SCORE_PATTERN = re.compile(r"score\s*[:\-=]?\s*(\d+)", re.IGNORECASE)
-FILES_CHANGED_PATTERN = re.compile(r"(\d+)\s+files?\s+changed", re.IGNORECASE)
+# Same-line separator required and digits bounded: cross-newline slack let
+# "### MAJOR\n1. foo" read as "MAJOR: 1", and unbounded digit runs overflow
+# int() (Python's 4300-digit str-to-int limit) on crafted input.
+FINDINGS_PATTERN = re.compile(
+    r"(CRITICAL|MAJOR|MINOR)[ \t]*[:\-][ \t]*(\d{1,6})\b", re.IGNORECASE
+)
+SCORE_PATTERN = re.compile(r"score\s*[:\-=]?\s*(\d{1,6})\b", re.IGNORECASE)
+FILES_CHANGED_PATTERN = re.compile(r"(\d{1,6})\s+files?\s+changed", re.IGNORECASE)
 AGENT_PATTERN = re.compile(
     r"(software-engineer|research-analyst|security-reviewer|performance-reviewer|"
     r"architecture-reviewer|test-reviewer|dependency-reviewer|database-reviewer|"
@@ -60,13 +65,23 @@ VERIFY_BASH_PATTERNS = [
 ]
 
 # Verify commands that gate lint/static checks rather than tests.
+# No build command patterns exist yet, so VerifyData.build_ok is a dead axis
+# (always None) until one is added under its own contract.
 LINT_BASH_PATTERNS = ["make check"]
 
 # Output markers that mean failure even when the command exited 0
-# (e.g. `pytest || true` chains). "0 failed" must NOT match.
+# (e.g. `pytest || true` chains). "0 failed" must NOT match, nor must
+# fixed-error summaries like ruff's "Found 3 errors (3 fixed, 0 remaining)".
+# `[^\S\n]*` (not `\s*`) after the newline: a whitespace class that can eat
+# newlines backtracks quadratically on blank-line-heavy output.
 VERIFY_FAIL_PATTERN = re.compile(
-    r"[1-9]\d*\s+(?:failed|errors?)\b|\bFAILED\b|(?:^|\n)\s*FAIL\b"
+    r"[1-9]\d*\s+failed\b|\bFAILED\b|(?:^|\n)[^\S\n]*FAIL\b"
 )
+
+# Only the tail of huge tool outputs is scanned: test-runner verdicts print
+# last, and an unbounded scan is a DoS surface on crafted multi-MB outputs.
+VERIFY_SCAN_TAIL = 100_000
+REVIEW_SCAN_HEAD = 200_000
 
 # Bash command substrings indicating blast-radius analysis.
 BLAST_BASH_PATTERNS = ["ast-grep", "sg --pattern", "sg -p ", "ast_grep"]
@@ -148,9 +163,15 @@ def _verify_target_fields(cmd: str) -> list[str]:
 
 def _apply_verify_result(entry: TraceEntry, cmd: str, is_error: bool, text: str) -> None:
     """Resolve a pending VERIFY entry's outcome from its tool_result."""
-    success = not is_error and not VERIFY_FAIL_PATTERN.search(text)
-    for field in _verify_target_fields(cmd):
-        entry.data[field] = success
+    success = not is_error and not VERIFY_FAIL_PATTERN.search(text[-VERIFY_SCAN_TAIL:])
+    fields = _verify_target_fields(cmd)
+    if success:
+        for field in fields:
+            entry.data[field] = True
+    elif len(fields) == 1:
+        entry.data[fields[0]] = False
+    # A failing compound command (e.g. `make check && make test`) can't attribute
+    # the failure to one axis; all its axes stay None (unknown).
 
 
 # Markdown heading (or bold line) opening a severity section in a reviewer report,
@@ -163,6 +184,8 @@ REVIEW_BULLET_PATTERN = re.compile(r"^(?:[-*]|\d+\.)\s+", re.MULTILINE)
 
 def _parse_review_sections(text: str) -> dict[str, int]:
     """Count findings from '### SEVERITY' sections: one bullet = one finding."""
+    # Fenced code blocks may quote bullets verbatim; they are not findings.
+    text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
     matches = list(REVIEW_SECTION_PATTERN.finditer(text))
     findings: dict[str, int] = {}
     for i, m in enumerate(matches):
@@ -180,16 +203,18 @@ def _parse_review_sections(text: str) -> dict[str, int]:
 def _apply_review_result(entry: TraceEntry, text: str) -> None:
     """Fill a pending REVIEW entry's findings from the reviewer's returned report.
 
-    Two formats are recognized: explicit counts ("MAJOR: 1") and section-style
-    reports ("### MAJOR" followed by one bullet per finding). Anything else
-    leaves findings empty rather than fabricating counts.
+    Two formats are recognized: section-style reports ("### MAJOR" followed by
+    one bullet per finding) and explicit counts ("MAJOR: 1"). Section format
+    wins when present: real reports mix headings with prose that the count
+    pattern could misread. Anything else leaves findings empty rather than
+    fabricating counts.
     """
-    findings: dict[str, int] = {}
-    for sm in FINDINGS_PATTERN.finditer(text):
-        sev = sm.group(1).upper()
-        findings[sev] = findings.get(sev, 0) + int(sm.group(2))
+    text = text[:REVIEW_SCAN_HEAD]
+    findings = _parse_review_sections(text)
     if not findings:
-        findings = _parse_review_sections(text)
+        for sm in FINDINGS_PATTERN.finditer(text):
+            sev = sm.group(1).upper()
+            findings[sev] = findings.get(sev, 0) + int(sm.group(2))
     if findings:
         entry.data["findings"] = findings
 
