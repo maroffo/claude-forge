@@ -49,17 +49,17 @@
 | Obsidian vault ops | `obsidian` | `_OBSIDIAN.md`, `_SECOND_BRAIN.md` |
 | Notion to vault sync | `notion-sync` | `obsidian` |
 | Save project artifacts | vault (see plan-first-workflow) | `_OBSIDIAN.md` |
-| Check email | `inbox-triage` | `_GMAIL.md` |
-| Process newsletters | `newsletter-digest` | `_GMAIL.md`, `_OBSIDIAN.md`, `_SECOND_BRAIN.md` |
+| Check email | `inbox-triage` | private repo, symlinked locally |
+| Process newsletters | `newsletter-digest` | private repo, symlinked locally |
 | Process clippings | `process-clippings` | `_OBSIDIAN.md`, `_SECOND_BRAIN.md` |
-| Process bookmarks | `process-email-bookmarks` | `_GMAIL.md`, `_OBSIDIAN.md`, `_SECOND_BRAIN.md` |
-| Clean up email | `email-cleanup` | `_GMAIL.md` |
+| Process bookmarks | `process-email-bookmarks` | private repo, symlinked locally |
+| Clean up email | `email-cleanup` | private repo, symlinked locally |
 | Generate cover image | `cover-image` | `_generate_image.py` |
 | Render table as image | `table-image` | `_generate_image.py` |
 | Edit/review text for AI patterns | `humanizer` | - |
 | Write blog posts (Max) | `blog-writer` | `humanizer`, `cover-image`, `_SECOND_BRAIN.md` |
 | Write blog posts (Mauro Medda) | `mauro-blogger` | private repo, symlinked locally like `advanced-review` |
-| Publish LinkedIn post | `linkedin-post` | `blog-writer` |
+| Publish LinkedIn post | `linkedin-post` | private repo, symlinked locally |
 | Analyze code cognitive load | `cognitive-load-analyzer` | `gemini-review`, language-specific |
 | Create/improve skills | `skill-forge` | `_INDEX.md`, `CLAUDE.md.example` |
 | Capture execution traces | `harness-trace` | orchestrator-protocol rule |
@@ -71,7 +71,7 @@
 |------|---------|
 | `_AST_GREP.md` | ast-grep patterns by language |
 | `_PATTERNS.md` | Cross-language code patterns |
-| `_GMAIL.md` | Gmail account config, gog CLI commands |
+| `_GMAIL.md` | Gmail account config, gog CLI commands (private repo, symlinked locally) |
 | `_OBSIDIAN.md` | Obsidian CLI config, vault commands |
 | `_SECOND_BRAIN.md` | Category routing, content templates, rules |
 | `_VAULT_CONTEXT.md` | Vault context injection, token budget, breadcrumbs |

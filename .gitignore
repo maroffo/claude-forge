@@ -41,3 +41,11 @@ skills/advanced-review
 
 # Machine-local symlink to the private skills repo (personal/third-party content, not for the public repo)
 /skills/mauro-blogger
+
+# Machine-local symlinks to the private skills repo (personal email/PII content)
+/skills/_GMAIL.md
+/skills/email-cleanup
+/skills/inbox-triage
+/skills/newsletter-digest
+/skills/process-email-bookmarks
+/skills/linkedin-post
