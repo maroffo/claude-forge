@@ -29,7 +29,19 @@ if [ -f "$HOOK_DIR/_commit_target.sh" ]; then
   cd_to_commit_target "$cmd"
 fi
 
-branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+# A chained `git checkout -b <name> && git commit` (or `git switch -c/--create`)
+# commits on the NEW branch, not the current one: honor the chain's target.
+# Only look BEFORE the first `git commit`, so branch names inside commit
+# messages/heredocs cannot spoof the check.
+cmd_prefix=${cmd%%git commit*}
+new_branch=$(printf '%s' "$cmd_prefix" \
+  | grep -oE "git[[:space:]]+(checkout[[:space:]]+-b|switch[[:space:]]+(-c|--create))[[:space:]]+[^[:space:];&|]+" \
+  | tail -1 | awk '{print $NF}')
+if [ -n "$new_branch" ]; then
+  branch="$new_branch"
+else
+  branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+fi
 case "$branch" in
   main|master)
     jq -cn --arg b "$branch" \
