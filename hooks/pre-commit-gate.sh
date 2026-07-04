@@ -55,12 +55,35 @@ if ! make -n test-e2e >/dev/null 2>&1; then
   deny "Pre-commit gate: no \`make test-e2e\` target. Add one or run /project-checks."
 fi
 
+# Source-gate the expensive suite: when the staged diff is docs/assets only,
+# `make check` still runs but `make test-e2e` is skipped. Commits that stage at
+# commit time (-a/--all/--include, or explicit pathspecs we can't see) run everything.
+run_e2e=1
+if ! printf '%s' "$cmd" | grep -qE '(^|[[:space:]])(-[a-zA-Z]*a[a-zA-Z]*|--all|--include)([[:space:]]|$)'; then
+  staged=$(git diff --cached --name-only)
+  if [ -n "$staged" ]; then
+    run_e2e=0
+    while IFS= read -r f; do
+      case "$f" in
+        *.md|*.txt|*.rst|*.adoc|*.png|*.jpg|*.jpeg|*.gif|*.svg|*.webp) ;;
+        *) run_e2e=1; break ;;
+      esac
+    done <<STAGED_EOF
+$staged
+STAGED_EOF
+  fi
+fi
+
 # Run the gates
 if ! make check; then
   deny "Pre-commit gate: \`make check\` failed. Fix lint/vet/test issues, then retry the commit."
 fi
-if ! make test-e2e; then
-  deny "Pre-commit gate: \`make test-e2e\` failed. Fix failing end-to-end tests, then retry the commit."
+if [ "$run_e2e" = "1" ]; then
+  if ! make test-e2e; then
+    deny "Pre-commit gate: \`make test-e2e\` failed. Fix failing end-to-end tests, then retry the commit."
+  fi
+else
+  echo "pre-commit-gate: docs-only staged diff, skipping make test-e2e" >&2
 fi
 
 # All green — allow commit (silent success)
