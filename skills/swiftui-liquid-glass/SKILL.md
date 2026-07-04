@@ -5,29 +5,42 @@ compatibility: "Requires Xcode with iOS 26+ SDK."
 ---
 
 # ABOUTME: iOS 26+ Liquid Glass API for glassmorphism effects and interactive UI
-# ABOUTME: .glassEffect() modifier, intensity, tint, style, interactive glass, fallbacks
+# ABOUTME: .glassEffect() modifier, Glass variants, tint, interactive glass, containers, fallbacks
 
 # SwiftUI Liquid Glass
+
+API verified against Apple's SwiftUI documentation (2026-07). If a parameter is not listed here, do not guess it: fetch the current docs for `View.glassEffect(_:in:)` and `Glass`.
 
 ## When to Invoke
 - iOS 26+ glassmorphism effects
 - Frosted glass backgrounds
 - Translucent interactive UI
-- Material design alternatives
 - Modern iOS 26 aesthetic
 
-## Capabilities
-- Apply glass effects to views
-- Interactive glass for tappable elements
-- Fallback to materials on older iOS
-- Customize glass intensity/blur
-- Layer glass containers
-
-## Basic API
+## The Real API
 
 ```swift
-import SwiftUI
+nonisolated func glassEffect(
+    _ glass: Glass = .regular,
+    in shape: some Shape = DefaultGlassEffectShape()  // capsule by default
+) -> some View
+```
 
+`Glass` is a configuration struct, NOT an enum of styles:
+
+| Member | Declaration | Purpose |
+|--------|-------------|---------|
+| `.regular` | `static var regular: Glass` | Standard Liquid Glass material |
+| `.clear` | `static var clear: Glass` | Clear variant |
+| `.identity` | `static var identity: Glass` | No-op variant (content unaffected) |
+| `.tint(_:)` | `func tint(Color?) -> Glass` | Returns a tinted copy |
+| `.interactive(_:)` | `func interactive(Bool) -> Glass` | Returns an interactive copy (responds to touch) |
+
+There is NO `intensity:` parameter, NO `GlassEffectStyle`, NO `interactive:` label on `glassEffect` itself. Configuration composes on the `Glass` value.
+
+## Basic Usage
+
+```swift
 @available(iOS 26, *)
 struct GlassCard: View {
     var body: some View {
@@ -36,9 +49,20 @@ struct GlassCard: View {
             Text("iOS 26+")
         }
         .padding()
-        .glassEffect()  // Basic glass effect
+        .glassEffect()  // .regular, in a capsule
     }
 }
+```
+
+Custom shape and composed configuration:
+
+```swift
+content
+    .glassEffect(.regular.tint(.blue.opacity(0.2)), in: .rect(cornerRadius: 16))
+
+Button("Tap Me") { ... }
+    .padding()
+    .glassEffect(.regular.interactive(true))
 ```
 
 ## With Fallbacks
@@ -47,52 +71,18 @@ struct GlassCard: View {
 struct AdaptiveGlassView: View {
     var body: some View {
         if #available(iOS 26, *) {
-            content
-                .glassEffect(intensity: 0.7)
+            content.glassEffect()
         } else {
-            content
-                .background(.ultraThinMaterial)
+            content.background(.ultraThinMaterial)
         }
     }
 
     var content: some View {
-        Text("Works on all iOS versions")
-            .padding()
-    }
-}
-```
-
-## Glass Effect Parameters
-
-| Parameter | Type | Purpose |
-|-----------|------|---------|
-| `intensity` | `Double` | Glass blur strength (0.0-1.0) |
-| `tint` | `Color` | Glass tint color |
-| `style` | `GlassEffectStyle` | `.light`, `.dark`, `.adaptive` |
-
-## Interactive Glass
-
-```swift
-@available(iOS 26, *)
-struct InteractiveGlassButton: View {
-    var body: some View {
-        Button("Tap Me") {
-            print("Tapped")
-        }
-        .padding()
-        .glassEffect(intensity: 0.8, interactive: true)  // Responds to touch
+        Text("Works on all iOS versions").padding()
     }
 }
 ```
 
 ## GlassEffectContainer
 
-Wrap content in `GlassEffectContainer { ZStack { background; foreground.glassEffect() } }` for layered glass over images/content.
-
-## Common Patterns
-
-```swift
-// Card: .glassEffect(intensity: 0.75, tint: .blue.opacity(0.1)).cornerRadius(16)
-// Toolbar: .glassEffect(style: .adaptive)
-// Migration: see "With Fallbacks" above (.ultraThinMaterial → .glassEffect())
-```
+`GlassEffectContainer` combines multiple Liquid Glass shapes into a single shape and can morph individual shapes into one another. Use it when several glass elements sit close together or animate between layouts; give elements a `glassEffectID(_:in:)` within a shared `@Namespace` for morphing transitions.

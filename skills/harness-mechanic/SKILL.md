@@ -1,10 +1,10 @@
-# ABOUTME: Harness optimization through execution trace analysis
-# ABOUTME: Evidence-based proposals for improving rules, skills, and agent definitions
-
 ---
 name: harness-mechanic
 description: "Harness optimization: analyze execution traces, propose rule/skill improvements. Use when user says optimize harness, harness review, improve rules, meta-harness, or /harness-mechanic. Not for trace capture (use harness-trace)."
 ---
+
+# ABOUTME: Harness optimization through execution trace analysis
+# ABOUTME: Evidence-based proposals for improving rules, skills, and agent definitions
 
 # Harness Mechanic
 

@@ -41,9 +41,11 @@ gog gmail search "<query>" --account=maroffo@gmail.com --json | jq '.resultSizeE
 ```bash
 THREADS=$(gog gmail search "<query>" --account=maroffo@gmail.com --json --max=50 | jq -r '.threads[].id')
 for tid in $THREADS; do
-  gog gmail thread modify $tid --account=maroffo@gmail.com --remove-labels=INBOX
+  gog gmail thread modify $tid --account=maroffo@gmail.com --remove=INBOX
 done
 ```
+
+Canonical `gog gmail` command shapes live in `../_GMAIL.md`; use those rather than improvising flags (this file once drifted to a nonexistent `--remove-labels`).
 
 Process in batches of 50. Report progress.
 

@@ -1,3 +1,8 @@
+---
+name: linkedin-post
+description: "Publish LinkedIn posts from blog articles or free text via the REST API. Drafts the post, confirms with the user, publishes with an article link card. Use when user says linkedin post, post on linkedin, publish to linkedin, or share on linkedin."
+---
+
 # ABOUTME: Publish LinkedIn posts from blog articles or free text via REST API
 # ABOUTME: Drafts post text, confirms with user, publishes with article link card
 
