@@ -69,7 +69,7 @@ claude-forge repo
 │
 Obsidian Vault (Documents/)
 ├── Projects/           → Per-project artifacts (overview, log, solutions)
-├── Plans/              → Cross-project plans (vault-first, local fallback)
+├── Plans/              → Cross-project plan mirrors (source of truth: repo `quality_reports/plans/`)
 └── Second Brain/       → Topic files with Skill Candidates for knowledge-sync
 ```
 
@@ -252,20 +252,20 @@ An optional layer that turns an Obsidian vault into a knowledge backbone for Cla
 
 ### Layer 1: Structured Storage
 
-Plans, session logs, and solutions go to the vault instead of project-local folders.
+Session logs and solutions go to the vault instead of project-local folders. Plans are repo-first (`quality_reports/plans/active|completed/`, agent-legible and versioned) with a vault mirror for cross-project tracking.
 
 ```
 Documents/
 ├── Projects/<project>/          Overview, Log, Solutions per project
-├── Plans/                       Cross-project plans (draft → approved → done)
+├── Plans/                       Cross-project plan mirrors (source of truth in-repo)
 └── Second Brain/                Topic files (existing, unchanged)
 ```
 
-| Artifact | Vault destination | Local fallback |
-|----------|-------------------|----------------|
-| Plan | `Plans/YYYY-MM-DD - description.md` | `quality_reports/plans/` |
-| Session log | `<project> - Log.md` (append) | `quality_reports/session_logs/` |
-| Solution | `<project> - Solutions.md` (append) | `docs/solutions/` |
+| Artifact | Primary destination | Mirror / fallback |
+|----------|---------------------|-------------------|
+| Plan | `quality_reports/plans/active/YYYY-MM-DD_<slug>.md` (→ `completed/` at close) | Vault `Plans/YYYY-MM-DD - description.md` |
+| Session log | Vault `<project> - Log.md` (append) | `quality_reports/session_logs/` |
+| Solution | Vault `<project> - Solutions.md` (append) | `docs/solutions/` |
 
 Configured in `rules/plan-first-workflow.md` and `rules/orchestrator-protocol.md`.
 
