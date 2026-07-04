@@ -1,7 +1,7 @@
 ---
 name: source-control
 description: "Git conventions for commit messages and workflow. Use for git commit, conventional commits, branch strategy, rebasing, merge conflicts, git workflow. Not for general code changes that happen to need a commit afterward."
-allowed-tools: [mcp__acp__Bash]
+allowed-tools: [Bash]
 ---
 
 # ABOUTME: Git conventional commit format and version control best practices

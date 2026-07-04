@@ -1,6 +1,6 @@
 ---
 name: second-opinion
-description: "Get three independent second opinions (isolated Claude + isolated Gemini + isolated DeepSeek) on a problem Claude is analyzing. Use when user says second opinion, ask gemini, ask deepseek, what does gemini think, another perspective, or /second-opinion. Gathers context, writes a focused prompt, calls all reviewers in isolated Docker containers, and synthesizes all viewpoints. Not for code review (use gemini-review)."
+description: "Get three independent second opinions (isolated Claude + isolated Gemini + isolated DeepSeek) on a problem Claude is analyzing. Use when user says second opinion, another perspective, challenge this approach, or asks gemini/deepseek about a decision, approach, or diagnosis. Gathers context, writes a focused prompt, calls all reviewers in isolated Docker containers, and synthesizes all viewpoints. Not for reviewing code or changes, even phrased as 'ask gemini to review' (use gemini-review)."
 compatibility: "Requires Docker running, claude-reviewer:latest, gemini-reviewer:latest and deepseek-reviewer:latest images built, OAuth volume for Claude, API key files for Gemini and DeepSeek."
 ---
 

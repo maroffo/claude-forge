@@ -27,7 +27,7 @@ uv run ruff check . && uv run ruff format --check . && uvx ty check && uv run py
 
 ## Version (determine, don't assume)
 
-Never assume a Python version from prior knowledge: it rots fast and you miss CVE fixes. Fetch the truth:
+See `../_LANG_COMMON.md`. Fetch the truth:
 
 ```bash
 python3 --version                                                      # local interpreter
@@ -36,22 +36,11 @@ grep -E '^python' pyproject.toml 2>/dev/null                           # project
 curl -s https://endoflife.date/api/python.json | jq -r '.[0].latest'   # latest upstream stable
 ```
 
-For a new project, pin to the latest stable. For an existing one, read `pyproject.toml` / `.python-version` and prefer idioms gated to that version or lower.
-
 ---
 
 ## Pre-Commit Verification (MANDATORY)
 
-Before every commit, both of these MUST pass:
-
-```bash
-make check       # project-wide gate (lint, types, tests, security)
-make test-e2e    # end-to-end tests (or the project's e2e target)
-```
-
-If `make check` is missing, scaffold it with the `project-checks` skill. If there is no e2e target, do NOT silently skip: flag it to the user and ask whether to proceed or add one.
-
-Full raw toolchain (what `make check` should expand to):
+`make check && make test-e2e` must pass (enforced by the `pre-commit-gate` hook; see `../_LANG_COMMON.md`). What `make check` expands to for Python:
 
 ```bash
 uv run ruff check .

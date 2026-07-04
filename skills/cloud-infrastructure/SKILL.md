@@ -1,8 +1,8 @@
 ---
 name: cloud-infrastructure
-description: "AWS/GCP cloud infrastructure: Well-Architected, security, cost, observability. Use when working with Terraform outputs, IAM policies, VPC design, load balancers, or cloud architecture decisions."
+description: "AWS/GCP cloud infrastructure: Well-Architected, security, cost, observability. Use when working with Terraform outputs, IAM policies, VPC design, load balancers, or cloud architecture decisions. For HCL/module/state mechanics use the terraform skill; this one owns the architecture decisions."
 compatibility: "Requires AWS CLI or gcloud CLI. Optional: trivy, checkov, infracost."
-allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
+allowed-tools: [Read, Edit, Write, Bash]
 ---
 
 # ABOUTME: AWS/GCP cloud infrastructure patterns and best practices

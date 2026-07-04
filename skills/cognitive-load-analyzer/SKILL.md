@@ -1,7 +1,7 @@
 ---
 name: cognitive-load-analyzer
 description: "Calculate a Cognitive Load Index (CLI) score (0-1000) for a codebase. Measures 8 dimensions of cognitive load using static analysis and LLM-based naming assessment."
-tools: Read, Grep, Glob, Bash, Write, AskUserQuestion
+allowed-tools: [Read, Grep, Glob, Bash, Write, AskUserQuestion]
 ---
 
 # ABOUTME: Measures cognitive load of codebases using 8 dimensions, producing a 0-1000 score
@@ -41,69 +41,9 @@ Score is asymptotic: 0 and 1000 are unreachable by design. Cap at 999.
 
 Weights sum to 1.00.
 
-### Sigmoid Normalization
+### Formula derivations
 
-All raw metrics pass through: `sigmoid(x, mid, steep) = 1 / (1 + e^(-steep * (x - mid)))`
-
-This guarantees smooth transitions and bounded output in (0, 1).
-
-### P90 Weighting
-
-Averages mask complexity. A few terrible functions among many simple ones must surface. Dimensions D1 and D2 weight P90 at 60-70% of the raw score.
-
-### D3 Sub-components
-
-```
-size_func   = sigmoid(P90(LOC_f),     30,  0.05)   weight: 0.35
-size_file   = sigmoid(P90(LOC_file),  300, 0.005)   weight: 0.25
-size_params = sigmoid(mean(params_f), 4,   0.5)     weight: 0.20
-size_class  = sigmoid(P90(methods_c), 15,  0.1)     weight: 0.20
-```
-
-### D4 Naming Quality
-
-Static sub-components: short names (<3 chars), abbreviation density, single-char vars/100 LOC, convention consistency.
-
-With LLM assessment: `D4 = 0.60 * D4_static + 0.40 * llm_score`
-Without LLM: fallback formula adds dictionary coverage (10% weight).
-
-LLM reproducibility: temperature 0, 20 identifiers/file via SHA-256 deterministic selection, score 0.0 (clear) to 1.0 (cryptic).
-
-### D5 Coupling
-
-```
-D5 = 0.40 * sigmoid(mean(Ce), 8, 0.2)
-   + 0.35 * sigmoid(mean(imports), 10, 0.15)
-   + 0.25 * sigmoid(instability_risk, 5, 0.2)
-```
-
-### D8 Navigability
-
-```
-D8 = 0.35 * sigmoid(max_dir_depth, 5, 0.4)
-   + 0.35 * sigmoid(P90(files_per_dir), 15, 0.1)
-   + 0.30 * sigmoid(cv_file_sizes, 1.5, 0.8)
-```
-
-## Aggregation
-
-```
-CLI_raw = sum(weight_i * D_i)
-```
-
-### Interaction Penalty
-
-When both dimensions in a pair exceed 0.6, add +50 points each:
-
-| Pair | Rationale |
-|------|-----------|
-| D1 + D2 | Complex + deeply nested |
-| D4 + D3 | Poor names + large functions |
-| D5 + D6 | High coupling + low cohesion |
-
-`CLI = min(999, round((CLI_raw + interaction_penalty) * 1000))`
-
-Maximum penalty: +150 points.
+Per-dimension sub-weights, the sigmoid definition, P90 weighting, and the aggregation/interaction-penalty math live in `references/formulas.md`. The `lib/cli_calculator.py` script is the deterministic source of truth; read the reference only to audit or explain a score.
 
 ## Workflow
 
@@ -116,13 +56,13 @@ Maximum penalty: +150 points.
 ### Phase 2: Dimension Collection (8-12 turns)
 For each D1-D8:
 1. Run tool or fallback command to collect raw metrics
-2. Invoke calculator: `python3 <skill_dir>/lib/cli_calculator.py normalize-d<N> '<json>'`
+2. Invoke calculator: `uv run --no-project python3 <skill_dir>/lib/cli_calculator.py normalize-d<N> '<json>'`
 3. Record: raw metrics, normalized score, tool used, warnings
 
 **Tool priority:** lizard (30+ languages) > language-specific (radon, gocyclo, eslint) > grep/awk/find heuristics.
 
 ### Phase 3: Aggregation (2-3 turns)
-1. Pass all scores: `python3 <skill_dir>/lib/cli_calculator.py aggregate '{"D1": ..., "D8": ...}'`
+1. Pass all scores: `uv run --no-project python3 <skill_dir>/lib/cli_calculator.py aggregate '{"D1": ..., "D8": ...}'`
 2. Identify top 3 dimensions and top 5 worst offenders
 3. Produce report
 

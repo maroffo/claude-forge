@@ -1,7 +1,7 @@
 ---
 name: table-image
 description: "Render markdown tables as hand-drawn sketch images. Use when user wants a table rendered as an image, visual table, or diagram illustration."
-tools: Bash, Read
+allowed-tools: [Bash, Read]
 compatibility: "Requires GEMINI_API_KEY or GOOGLE_API_KEY in environment. Uses ~/.claude/skills/_generate_image.py"
 ---
 

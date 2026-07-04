@@ -1,7 +1,7 @@
 ---
 name: inbox-triage
 description: "Review and prioritize Gmail inbox. Use when user wants to check email, review inbox, or see what needs attention."
-tools: Bash, Read, Write, Edit
+allowed-tools: [Bash, Read, Write, Edit]
 ---
 
 # ABOUTME: Gmail inbox triage - classify unread by priority, suggest actions

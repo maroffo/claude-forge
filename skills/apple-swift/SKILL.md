@@ -17,8 +17,8 @@ allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 xcodebuild -scheme MyApp -sdk iphoneos build
 xcodebuild -scheme MyApp -sdk macosx build
 
-# Tests
-xcodebuild test -scheme MyApp -destination 'platform=iOS Simulator,name=iPhone 16'
+# Tests (pick <booted device> from: xcrun simctl list devices | grep Booted)
+xcodebuild test -scheme MyApp -destination 'platform=iOS Simulator,name=<booted device>'
 
 # SwiftLint / SPM
 swiftlint lint [--fix]
@@ -35,7 +35,7 @@ sg --pattern '@MainActor' --lang swift
 
 ## Version (determine, don't assume)
 
-Never assume a Swift/Xcode version from prior knowledge: it rots fast and you miss CVE fixes. Fetch the truth:
+See `../_LANG_COMMON.md`. Fetch the truth:
 
 ```bash
 swift --version                                 # local toolchain
@@ -45,22 +45,11 @@ grep -E 'swift-tools-version' Package.swift     # SPM minimum
 curl -s https://api.github.com/repos/swiftlang/swift/releases/latest | jq -r .tag_name  # latest upstream
 ```
 
-For a new project, pin to the latest stable. For an existing one, read `Package.swift` (plus `.xcode-version` / `.tool-versions` if present) and prefer idioms gated to that version or lower.
-
 ---
 
 ## Pre-Commit Verification (MANDATORY)
 
-Before every commit, both of these MUST pass:
-
-```bash
-make check       # project-wide gate (lint, types, tests, security)
-make test-e2e    # end-to-end tests (UI tests, integration target, or project's e2e scheme)
-```
-
-If `make check` is missing, scaffold it with the `project-checks` skill. If there is no e2e target, do NOT silently skip: flag it to the user and ask whether to proceed or add one.
-
-Full raw toolchain (what `make check` should expand to):
+`make check && make test-e2e` must pass (enforced by the `pre-commit-gate` hook; see `../_LANG_COMMON.md`). What `make check` expands to for an Apple project:
 
 ```bash
 swift build                                     # compilation check
@@ -68,8 +57,10 @@ swift test                                      # unit tests
 swiftlint lint --strict                         # lint (fail on warnings)
 swift-format lint --recursive Sources Tests     # formatting check
 xcodebuild -scheme MyApp test \
-  -destination 'platform=iOS Simulator,name=iPhone 16'   # platform tests
+  -destination 'platform=iOS Simulator,name=<booted device>'   # platform tests
 ```
+
+Pick `<booted device>` from `xcrun simctl list devices | grep Booted` (do not hardcode a simulator model).
 
 ---
 

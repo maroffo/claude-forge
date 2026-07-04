@@ -1,13 +1,26 @@
 ---
 name: pr-review
-description: "Commit-by-commit PR review with specialized agents, /gemini-review, and /second-opinion. Use when user says review PR, review pull request, analyze PR, or /pr-review. Not for pre-commit review (use gemini-review)."
+description: "PR-level review that composes gemini-review, the orchestrator review fleet, and (when contested) second-opinion, reading each commit's intent before judging. Use when user says review PR, review pull request, analyze PR, pr review, or /pr-review. Not for pre-commit review (use gemini-review)."
 compatibility: "Requires gh CLI, Gemini CLI (GEMINI_API_KEY), and project CLAUDE.md for conventions."
 ---
 
 # ABOUTME: Commit-aware PR review that reads each commit's intent before judging code.
-# ABOUTME: Orchestrates review agents, Gemini batches, and second-opinion rounds with quality gate scoring.
+# ABOUTME: Composes the existing review tiers and reclassifies findings by commit narrative, never re-implementing them.
 
 # PR Review - Commit-by-Commit
+
+## Review Tiers - pick the right one
+
+pr-review is the PR-level tier. It COMPOSES the tiers below; it never re-implements them.
+
+| Tier | What it is | Use when |
+|------|-----------|----------|
+| `gemini-review` | Fast pre-commit review of the working diff | Before committing local changes |
+| Orchestrator Step 3 agents | In-loop review during implementation | While building, routed by file pattern |
+| `advanced-review` | Deep isolated multi-LLM review with hard evidence | High-stakes, thorough audit |
+| `pr-review` (this) | PR-level orchestration over a submitted PR | Reviewing a PR, commit by commit |
+
+pr-review's unique value is **commit-narrative awareness**: reading each commit's intent to tell a deliberate deferral from a bug, then reclassifying findings. Everything else it delegates to the tiers above.
 
 ## Trigger
 
@@ -17,283 +30,103 @@ Activate when user says: "review PR", "review pull request", "analyze PR", "pr r
 
 ```
 /pr-review <number|url>           Review a specific PR
-/pr-review <number> --quick       Skip second-opinion rounds (faster, less thorough)
+/pr-review <number> --quick       Skip the gated second-opinion (faster, less thorough)
 /pr-review <number> --no-gemini   Skip Gemini batches (offline mode)
 ```
 
 ## Why Commit-by-Commit
 
 A monolithic diff loses context. Each commit carries intent via its message:
-- A "fix(security):" commit means the author knew about the vuln
-- A "deferred to phase N" note means incomplete code is intentional
-- A fix commit after a feature commit means the issue was caught and addressed
+- A "fix(security):" commit means the author knew about the vuln.
+- A "deferred to phase N" note means incomplete code is intentional.
+- A fix commit after a feature commit means the issue was caught and addressed.
 
-Reviewing commit-by-commit:
-1. Reduces false positives (distinguishes intent from oversight)
-2. Reveals the development narrative (feature -> review -> fix cycles)
-3. Identifies incomplete fixes (fix attempted but insufficient)
-4. Catches regressions (later commit breaks what earlier commit built)
+This lets the review reduce false positives (intent vs oversight), reveal the development narrative (feature to review to fix cycles), spot incomplete fixes, and catch regressions where a later commit breaks an earlier one.
 
 ## Execution Flow
 
 ### Phase 0: Gather PR metadata
 
 ```bash
-# PR metadata
 gh pr view <N> --json title,body,state,baseRefName,headRefName,additions,deletions,changedFiles,commits,labels,author
-
-# Changed files
 gh pr diff <N> --name-only
-
-# Full diff (save locally for agents)
-gh pr diff <N> > /tmp/pr<N>-diff.patch
-
-# Commit list (chronological)
-gh pr view <N> --json commits --jq '.commits[] | "\(.oid) \(.messageHeadline)"'
+gh pr diff <N> > /tmp/pr<N>-diff.patch                                    # full diff for delegated reviewers
+gh pr view <N> --json commits --jq '.commits[] | "\(.oid) \(.messageHeadline)"'  # chronological commits
 ```
 
 **Scope assessment:**
-- < 300 lines, < 5 files: simple, standard review
-- 300-1000 lines, 5-15 files: moderate, commit-by-commit adds value
-- > 1000 lines or > 15 files: large, commit-by-commit essential + flag scope concern
-- > 5000 lines or > 50 files: excessive, recommend reject-and-split
+- < 300 lines, < 5 files: simple, standard review.
+- 300-1000 lines, 5-15 files: moderate, commit-by-commit adds value.
+- \> 1000 lines or > 15 files: large, commit-by-commit essential + flag scope concern.
+- \> 5000 lines or > 50 files: excessive, recommend reject-and-split.
 
-### Phase 1: Build verification (isolated clone)
+### Phase 1: Isolated build verification
 
-**Never check out the PR on the active repo.** It would contaminate uncommitted work, staged changes, or an unrelated branch in progress. Review always happens in a throwaway clone.
-
-```bash
-# 1. Resolve the repo slug from the current working directory (PR is assumed to target the same repo)
-REPO_SLUG="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
-
-# 2. Fresh clone into a temp directory (full history: Phase 2 needs the commit narrative)
-PR_REVIEW_DIR="$(mktemp -d -t pr-review-<N>-XXXX)"
-gh repo clone "$REPO_SLUG" "$PR_REVIEW_DIR"
-
-# 3. Checkout the PR inside the clone (handles forks automatically)
-git -C "$PR_REVIEW_DIR" fetch origin
-gh -R "$REPO_SLUG" pr checkout <N> --repo "$REPO_SLUG"   # run from $PR_REVIEW_DIR
-# or, inside the clone: (cd "$PR_REVIEW_DIR" && gh pr checkout <N>)
-
-# 4. Run the project's build/test gate in the isolated clone
-(cd "$PR_REVIEW_DIR" && make check)    # or equivalent from CLAUDE.md
-
-# 5. Export the path for every subsequent phase
-export PR_REVIEW_DIR
-```
-
-All subsequent phases (Gemini batches, specialized agents, source verification for CRITICAL findings) MUST run with `$PR_REVIEW_DIR` as the working directory. The original repo is read-only from here on.
-
-If build fails, determine if pre-existing (check base branch **inside the clone**, e.g. `git -C "$PR_REVIEW_DIR" checkout <base> && make check`) or introduced by PR. Restore the PR branch afterward.
-
-**Disk/time budget:** a full clone of a large repo can be slow. For repos > 1 GB or > 100k commits, use `gh repo clone "$REPO_SLUG" "$PR_REVIEW_DIR" -- --filter=blob:none` (partial clone: objects fetched on demand). Do NOT use `--depth N`: Phase 2 needs the commit graph back to the PR's merge base.
+Never check out the PR on the active repo: review always happens in a throwaway clone so uncommitted work is never contaminated. Clone, checkout the PR, run the project gate (`make check` or the CLAUDE.md equivalent), and export `$PR_REVIEW_DIR` for every later phase. Full mechanics, partial-clone budget, and base-branch comparison: `references/isolated-clone.md`.
 
 ### Phase 2: Commit narrative analysis
 
-Read each commit in chronological order (oldest first). For each commit, extract:
+Read each commit oldest-first. For each, extract intent (message subject + body), scope (`--stat`), type (conventional prefix), and whether it responds to a prior review ("address findings", "fix Gemini review").
 
-| Field | Source |
-|-------|--------|
-| Intent | Commit message (subject + body) |
-| Scope | `--stat` (files changed, insertions, deletions) |
-| Type | Conventional commit prefix: feat/fix/refactor/docs/chore/perf/test |
-| Review response? | Does the message reference a prior review? ("address findings", "fix Gemini review") |
+Build a commit graph tracking `introduced_in[finding]`, `fixed_in[finding]`, and `still_open[finding]`. Signals to watch:
+- **fix after feat**: author caught something (verify the fix is complete).
+- **"deferred to" / "phase N" / "TODO"**: intentional incompleteness (note, don't penalize as a bug).
+- **duplicate commit messages**: rebase or amend residue (process smell).
+- **"address review findings"**: cross-reference the review it responds to.
+- **nolint / shellcheck disable**: conscious suppression (verify justification).
 
-Build a **commit graph** tracking:
-- `introduced_in[finding] = commit_sha` - which commit introduced a pattern
-- `fixed_in[finding] = commit_sha` - which commit attempted to fix it
-- `still_open[finding] = true` - fix was incomplete or never attempted
+### Phase 3: Delegate specialized review
 
-Key signals to watch:
-- **fix after feat**: the author caught and addressed something (verify completeness)
-- **"deferred to"/"phase N"/"TODO"**: intentional incompleteness (note, don't penalize as bug)
-- **duplicate commit messages**: rebase artifact or amend residue (process smell)
-- **"address review findings"**: cross-reference with the review it responds to
-- **shellcheck disable / nolint**: conscious suppression (verify justification)
+Route reviewers by file pattern using the **Review Routing table in `rules/orchestrator-protocol.md` (Step 3)**. Do not duplicate that table here; apply it as written. In parallel, run `/gemini-review` on the diff segmented by package (target < 3000 lines per segment) using `prompts/gemini-segment.md`.
 
-### Phase 3: Specialized review agents (parallel)
+Each delegated reviewer receives the full diff (`/tmp/pr<N>-diff.patch`), the project CLAUDE.md conventions, and `$PR_REVIEW_DIR` as the working directory, with instructions to read real source (never hallucinate) and classify each finding as Critical/Major/Minor with exact `file:line`.
 
-Launch review agents based on file patterns (max 3 parallel per orchestrator rules):
+Gemini hallucination patterns to filter (cross-validate every Gemini Critical against source): language-feature availability by version, database-engine limits misattributed across engines, standard-library APIs that do not exist.
 
-| Pattern | Agents |
-|---------|--------|
-| `*.go`, `*.py`, `*.ts`, `*.rb`, `*.kt`, `*.swift` | architecture-reviewer + security-reviewer |
-| Hot paths, queries, caching | + performance-reviewer |
-| `*_test.*`, `*_spec.*` | + test-reviewer |
-| `go.mod`, `Gemfile`, `package.json`, `pyproject.toml` | dependency-reviewer |
-| `migrations/`, `schema.rb`, `*.sql` | database-reviewer |
-| `docs/`, `README*`, `ADR/`, `*.md` | dx-reviewer |
-| K8s manifests, Dockerfiles, CI configs | cloud-infrastructure (if available) |
+### Phase 4: Commit-context reclassification (unique value)
 
-Each agent receives:
-- The full diff (`/tmp/pr<N>-diff.patch`)
-- The project's CLAUDE.md conventions
-- **The working directory: `$PR_REVIEW_DIR`** (the isolated clone from Phase 1). All source reads go there, never the active repo.
-- Instruction to read actual source files (not hallucinate)
-- Instruction to classify as Critical/Major/Minor with exact file:line
-
-### Phase 4: Gemini code review (parallel with Phase 3)
-
-Segment the diff by package/area to stay under Gemini's effective context:
-
-```bash
-# Segment by top-level package (target: < 3000 lines per segment)
-git diff <base>...<head> -- <package_path> > /tmp/pr<N>-<segment>.diff
-```
-
-For each segment, invoke `/gemini-review` with:
-- Project context (language, conventions from CLAUDE.md)
-- Segment-specific focus areas
-- The prompt from `~/.claude/skills/pr-review/prompts/gemini-segment.md`
-
-**Known Gemini hallucination patterns to filter:**
-- Language feature availability (e.g., flagging Go 1.25+ features as errors)
-- Database engine limitations (e.g., attributing MySQL limits to PostgreSQL)
-- Standard library API existence (verify against actual Go/language version)
-
-Cross-validate every Gemini CRITICAL against source code before accepting.
-
-### Phase 5: Second opinion - plan adherence (round 1)
-
-After Phases 2-4 complete, invoke `/second-opinion` with:
-
-```
-CONTEXT:
-- The review plan (which agents ran, what areas covered)
-- Consolidated findings so far (CRITICAL/MAJOR/MINOR counts by domain)
-- Specific questions:
-  1. Are we respecting the review plan? Missing any areas?
-  2. Any blind spots for a PR of this scope?
-  3. Which findings overlap and how to deduplicate?
-  4. Any findings that smell like hallucinations needing source verification?
-```
-
-Act on Gemini's feedback: verify contested findings, investigate blind spots.
-
-### Phase 6: Commit-context reclassification
-
-Cross-reference Phase 3-4 findings with Phase 2 commit narrative:
-
-For each finding, ask:
-1. **Which commit introduced it?** (git log -S or blame)
-2. **Was there a fix commit?** (search for "fix" commits touching the same file)
-3. **Is the fix complete?** (read the fix diff)
-4. **Was it intentional?** (commit message says "deferred", "TODO", "phase N")
-
-Reclassification rules:
+Cross-reference Phase 3 findings against the Phase 2 narrative. For each finding: which commit introduced it, was there a fix commit, is the fix complete, was it intentional?
 
 | Commit context | Effect on severity |
 |----------------|-------------------|
 | Bug with no fix attempt | Keep severity |
-| Fix attempted but incomplete | Keep severity, note partial fix in description |
+| Fix attempted but incomplete | Keep severity, note partial fix |
 | Intentional deferral with TODO | Downgrade 1 level if tracked, keep if untracked |
 | Intentional design choice with justification | Downgrade 1 level, note rationale |
-| Pre-existing on base branch (not introduced by PR) | Note as pre-existing, still must fix per green-pipeline rule |
-| Conscious suppression (nolint/shellcheck disable) with valid reason | Downgrade to MINOR |
+| Pre-existing on base branch (not introduced by PR) | Note as pre-existing, still must fix (green-pipeline rule) |
+| Conscious suppression with valid reason | Downgrade to Minor |
 | Conscious suppression without justification | Keep severity |
 
-### Phase 7: Consolidation and scoring
+### Phase 5: Consolidation and scoring
 
-**Deduplication**: when multiple reviewers find the same issue, keep one entry with cross-references: `[Security/Architecture]`.
+Deduplicate: when several reviewers find the same issue, keep one entry with cross-references, e.g. `[Security/Architecture]`. Order the report by severity (Critical first), then by component within each band.
 
-**Presentation order**: by severity (CRITICAL first), then by component within severity bands. Not by domain.
+Score per `rules/quality-gates.md` (Critical = auto-fail, Major -10, Minor -3; commit >= 80, PR merge >= 90, excellence >= 95). Do not restate the rubric here.
 
-**Scoring** (per quality-gates rules):
+### Phase 6: Second opinion (gated)
 
-| Category | Rule |
-|----------|------|
-| CRITICAL | Auto-fail (score = 0). Must fix before merge. |
-| MAJOR | -10 each. Start at 100. |
-| MINOR | -3 each. |
-| Threshold: commit | >= 80 |
-| Threshold: PR merge | >= 90 |
-| Threshold: excellence | >= 95 |
+Invoke `/second-opinion` **only when** reviewer verdicts conflict or a Critical finding is contested. Otherwise skip it: it spins up isolated containers and is not free. When invoked, pass the disputed finding(s), the conflicting verdicts, and ask which classification is correct and why. Synthesize the answer into the final severities.
 
-### Phase 8: Second opinion - final validation (round 2)
+### Phase 7: Present report
 
-Invoke `/second-opinion` with the complete consolidated report:
+Use the report structure in `references/output-format.md`: header (branch, scope, score, reviewers, hallucinations caught), commit narrative, Critical/Major/Minor sections, a reclassifications table, dependencies, process observations, and a recommendation (APPROVE / FIX BEFORE MERGE / REJECT AND SPLIT).
 
-```
-CONTEXT:
-- Full findings list with severity and commit context
-- Scoring calculation
-- Specific questions:
-  1. Is the severity classification fair and accurate?
-  2. Any findings misclassified (too harsh or too lenient)?
-  3. Is the scoring methodology correct?
-  4. Are we missing anything obvious?
-```
+### Phase 8: Cleanup
 
-Synthesize: adjust classifications based on Gemini's challenges.
-
-### Phase 9: Present report
-
-Structure:
-
-```markdown
-# PR Review: <title>
-
-**Branch**: <head> -> <base>
-**Scope**: <additions> additions, <deletions> deletions, <files> files, <commits> commits
-**Score**: <N> (<gate status>)
-**Reviewers**: <list of agents + Gemini batches + second-opinion rounds>
-**Hallucinations caught**: <count> (<brief description>)
-
-## Commit Narrative
-<Brief story: how the PR evolved, review-fix cycles, intentional deferrals>
-
-## CRITICAL (auto-fail)
-<Table: #, Finding, File:Line, Introduced in, Fix attempted?, Source>
-
-## MAJOR
-<Table: #, Finding, File:Line, Commit context, Source>
-
-## MINOR
-<Summary count + notable items>
-
-## Reclassifications (commit context)
-<Table: Finding, Original severity, New severity, Reason>
-
-## Dependencies
-<CVE count, new deps, license status>
-
-## Process Observations
-<Scope concern if applicable, commit hygiene, review-fix pattern quality>
-
-## Recommendation
-<APPROVE / FIX BEFORE MERGE / REJECT AND SPLIT>
-<If split: proposed PR breakdown>
-```
-
-### Phase 10: Cleanup
-
-Always remove the temporary clone after the report is delivered, regardless of outcome (approve / fix / reject):
+Always remove the temp clone after the report, whatever the outcome, and even on interruption (build failure, agent timeout, user abort):
 
 ```bash
-rm -rf "$PR_REVIEW_DIR"
-unset PR_REVIEW_DIR
+rm -rf "$PR_REVIEW_DIR"; unset PR_REVIEW_DIR
 ```
 
-If the review is interrupted mid-flow (build failure, agent timeout, user abort), still run the cleanup. Stale `pr-review-*` directories under `$TMPDIR` are safe to delete at any time.
+Stale `pr-review-*` directories under `$TMPDIR` are safe to delete at any time.
 
 ## Quality Notes
 
-- **Never relay raw agent output**: synthesize, deduplicate, verify
-- **Every CRITICAL must be source-verified**: read the actual file:line before reporting
-- **Gemini hallucinations are common**: cross-validate language features, DB engine capabilities
-- **Commit context changes severity**: a conscious deferral is not the same as a bug
-- **Pre-existing issues**: still block (green pipeline is everyone's responsibility) but don't penalize the PR author's score
-- **Large PRs (> 50 files)**: always recommend reject-and-split, even if code quality is high
+- **Never relay raw agent output**: synthesize, deduplicate, verify.
+- **Every Critical must be source-verified**: read the actual `file:line` before reporting.
+- **Commit context changes severity**: a conscious deferral is not a bug.
+- **Pre-existing issues**: still block (green pipeline is everyone's responsibility) but don't penalize the author's score.
+- **Large PRs (> 50 files)**: always recommend reject-and-split, even if quality is high.
 
-## Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| PR too large for Gemini | Segment by package, < 3000 lines per segment |
-| Agent returns hallucinated findings | Verify against source; check language version, DB engine |
-| Build fails on base branch too | Note as pre-existing; still blocks merge |
-| Too many findings to present | Group MINOR as count; focus report on CRITICAL + MAJOR |
-| Commit messages are useless ("fix", "wip") | Fall back to diff-only review; note poor commit hygiene |
-| Clone fails (network, auth) | Review the diff only (`gh pr diff`); skip Phase 1 build verification and flag it as "unverified build" in the report |
-| Not enough disk for full clone | Re-run with `--filter=blob:none` (partial clone). Do NOT use `--depth`: commit history is needed for Phase 2 |
-| `$PR_REVIEW_DIR` survives after abort | `rm -rf "$TMPDIR"/pr-review-* ` is always safe; only temp clones live there |
+See `references/isolated-clone.md` for clone mechanics and the full troubleshooting table.

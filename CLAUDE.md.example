@@ -66,8 +66,11 @@ Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes 
 | Legacy/untested code | `legacy-code-expert` |
 | Code review (pre-commit) | `gemini-review` |
 | PR review (commit-aware) | `pr-review` |
-| Second opinion (Gemini) | `second-opinion` |
+| Deep multi-LLM review | `advanced-review` |
+| Quality gate scoring | `score` |
+| Second opinion (Claude+Gemini+DeepSeek) | `second-opinion` |
 | Test quality assessment | `test-design-reviewer` |
+| Makefile check scaffolding | `project-checks` |
 | Release/tag | `releasing-software` |
 | Project retrospective | `learning-docs` |
 | Knowledge sync | `knowledge-sync` |

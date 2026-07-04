@@ -26,29 +26,18 @@ golangci-lint run
 
 ## Version (determine, don't assume)
 
-Never assume a Go version from prior knowledge: it rots fast and you miss CVE fixes. Fetch the truth:
+See `../_LANG_COMMON.md`. Fetch the truth:
 
 ```bash
 go version                                      # project toolchain (for existing repos: also check go.mod)
 curl -s https://go.dev/VERSION?m=text | head -1 # latest upstream stable (for new projects)
 ```
 
-For a new project, pin to the latest stable. For an existing one, read `go.mod` and prefer idioms gated to that version or lower.
-
 ---
 
 ## Pre-Commit Verification (MANDATORY)
 
-Before every commit, both of these MUST pass:
-
-```bash
-make check       # project-wide gate (lint, vet, fmt, vuln, unit tests)
-make test-e2e    # end-to-end tests (or the project's e2e target: e2e, test-integration, etc.)
-```
-
-If `make check` is missing, scaffold it with the `project-checks` skill. If there is no e2e target, do NOT silently skip: flag it to the user and ask whether to proceed or add one.
-
-Full raw toolchain (what `make check` should expand to):
+`make check && make test-e2e` must pass (enforced by the `pre-commit-gate` hook; see `../_LANG_COMMON.md`). What `make check` expands to for Go:
 
 ```bash
 gofmt -w .                    # Fix formatting FIRST (sqlc/codegen can misalign)

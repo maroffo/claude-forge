@@ -2,7 +2,7 @@
 name: mauro-blogger
 description: "Write blog posts in Mauro Medda's voice for mauro.medda.xyz. Use when user says mauro blog, post per mauro, write as mauro, mauro blogger. Two registers: founder/reflective essays and no-fluff technical how-tos, tone extracted from his published posts. Drafts to Mauro-Blog vault folder, humanizes. Not for Max's blog (use blog-writer)."
 compatibility: "Reference posts in the Obsidian vault folder Mauro-Blog/. Follows blog-writer workflow rules and humanizer patterns."
-tools: Bash, Read, Write, Edit, AskUserQuestion, WebFetch, WebSearch
+allowed-tools: [Bash, Read, Write, Edit, AskUserQuestion, WebFetch, WebSearch]
 ---
 
 # ABOUTME: Write blog posts in Mauro Medda's voice, drafted into the Mauro-Blog vault folder

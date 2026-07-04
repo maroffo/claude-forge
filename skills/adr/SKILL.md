@@ -45,6 +45,8 @@ For HikmaAI projects, always check:
 
 **The Linear ticket number IS the ADR number.** No separate counter. Gaps in numbering are expected.
 
+Before calling any `mcp__linear-server__*` tool (here and in Step 10), verify it exists in the current session; MCP tool names change, so fall back to the Linear web UI if it is absent.
+
 ```
 mcp__linear-server__save_issue:
   title: "ADR: {Decision Title}"
@@ -76,69 +78,7 @@ Example: `adr/249-mirsad-cryptographic-decision-trail`
    - `**Linear:** [HIK-{NNN}](https://linear.app/hikmaai/issue/HIK-{NNN})`
    - `**Obsidian:** [[{NNN}-{kebab-title}]]`
 
-Follow the HikmaAI ADR format exactly:
-
-```markdown
-# ADR-{NNN}: Title
-
-- **Status:** Drafting
-- **Date:** YYYY-MM-DD
-- **Author:** Max Aroffo
-- **Linear:** [HIK-{NNN}](https://linear.app/hikmaai/issue/HIK-{NNN})
-- **Obsidian:** [[{NNN}-{kebab-title}]]
-- **Context:** One-line summary of what prompted this
-- **Tags:** #hikmaai #project #adr #topic1 #topic2
-- **Second opinions:** (Optional. Summary of external review)
-
-## Context
-
-What converged to force this decision? Name specific inputs
-(analysis, feedback, incidents, technical debt). 2-3 paragraphs max.
-
----
-
-## Part A/B/C: [Themed Sections]
-
-Break complex decisions into labeled parts. Each part:
-- Current state (what exists)
-- Analysis (options, trade-offs, comparisons)
-- Tables for structured comparisons
-
-Use as many parts as the decision requires. Simple ADRs may
-have just Context + Decision + Consequences (no parts).
-
----
-
-## Decision
-
-State the decision clearly. Bold the core choice.
-Rationale as bullet points. Include what was deferred and why.
-
-## Technical Design (if applicable)
-
-Concrete: API schemas, code snippets, config examples,
-deployment patterns. Enough detail to implement from.
-
-## Roadmap (if applicable)
-
-Phased plan with dependencies. No time estimates in the ADR
-itself (those go in implementation plans).
-
-## Consequences
-
-Bullet list: what follows from this decision.
-Include both positive and negative consequences.
-
-## Open Questions
-
-Numbered list of unresolved items. Each should be a
-specific question with concrete options, not vague.
-
-## References
-
-Links to external docs, internal vault notes, prior ADRs,
-relevant source code.
-```
+Follow the HikmaAI ADR format exactly (full section-by-section template in `references/adr-format.md`).
 
 ### Step 6: Update README.md
 
@@ -181,8 +121,10 @@ git commit -m "docs: ADR-{NNN} {Title} (HIK-{NNN})
 
 {One-line summary of the decision.}
 
-Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
+Co-Authored-By: Claude <model> <noreply@anthropic.com>"
 ```
+
+Replace `<model>` with the current model name (e.g. the model running this session); do not hardcode a specific version.
 
 **Push + PR:**
 ```bash

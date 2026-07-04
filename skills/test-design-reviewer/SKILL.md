@@ -45,18 +45,7 @@ Rate each property 0-10 across the test suite. Provide evidence.
 - **Blend**: `final_property_score = 0.60 * static_score + 0.40 * llm_score` per property
 - **Conservative default**: when no signals detected for a property, default to 5.0 (unknown quality, not good quality)
 
-**Per-property scoring rubrics** (anchor scores to these bands):
-
-| Property | 9-10 | 7-8 | 5-6 | 3-4 | 1-2 |
-|----------|-------|------|------|------|------|
-| U | Reads like specs; behavior clear without reading impl | Clear with minor ambiguities | Requires code inspection to understand | Cryptic; relies on impl details | test1/test2; magic numbers throughout |
-| M | Proper abstractions; verifies behavior not impl | Good separation; occasional brittleness | Some impl coupling; some over-specified mocks | Tightly coupled; verify with exact counts | Reflection for private fields; mirrors impl exactly |
-| R | Fully deterministic; no external deps | Rarely flaky; minimal env deps | Occasional flakiness; timing deps | Filesystem, timing, env deps present | sleep, file I/O, network, system time, unseeded random |
-| A | Fully isolated; no shared state; parallelizable | Mostly isolated; minor shared setup | Some shared state; order sometimes matters | Heavy interdeps; must run in order | Shared mutable statics; ordering annotations |
-| N | Every test adds unique value; parameterized for variations | Most tests valuable; minor redundancy | Checkbox exercises; moderate redundancy | Redundant tests; framework testing; mock tautologies | assertTrue(true); disabled tests; tests verify only mocks |
-| G | Each test verifies single outcome; pinpoints issues | Focused; occasional logical assertion groups | Multiple behaviors; failure diagnosis takes effort | Sprawling; multiple unrelated assertions | 20+ assertions; testEverything() methods |
-| F | Pure computation; no I/O; milliseconds | Quick; minor optimization opportunities | Some slow tests; noticeable suite time | File I/O or database calls | sleep, network calls, heavy setup/teardown |
-| T | Clear test-first evidence; tests drive design | Likely test-first; good design influence | Unclear; tests may be afterthoughts | Mirrors impl; likely test-after; mock-heavy | Clearly written after code; coverage patches |
+**Per-property scoring rubrics:** anchor each 0-10 score to the full 8-properties x 5-bands matrix in `references/bands.md`. Rough guide: 9-10 exemplary, 7-8 strong, 5-6 mixed, 3-4 weak, 1-2 harmful.
 
 **Aggregation methodology:**
 - **Per-test-method**: collect signals at individual method level
@@ -158,13 +147,13 @@ Commands: `normalize-property`, `blend-scores`, `compute-farley`, `get-rating`, 
 
 ```bash
 # Normalize a single property from signal counts
-python lib/cli_calculator.py normalize-property '{"prop":"U","neg_count":2,"pos_count":8,"total_methods":20}'
+uv run python3 lib/cli_calculator.py normalize-property '{"prop":"U","neg_count":2,"pos_count":8,"total_methods":20}'
 
 # Compute Farley Index from 8 blended scores
-python lib/cli_calculator.py compute-farley '{"U":8.5,"M":7.0,"R":9.0,"A":8.0,"N":7.5,"G":8.0,"F":6.0,"T":7.0}'
+uv run python3 lib/cli_calculator.py compute-farley '{"U":8.5,"M":7.0,"R":9.0,"A":8.0,"N":7.5,"G":8.0,"F":6.0,"T":7.0}'
 
 # End-to-end: raw signals + optional LLM scores -> index + rating
-python lib/cli_calculator.py full-pipeline '{"properties":{"U":{"neg_count":2,"pos_count":8,"total_methods":20},...},"llm_scores":{"U":8.0,...}}'
+uv run python3 lib/cli_calculator.py full-pipeline '{"properties":{"U":{"neg_count":2,"pos_count":8,"total_methods":20},...},"llm_scores":{"U":8.0,...}}'
 ```
 
 ## Common Issues
