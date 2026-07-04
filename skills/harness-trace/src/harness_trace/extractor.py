@@ -153,6 +153,47 @@ def _apply_verify_result(entry: TraceEntry, cmd: str, is_error: bool, text: str)
         entry.data[field] = success
 
 
+# Markdown heading (or bold line) opening a severity section in a reviewer report,
+# e.g. "### MAJOR (internal contradictions)" or "**CRITICAL**".
+REVIEW_SECTION_PATTERN = re.compile(
+    r"^(?:#{1,6}\s*|\*\*)(CRITICAL|MAJOR|MINOR)\b", re.MULTILINE
+)
+REVIEW_BULLET_PATTERN = re.compile(r"^(?:[-*]|\d+\.)\s+", re.MULTILINE)
+
+
+def _parse_review_sections(text: str) -> dict[str, int]:
+    """Count findings from '### SEVERITY' sections: one bullet = one finding."""
+    matches = list(REVIEW_SECTION_PATTERN.finditer(text))
+    findings: dict[str, int] = {}
+    for i, m in enumerate(matches):
+        sev = m.group(1).upper()
+        section_end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        body = text[m.end():section_end]
+        # Cut at the next non-severity heading so trailing sections don't bleed in.
+        next_heading = re.search(r"^#{1,6}\s", body, re.MULTILINE)
+        if next_heading:
+            body = body[:next_heading.start()]
+        findings[sev] = findings.get(sev, 0) + len(REVIEW_BULLET_PATTERN.findall(body))
+    return findings
+
+
+def _apply_review_result(entry: TraceEntry, text: str) -> None:
+    """Fill a pending REVIEW entry's findings from the reviewer's returned report.
+
+    Two formats are recognized: explicit counts ("MAJOR: 1") and section-style
+    reports ("### MAJOR" followed by one bullet per finding). Anything else
+    leaves findings empty rather than fabricating counts.
+    """
+    findings: dict[str, int] = {}
+    for sm in FINDINGS_PATTERN.finditer(text):
+        sev = sm.group(1).upper()
+        findings[sev] = findings.get(sev, 0) + int(sm.group(2))
+    if not findings:
+        findings = _parse_review_sections(text)
+    if findings:
+        entry.data["findings"] = findings
+
+
 def _bash_command(tool_input: dict[str, Any]) -> str:
     return str(tool_input.get("command", ""))
 
@@ -232,6 +273,7 @@ def _process_tool_use(
     entries: list[TraceEntry],
     tool_signaled_steps: set[str],
     pending_verify: dict[str, tuple[TraceEntry, str]],
+    pending_review: dict[str, TraceEntry],
 ) -> None:
     """Emit trace entries derived from a single tool_use block."""
 
@@ -249,12 +291,16 @@ def _process_tool_use(
                 "decision_basis": "explicit subagent_type",
             },
         ))
-        # If the agent is a reviewer, also emit a REVIEW entry.
+        # If the agent is a reviewer, also emit a REVIEW entry; findings are
+        # filled from the reviewer's tool_result when it arrives.
         if subagent.endswith("-reviewer"):
-            entries.append(_new_entry(
+            entry = _new_entry(
                 session_slug, ts, "REVIEW",
                 {"agents": [subagent], "findings": {}},
-            ))
+            )
+            entries.append(entry)
+            if block_id:
+                pending_review[block_id] = entry
             tool_signaled_steps.add("REVIEW")
         elif subagent == "software-engineer":
             counters["engineer_calls"] += 1
@@ -402,6 +448,8 @@ def extract_traces(session_path: Path, session_slug: str | None = None) -> list[
     tool_signaled_steps: set[str] = set()
     # tool_use_id -> (VERIFY entry, bash command); outcome filled by the paired tool_result.
     pending_verify: dict[str, tuple[TraceEntry, str]] = {}
+    # tool_use_id -> REVIEW entry; findings filled from the reviewer's tool_result.
+    pending_review: dict[str, TraceEntry] = {}
     seen_text_step_keys: set[str] = set()
     ts_start: datetime | None = None
     ts_end: datetime | None = None
@@ -426,6 +474,9 @@ def extract_traces(session_path: Path, session_slug: str | None = None) -> list[
                     if pending is not None:
                         v_entry, v_cmd = pending
                         _apply_verify_result(v_entry, v_cmd, is_error, result_text)
+                    r_entry = pending_review.pop(tool_use_id, None)
+                    if r_entry is not None and not is_error:
+                        _apply_review_result(r_entry, result_text)
                 continue
             if msg.get("type") != "assistant":
                 continue
@@ -439,7 +490,8 @@ def extract_traces(session_path: Path, session_slug: str | None = None) -> list[
             for block_id, name, tool_input in _iter_tool_uses(msg):
                 _process_tool_use(
                     block_id, name, tool_input, ts, session_slug,
-                    counters, entries, tool_signaled_steps, pending_verify,
+                    counters, entries, tool_signaled_steps,
+                    pending_verify, pending_review,
                 )
 
             text = _get_message_text(msg)

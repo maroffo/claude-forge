@@ -276,6 +276,94 @@ class TestVerifyOutcomeCapture:
         assert pytest_ok.data.get("build_ok") is None
 
 
+class TestReviewFindingsCapture:
+    """REVIEW entries must carry the severity counts from the reviewer's returned report."""
+
+    def test_reviewer_result_populates_findings(self, tool_result_session_jsonl: Path):
+        entries = extract_traces(tool_result_session_jsonl, session_slug="tr")
+        review = next(e for e in entries if e.step == "REVIEW")
+        assert review.data.get("findings") == {"CRITICAL": 0, "MAJOR": 1, "MINOR": 2}
+
+    def test_reviewer_without_result_keeps_empty_findings(self, tmp_path: Path):
+        """Truncated session: Agent call with no tool_result -> findings stay {}."""
+        msgs = [{
+            "type": "assistant", "timestamp": 1715900000000,
+            "message": {"content": [{
+                "type": "tool_use", "id": "tu_r", "name": "Agent",
+                "input": {"subagent_type": "security-reviewer", "description": "review"},
+            }]},
+        }]
+        f = tmp_path / "orphan-review.jsonl"
+        with f.open("w") as fp:
+            for m in msgs:
+                fp.write(json.dumps(m) + "\n")
+        entries = extract_traces(f, session_slug="orphan")
+        review = next(e for e in entries if e.step == "REVIEW")
+        assert review.data.get("findings") == {}
+
+    def test_section_style_report_counts_bullets(self, tmp_path: Path):
+        """Real reviewers write '### MAJOR' sections with bullets, not 'MAJOR: 1'."""
+        report = (
+            "## DX Review\n\n"
+            "### CRITICAL\nNone.\n\n"
+            "### MAJOR (internal contradictions)\n"
+            "- **README.md:255** contradicts the new rule\n"
+            "- **SKILL.md:12** stale reference\n\n"
+            "### MINOR\n"
+            "- typo in header\n"
+        )
+        msgs = [
+            {
+                "type": "assistant", "timestamp": 1715900000000,
+                "message": {"content": [{
+                    "type": "tool_use", "id": "tu_r", "name": "Agent",
+                    "input": {"subagent_type": "dx-reviewer", "description": "review"},
+                }]},
+            },
+            {
+                "type": "user", "timestamp": 1715900005000,
+                "message": {"content": [{
+                    "type": "tool_result", "tool_use_id": "tu_r",
+                    "content": [{"type": "text", "text": report}],
+                }]},
+            },
+        ]
+        f = tmp_path / "section-review.jsonl"
+        with f.open("w") as fp:
+            for m in msgs:
+                fp.write(json.dumps(m) + "\n")
+        entries = extract_traces(f, session_slug="section")
+        review = next(e for e in entries if e.step == "REVIEW")
+        assert review.data.get("findings") == {"CRITICAL": 0, "MAJOR": 2, "MINOR": 1}
+
+    def test_unparseable_review_result_keeps_empty_findings(self, tmp_path: Path):
+        """Reviewer output without severity counts must not fabricate findings."""
+        msgs = [
+            {
+                "type": "assistant", "timestamp": 1715900000000,
+                "message": {"content": [{
+                    "type": "tool_use", "id": "tu_r", "name": "Agent",
+                    "input": {"subagent_type": "dx-reviewer", "description": "review"},
+                }]},
+            },
+            {
+                "type": "user", "timestamp": 1715900005000,
+                "message": {"content": [{
+                    "type": "tool_result", "tool_use_id": "tu_r",
+                    "is_error": False,
+                    "content": [{"type": "text", "text": "Everything looks good, ship it."}],
+                }]},
+            },
+        ]
+        f = tmp_path / "clean-review.jsonl"
+        with f.open("w") as fp:
+            for m in msgs:
+                fp.write(json.dumps(m) + "\n")
+        entries = extract_traces(f, session_slug="clean")
+        review = next(e for e in entries if e.step == "REVIEW")
+        assert review.data.get("findings") == {}
+
+
 class TestWriteTraces:
     def test_write_and_read_back(self, sample_session_jsonl: Path, tmp_path: Path):
         entries = extract_traces(sample_session_jsonl, session_slug="test")
