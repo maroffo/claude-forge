@@ -145,6 +145,37 @@ def check_skill_schema(files):
     return failures
 
 
+def check_agent_schema(files):
+    """AGENT.md validation, mirroring check_skill_schema: frontmatter must parse
+    at the top of the file, name must match the directory, description must be
+    present and sane. Unlike skills, agents have no ABOUTME-only fallback: an
+    unparseable AGENT.md is an unspawnable agent (2026-07-04: harness-mechanic)."""
+    failures = []
+    for f in files:
+        if f.name != "AGENT.md":
+            continue
+        m = FRONTMATTER_RE.match(f.read_text())
+        if m is None:
+            failures.append(f"{f.relative_to(ROOT)}: no frontmatter at top of file (agent will not register)")
+            continue
+        fm = m.group(1)
+        nm = re.search(r"^name:\s*(.+)$", fm, re.M)
+        dm = re.search(r"^description:\s*(.+)$", fm, re.M)
+        if nm:
+            name = nm.group(1).strip().strip('"\'')
+            if name != f.parent.name:
+                failures.append(f"{f.relative_to(ROOT)}: name '{name}' does not match dir '{f.parent.name}'")
+        else:
+            failures.append(f"{f.relative_to(ROOT)}: no name")
+        if dm:
+            desc = dm.group(1).strip().strip('"\'')
+            if len(desc) < 20 or len(desc) > 2500:
+                failures.append(f"{f.relative_to(ROOT)}: description length out of range ({len(desc)} chars)")
+        else:
+            failures.append(f"{f.relative_to(ROOT)}: no description")
+    return failures
+
+
 def check_frontmatter_first(files):
     """SKILL.md and AGENT.md must OPEN with the YAML frontmatter. ABOUTME (or
     anything else) above the first `---` makes the registry publish the wrong
@@ -191,6 +222,7 @@ def main():
         # Schema also runs here so the pre-commit gate can safely skip
         # test-e2e on docs-only commits without losing SKILL.md validation.
         rc |= report("skill schema (name=dir, description length)", check_skill_schema(files))
+        rc |= report("agent schema (frontmatter parses, name=dir, description)", check_agent_schema(files))
     elif args.mode == "test-e2e":
         rc |= report("skill schema (name=dir, description length)", check_skill_schema(files))
     sys.exit(1 if rc else 0)

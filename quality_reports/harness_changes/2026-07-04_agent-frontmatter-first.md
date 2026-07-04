@@ -37,3 +37,4 @@ If harness-mechanic still does not appear in the next session's agent list, the 
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-04 | 1 session | harness-mechanic appeared in the Agent tool registry within the SAME session, minutes after deploying the fixed AGENT.md (registry hot-reloads; the "next session" caveat was too pessimistic) | kept |
