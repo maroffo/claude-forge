@@ -6,11 +6,18 @@ set -u
 
 # Read the Bash tool input JSON from stdin
 payload=$(cat)
+
+# Safety gate: if jq is missing we cannot inspect the command; fail closed.
+if ! command -v jq >/dev/null 2>&1; then
+  printf '%s' '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"pre-commit-gate: jq not found, cannot inspect the command. Install jq (brew install jq) and retry."}}'
+  exit 0
+fi
 cmd=$(printf '%s' "$payload" | jq -r '.tool_input.command // empty')
 
 # Only act on `git commit` (bare, or with args/flags). Exclude `git commit-tree`.
 # Match: start-of-command OR preceded by shell separator, then `git`+space+`commit`, then space/end.
-if ! printf '%s' "$cmd" | grep -qE '(^|[;&|[:space:]])git[[:space:]]+commit([[:space:]]|$)'; then
+# Also matches `git -C <path> commit` (unquoted/space-free path).
+if ! printf '%s' "$cmd" | grep -qE '(^|[;&|[:space:]])git[[:space:]]+(-C[[:space:]]+[^[:space:]]+[[:space:]]+)?commit([[:space:]]|$)'; then
   exit 0
 fi
 

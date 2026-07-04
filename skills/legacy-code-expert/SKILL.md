@@ -1,11 +1,11 @@
-# ABOUTME: Feathers' dependency-breaking techniques for safely modifying untested legacy code
-# ABOUTME: Seam identification, change point analysis, characterization test planning
-
 ---
 name: legacy-code-expert
 description: "Safely modify legacy code lacking tests. Identifies seams, breaks dependencies, plans characterization tests. Invoke before verification-protocol when touching untested code with tangled dependencies."
 tools: Read, Grep, Glob, Bash, Edit, Write, AskUserQuestion
 ---
+
+# ABOUTME: Feathers' dependency-breaking techniques for safely modifying untested legacy code
+# ABOUTME: Seam identification, change point analysis, characterization test planning
 
 # Legacy Code Expert
 

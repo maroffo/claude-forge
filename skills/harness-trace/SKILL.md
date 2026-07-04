@@ -1,11 +1,11 @@
-# ABOUTME: Structured execution trace capture and token baselining for claude-forge
-# ABOUTME: Extracts traces from session JSONL, counts tokens with tiktoken, generates baselines
-
 ---
 name: harness-trace
 description: "Execution trace capture and token baselining. Use when user says trace, extract trace, count tokens, token baseline, or /harness-trace. Not for harness optimization (use harness-mechanic)."
 compatibility: "Python >=3.11, uv"
 ---
+
+# ABOUTME: Structured execution trace capture and token baselining for claude-forge
+# ABOUTME: Extracts traces from session JSONL, counts tokens with tiktoken, generates baselines
 
 # Harness Trace
 

@@ -5,10 +5,18 @@
 set -u
 
 payload=$(cat)
+
+# Safety gate: if jq is missing we cannot inspect the command; fail closed.
+if ! command -v jq >/dev/null 2>&1; then
+  printf '%s' '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"main-branch-guard: jq not found, cannot inspect the command. Install jq (brew install jq) and retry."}}'
+  exit 0
+fi
 cmd=$(printf '%s' "$payload" | jq -r '.tool_input.command // empty')
 
-# Only intercept real `git commit` (not commit-tree, not log --grep=commit)
-if ! printf '%s' "$cmd" | grep -qE '(^|[;&|[:space:]])git[[:space:]]+commit([[:space:]]|$)'; then
+# Only intercept real `git commit` (not commit-tree, not log --grep=commit).
+# Also matches `git -C <path> commit` (unquoted/space-free path; quoted paths
+# with spaces are rare enough to accept the miss).
+if ! printf '%s' "$cmd" | grep -qE '(^|[;&|[:space:]])git[[:space:]]+(-C[[:space:]]+[^[:space:]]+[[:space:]]+)?commit([[:space:]]|$)'; then
   exit 0
 fi
 

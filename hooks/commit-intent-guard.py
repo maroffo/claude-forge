@@ -141,9 +141,18 @@ def main():
     except json.JSONDecodeError:
         sys.exit(0)
     cmd = payload.get("tool_input", {}).get("command", "")
-    if not re.search(r"(^|[;&|\s])git\s+commit(\s|$)", cmd):
+    if not re.search(r"(^|[;&|\s])git\s+(-C\s+\S+\s+)?commit(\s|$)", cmd):
         sys.exit(0)
     # commit-tree etc. already excluded by the pattern above (requires space after "commit")
+
+    # 0. Hook-bypass flags are FORBIDDEN (CLAUDE.md): deny before anything else.
+    if re.search(r"--no-verify\b|--no-hooks\b|--no-pre-commit-hook\b", cmd):
+        deny(
+            "Hook-bypass flag detected (--no-verify / --no-hooks / "
+            "--no-pre-commit-hook). These are FORBIDDEN: fix the failing hook "
+            "or check systematically instead of bypassing it. Pressure is not "
+            "justification."
+        )
 
     # 1. Conventional commit message
     msg = extract_commit_message(cmd)

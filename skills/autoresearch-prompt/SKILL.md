@@ -1,16 +1,10 @@
-# ABOUTME: Skill definition for autonomous prompt optimization via eval loop
-# ABOUTME: Karpathy autoresearch pattern applied to LLM prompt engineering
-
 ---
 name: autoresearch-prompt
-description: Autonomous prompt optimization via eval-driven experiment loop
-version: 0.1.0
-triggers:
-  - autoresearch
-  - prompt optimization
-  - optimize prompt
-  - eval loop
+description: "Autonomous prompt optimization via eval-driven experiment loop (Karpathy autoresearch pattern). Use when user says autoresearch, prompt optimization, optimize prompt, or eval loop."
 ---
+
+# ABOUTME: Skill definition for autonomous prompt optimization via eval loop
+# ABOUTME: Karpathy autoresearch pattern applied to LLM prompt engineering
 
 # Autoresearch Prompt
 

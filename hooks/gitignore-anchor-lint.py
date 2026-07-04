@@ -104,7 +104,7 @@ def main():
     except json.JSONDecodeError:
         sys.exit(0)
     cmd = payload.get("tool_input", {}).get("command", "")
-    if not re.search(r"(^|[;&|\s])git\s+commit(\s|$)", cmd):
+    if not re.search(r"(^|[;&|\s])git\s+(-C\s+\S+\s+)?commit(\s|$)", cmd):
         sys.exit(0)
 
     files = staged_gitignore_files()

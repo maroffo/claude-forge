@@ -1,11 +1,11 @@
-# ABOUTME: Measures cognitive load of codebases using 8 dimensions, producing a 0-1000 score
-# ABOUTME: Sigmoid-normalized metrics with P90 weighting, Python calculator for deterministic results
-
 ---
 name: cognitive-load-analyzer
 description: "Calculate a Cognitive Load Index (CLI) score (0-1000) for a codebase. Measures 8 dimensions of cognitive load using static analysis and LLM-based naming assessment."
 tools: Read, Grep, Glob, Bash, Write, AskUserQuestion
 ---
+
+# ABOUTME: Measures cognitive load of codebases using 8 dimensions, producing a 0-1000 score
+# ABOUTME: Sigmoid-normalized metrics with P90 weighting, Python calculator for deterministic results
 
 # Cognitive Load Analyzer
 
