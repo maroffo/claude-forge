@@ -38,3 +38,6 @@ skills/advanced-review
 
 # Machine-local symlink into the claude-advanced-review repo (deployed skill, lives elsewhere)
 /skills/advanced-review
+
+# Machine-local symlink to the private skills repo (personal/third-party content, not for the public repo)
+/skills/mauro-blogger
