@@ -15,14 +15,22 @@ def human(text="do the thing"):
     return {"type": "user", "message": {"content": text}}
 
 
-def tool_result():
-    return {"type": "user", "message": {"content": [{"type": "tool_result", "content": "ok"}]}}
+def tool_result(tool_use_id=None, is_error=False):
+    block = {"type": "tool_result", "content": "ok"}
+    if tool_use_id:
+        block["tool_use_id"] = tool_use_id
+    if is_error:
+        block["is_error"] = True
+    return {"type": "user", "message": {"content": [block]}}
 
 
-def assistant_tool(name, **tool_input):
+def assistant_tool(name, tool_id=None, **tool_input):
+    block = {"type": "tool_use", "name": name, "input": tool_input}
+    if tool_id:
+        block["id"] = tool_id
     return {
         "type": "assistant",
-        "message": {"content": [{"type": "tool_use", "name": name, "input": tool_input}]},
+        "message": {"content": [block]},
     }
 
 
@@ -56,7 +64,7 @@ def expect_allow(result, label):
 def main():
     edit_py = assistant_tool("Edit", file_path="/repo/app/main.py", old_string="a", new_string="b")
     write_md = assistant_tool("Write", file_path="/repo/README.md", content="x")
-    check_run = assistant_tool("Bash", command="make check && make test-e2e")
+    check_run = assistant_tool("Bash", tool_id="c1", command="make check && make test-e2e")
     unrelated_bash = assistant_tool("Bash", command="git status")
 
     # 1. Source edit, no check after -> block
@@ -116,7 +124,7 @@ def main():
         "git commit -m 'feat: x'",  # pre-commit-gate runs make check on commit
         "uv run --no-project python3 hooks/tests/test_verify_before_stop.py",
     ):
-        verify = assistant_tool("Bash", command=cmd)
+        verify = assistant_tool("Bash", tool_id="v1", command=cmd)
         expect_allow(run_hook([human(), edit_py, tool_result(), verify, tool_result()]), f"verify-cmd:{cmd}")
 
     # 13. Sidechain USER lines must not advance the turn boundary (regression)
@@ -144,7 +152,41 @@ def main():
     assert proc.returncode == 0, proc.stderr
     expect_block(json.loads(proc.stdout.strip()), "sh-wrapper")
 
-    print("PASS  verify-before-stop (16 cases)")
+    # 17. Check after the edit FAILED (is_error) -> not evidence -> block
+    check_failed = assistant_tool("Bash", tool_id="c2", command="make check && make test-e2e")
+    expect_block(
+        run_hook([human(), edit_py, tool_result(), check_failed, tool_result("c2", is_error=True)]),
+        "failed-check-not-evidence",
+    )
+
+    # 18. Recovered: edit -> FAIL -> pass -> allow
+    expect_allow(
+        run_hook([
+            human(), edit_py, tool_result(),
+            check_failed, tool_result("c2", is_error=True),
+            check_run, tool_result("c1"),
+        ]),
+        "recovered-after-failure",
+    )
+
+    # 19. Freshest evidence is red: edit -> pass -> FAIL -> block
+    expect_block(
+        run_hook([
+            human(), edit_py, tool_result(),
+            check_run, tool_result("c1"),
+            check_failed, tool_result("c2", is_error=True),
+        ]),
+        "latest-evidence-red",
+    )
+
+    # 20. Check without a tool_use id cannot be correlated -> not evidence -> block
+    check_no_id = assistant_tool("Bash", command="make check && make test-e2e")
+    expect_block(
+        run_hook([human(), edit_py, tool_result(), check_no_id, tool_result()]),
+        "idless-check-not-evidence",
+    )
+
+    print("PASS  verify-before-stop (20 cases)")
 
 
 if __name__ == "__main__":
