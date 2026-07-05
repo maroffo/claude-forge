@@ -64,11 +64,15 @@ def main():
     assert ("Post", '"invite"') in got, got
     assert ("Get", "") in got, got  # @Get() with no path
 
-    # --- Next.js file-based routes: parentheses groups stripped
+    # --- Next.js file-based routes: parentheses groups stripped, app/ and src/app/
     routes = g.extract_next_routes(fx("nextapp"))
     assert "/api/health [route]" in routes, routes
     assert "/users [page]" in routes, routes
     assert not any("(dashboard)" in r for r in routes), routes
+    assert "next" in g.detect_stacks(fx("nextapp"))
+    src_routes = g.extract_next_routes(fx("nextsrc"))
+    assert "/dashboard [page]" in src_routes, f"src/app not detected: {src_routes}"
+    assert "next" in g.detect_stacks(fx("nextsrc"))
 
     # --- proto services
     svcs = g.extract_proto(fx("proto"))
@@ -79,12 +83,19 @@ def main():
     assert ("services/api", "@acme/api") in ws, ws
     assert ("lib/shared", "@acme/shared") in ws, ws
 
-    # --- stack detection
+    # --- stack detection: membership and absence (kills a detect-everything tautology)
     assert "go" in g.detect_stacks(fx("gochi"))
     assert "python" in g.detect_stacks(fx("fastapi"))
-    assert "next" in g.detect_stacks(fx("nextapp"))
     assert "workspace" in g.detect_stacks(fx("workspace"))
     assert "proto" in g.detect_stacks(fx("proto"))
+    assert "next" not in g.detect_stacks(fx("gochi")), "Go fixture must not detect as Next"
+    assert "workspace" not in g.detect_stacks(fx("fastapi")), "no pnpm-workspace.yaml, no workspace stack"
+
+    # --- workspace ranks above endpoints (monorepo orientation first)
+    ws_repo_md = g.generate(fx("workspace"))
+    # fixture has no endpoints; assert the section renders and precedes any Endpoints/Layout
+    assert "## Workspaces (pnpm)" in ws_repo_md
+    assert ws_repo_md.index("## Workspaces") < (ws_repo_md.find("## Layout") if "## Layout" in ws_repo_md else len(ws_repo_md))
 
     # --- full render: stamp header, determinism, token cap
     md1 = g.generate(fx("gochi"))

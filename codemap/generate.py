@@ -59,10 +59,7 @@ def detect_stacks(repo):
         stacks.add("ts")
     if "@nestjs" in pkg_text:
         stacks.add("ts-nest")
-    if os.path.isdir(os.path.join(repo, "app")) and any(
-        p.startswith("app" + os.sep) and os.path.basename(p).split(".")[0] in ("page", "route")
-        for p in _walk_files(repo, {".ts", ".tsx", ".js", ".jsx"})
-    ):
+    if extract_next_routes(repo):
         stacks.add("next")
     if next(_walk_files(repo, {".proto"}, 1), None):
         stacks.add("proto")
@@ -116,19 +113,29 @@ def extract_route_matches(repo, stack):
     return routes
 
 
+def _next_app_prefix(parts):
+    """Return the app-dir depth if parts live under app/ or src/app/, else None."""
+    if parts[:1] == ["app"]:
+        return 1
+    if parts[:2] == ["src", "app"]:
+        return 2
+    return None
+
+
 def extract_next_routes(repo):
-    """File-based Next.js routes from app/; (group) segments stripped."""
+    """File-based Next.js routes from app/ or src/app/; (group) segments stripped."""
     routes = []
     for p in _walk_files(repo, {".ts", ".tsx", ".js", ".jsx"}):
         parts = p.split(os.sep)
-        if parts[0] != "app":
+        depth = _next_app_prefix(parts)
+        if depth is None:
             continue
         kind = os.path.basename(p).split(".")[0]
         if kind not in ("page", "route"):
             continue
-        segs = [s for s in parts[1:-1] if not (s.startswith("(") and s.endswith(")"))]
+        segs = [s for s in parts[depth:-1] if not (s.startswith("(") and s.endswith(")"))]
         routes.append("/" + "/".join(segs) + f" [{kind}]")
-    return sorted(routes)
+    return sorted(set(routes))
 
 
 def extract_proto(repo):
@@ -199,6 +206,13 @@ def generate(repo, token_cap=DEFAULT_TOKEN_CAP):
     stacks = detect_stacks(repo)
     lines = [_stamp(repo), f"# Code Map — {os.path.basename(repo)}", ""]
 
+    # Workspaces rank above endpoints: in a monorepo the package list is the
+    # top-level orientation, and endpoints (often hundreds) are per-package detail.
+    if "workspace" in stacks:
+        ws = extract_workspaces(repo)
+        if ws:
+            lines += ["## Workspaces (pnpm)", *[f"- `{d}` — {n or '(unnamed)'}" for d, n in ws], ""]
+
     endpoint_rows = []
     for stack in sorted(stacks & STACK_RULES.keys()):
         for r in extract_route_matches(repo, stack):
@@ -215,11 +229,6 @@ def generate(repo, token_cap=DEFAULT_TOKEN_CAP):
         routes = extract_next_routes(repo)
         if routes:
             lines += ["## Next.js routes", *[f"- `{r}`" for r in routes], ""]
-
-    if "workspace" in stacks:
-        ws = extract_workspaces(repo)
-        if ws:
-            lines += ["## Workspaces (pnpm)", *[f"- `{d}` — {n or '(unnamed)'}" for d, n in ws], ""]
 
     layout = _layout(repo)
     if layout:
