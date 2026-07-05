@@ -163,6 +163,8 @@ SCORE: <n>/100 (threshold: <t>, gate: commit|pr|excellence)
 
 The `harness-trace` extractor keys on `SCORE: <n>`; free-form phrasing ("quality looks good, well above the bar") produced 0 SCORE events across 6 traced sessions, making gate compliance invisible in telemetry. Thresholds and rubric stay in quality-gates.md; this is only the reporting format.
 
+**Two-confirmation gate**: a SCORE is a judge verdict and is valid only alongside fresh computational evidence, meaning a successful test/lint/build run after the last source edit. The `score-evidence-guard` Stop hook enforces this mechanically (imported from Bringles decision #2: the loop trusts evidence, not prose). If VERIFY ran inside a subagent, say so explicitly when reporting.
+
 ## Trace Capture
 
 Use the `harness-trace` skill (schema, JSONL format, capture logic).
