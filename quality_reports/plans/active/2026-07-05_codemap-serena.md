@@ -62,6 +62,8 @@ Files (new dir `codemap/`):
 - 2026-07-05: contract B written; codemap toolkit built TDD (4 rules, generate.py, 8 test groups + 12 hook cases, all green); hooks codemap-freshness (SessionStart advisory) + codemap-regen (PostToolUse on git commit, opt-in = CODEMAP.md presence) registered in settings.example.json; Makefile runs codemap tests in test-e2e.
 - 2026-07-05: pilot map generated for hikma-wasit (mount table survives the cap, inner routes truncated first). Awaiting Max checkpoint:verify before rollout.
 - 2026-07-05: contract A written; Serena MCP registered local-scope on hikma-wasit (uvx, ide-assistant context), connection verified. Evaluate after ~5 sessions (context overhead < ~5k tokens/session).
+- 2026-07-05: validation on real code found 2 bugs (fixed): 566 endpoints buried wishew's workspace map → workspaces now rank above endpoints; hikmaai-frontend uses src/app not app → Next extractor supports both. Rollout DONE: CODEMAP.md committed on chore/codemap branch (unpushed) in all 7 targets (wasit, hikma-ai, pgpilot, mirsad, weaponizer, frontend, wishew-monorepo). Max pushes/PRs each.
+- 2026-07-05: both hooks installed live (symlinks + ~/.claude/settings.json: SessionStart startup|resume freshness; PostToolUse Bash regen). Freshness advisory proven firing on a staled map end-to-end via the symlinked wrapper. checkpoint:verify PASSED (Max approved endpoint-first cap, commit-into-work-repos, full rollout).
 
 ## Surprises & Discoveries
 
