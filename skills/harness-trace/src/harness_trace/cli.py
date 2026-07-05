@@ -9,6 +9,17 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 
+def trace_output_path(output_dir: Path, entries: list, slug: str) -> Path:
+    """Trace filename keyed on the session's FIRST event date, not extraction date.
+
+    Mid-session snapshots (PreCompact hook) and the final SessionEnd extraction
+    of a multi-day session must converge on one file per session; naming by
+    extraction date would multiply files and double-count sessions downstream.
+    """
+    date_str = entries[0].ts.strftime("%Y-%m-%d")
+    return output_dir / f"{date_str}_{slug}.jsonl"
+
+
 def _cmd_extract(args: argparse.Namespace) -> None:
     """Extract structured traces from a session JSONL file."""
     from harness_trace.extractor import extract_traces, write_traces
@@ -28,8 +39,7 @@ def _cmd_extract(args: argparse.Namespace) -> None:
     if args.output:
         output_dir = Path(args.output)
         output_dir.mkdir(parents=True, exist_ok=True)
-        date_str = datetime.now(tz=UTC).strftime("%Y-%m-%d")
-        output_path = output_dir / f"{date_str}_{slug}.jsonl"
+        output_path = trace_output_path(output_dir, entries, slug)
         write_traces(entries, output_path)
         print(f"Wrote {len(entries)} trace entries to {output_path}", file=sys.stderr)
     else:

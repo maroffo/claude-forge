@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ABOUTME: SessionEnd hook that auto-extracts trace JSONL via harness-trace skill
+# ABOUTME: SessionEnd + PreCompact hook that auto-extracts trace JSONL via harness-trace skill
 # ABOUTME: No-op outside claude-forge cwd. Fail-silent, never blocks session termination.
 
 from __future__ import annotations
@@ -63,7 +63,7 @@ def main() -> int:
         subprocess.run(
             cmd,
             cwd=str(skill_dir),
-            timeout=8,
+            timeout=25,  # multi-day transcripts are large; registered hook timeout is 30
             check=False,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,

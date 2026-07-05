@@ -89,6 +89,26 @@
         "hooks": [
           { "type": "command", "command": "{{HOOKS_DIR}}/checkpoint-reminder.sh", "timeout": 10 }
         ]
+      },
+      {
+        "matcher": "compact|clear",
+        "hooks": [
+          { "type": "command", "command": "{{HOOKS_DIR}}/retrospective-nudge.sh", "timeout": 10 }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "{{HOOKS_DIR}}/session-end-trace.sh", "timeout": 30 }
+        ]
+      },
+      {
+        "matcher": "manual",
+        "hooks": [
+          { "type": "command", "command": "{{HOOKS_DIR}}/retrospective-nudge.sh", "timeout": 10 }
+        ]
       }
     ]
   }
