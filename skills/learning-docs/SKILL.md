@@ -55,6 +55,17 @@ Sections: **Project Overview**, **Architecture** (mermaid diagrams), **Tech Stac
 3. **Ask** what was learned, what was tricky
 4. **Append** new lessons in conversational style (dated, searchable)
 5. **Capture solutions** in `docs/solutions/[category]/` for searchable reuse
+6. **Mirror lessons to vault** (below): cross-project archive, blog discovery, knowledge-sync input
+
+**Vault copy (lessons):** after appending to LEARNING.md, also append each new lesson to the vault (create the note first with `obsidian create name="<project> - Learnings" silent` if missing; command syntax in `_OBSIDIAN.md`):
+
+```bash
+obsidian append file="<project> - Learnings" content="### YYYY-MM-DD: <title>\n<Context → Problem → Solution → Takeaway, condensed to a few lines>"
+```
+
+The repo's LEARNING.md stays the source of truth. If the obsidian CLI is unavailable, skip (do not use the path fallback; the repo copy is authoritative).
+
+**Vault privacy (applies to EVERY vault copy in this skill: lessons, solutions, skill candidates):** for work projects (HikmaAI, client repos), mirror only content safe outside the work perimeter. Exclude client names, internal hostnames and architecture details, unreleased product information, anything under NDA. When in doubt, keep it repo-only.
 
 ## Solutions Directory
 

@@ -86,7 +86,7 @@ Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes 
 
 # Knowledge Capture
 - **Quick corrections:** Append `[LEARN:category]` to `MEMORY.md`
-- **Deep retrospectives:** Run `learning-docs` to update LEARNING.md
+- **Deep retrospectives:** Run `learning-docs` to update LEARNING.md + vault copy (`<project> - Learnings`)
 - **Solved problems:** Capture in `docs/solutions/[category]/` + vault copy (`<project> - Solutions`)
 - **Plans:** Repo-first (`quality_reports/plans/active|completed/`), vault mirror (`Plans/YYYY-MM-DD - description`); living-plan format in `rules/plan-first-workflow.md`
 - **Session logs:** Vault-first (`<project> - Log`), fallback `quality_reports/session_logs/`
