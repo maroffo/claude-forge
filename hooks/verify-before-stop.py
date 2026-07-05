@@ -84,8 +84,14 @@ def is_human_message(obj):
 
 
 def scan(transcript_path):
-    """Return (edits, checks): [(line_idx, file_path)], [line_idx]. Current turn is idx > last human message."""
+    """Return (edits, checks, failed_ids). Current turn is idx > last human message.
+
+    edits: [(line_idx, file_path)] of source edits. checks: [(line_idx, tool_use_id)]
+    of verification commands. failed_ids: {tool_use_id} whose tool_result carries
+    is_error — a failed check is not verification evidence.
+    """
     edits, checks = [], []
+    failed_ids = set()
     last_human = -1
     with open(transcript_path, encoding="utf-8", errors="ignore") as fh:
         size = os.fstat(fh.fileno()).st_size
@@ -102,13 +108,22 @@ def scan(transcript_path):
             if obj.get("isSidechain"):
                 continue
             kind = obj.get("type")
+            content = (obj.get("message") or {}).get("content") or []
             if kind == "user":
                 if is_human_message(obj):
                     last_human = i
+                if isinstance(content, list):
+                    for c in content:
+                        if (
+                            isinstance(c, dict)
+                            and c.get("type") == "tool_result"
+                            and c.get("is_error")
+                            and c.get("tool_use_id")
+                        ):
+                            failed_ids.add(c["tool_use_id"])
                 continue
             if kind != "assistant":
                 continue
-            content = (obj.get("message") or {}).get("content") or []
             if not isinstance(content, list):
                 continue
             for c in content:
@@ -121,9 +136,9 @@ def scan(transcript_path):
                     if is_source(path):
                         edits.append((i, path))
                 elif name == "Bash" and is_verify_cmd(inp.get("command", "")):
-                    checks.append(i)
+                    checks.append((i, c.get("id")))
     turn_edits = [(i, p) for i, p in edits if i > last_human]
-    return turn_edits, checks
+    return turn_edits, checks, failed_ids
 
 
 def main():
@@ -140,14 +155,23 @@ def main():
         sys.exit(0)
 
     try:
-        turn_edits, checks = scan(transcript_path)
+        turn_edits, checks, failed_ids = scan(transcript_path)
     except OSError:
         sys.exit(0)
 
     if not turn_edits:
         sys.exit(0)
+    # Evidence: a check issued after BOTH the last source edit and the last failed
+    # check — the freshest signal must be green. A check with no tool_use id cannot
+    # be correlated to its result: not evidence. A check whose result is missing
+    # entirely gets the benefit of the doubt.
     last_edit_idx = turn_edits[-1][0]
-    if any(idx > last_edit_idx for idx in checks):
+    failed_lines = [idx for idx, tool_id in checks if tool_id in failed_ids]
+    threshold = max([last_edit_idx] + failed_lines)
+    if any(
+        idx > threshold and tool_id is not None and tool_id not in failed_ids
+        for idx, tool_id in checks
+    ):
         sys.exit(0)
 
     files = []
