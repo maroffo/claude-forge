@@ -1,0 +1,15 @@
+# ABOUTME: ast-grep rule — Hono route registrations (app.get/post/..., app.route groups)
+# ABOUTME: Path must be a string literal and a handler argument must exist, so Map.get(key) does not match
+id: hono-routes
+language: typescript
+severity: hint
+message: route
+rule:
+  any:
+    - pattern: $APP.$METHOD($PATH, $H)
+    - pattern: $APP.$METHOD($PATH, $$$MID, $H)
+constraints:
+  METHOD:
+    regex: ^(get|post|put|delete|patch|all|route)$
+  PATH:
+    regex: ^["'`]

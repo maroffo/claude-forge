@@ -65,6 +65,20 @@
         "hooks": [
           { "type": "command", "command": "{{HOOKS_DIR}}/routing-advisor.sh", "timeout": 10 }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "{{HOOKS_DIR}}/codemap-regen.sh", "timeout": 90, "statusMessage": "Regenerating CODEMAP.md..." }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          { "type": "command", "command": "{{HOOKS_DIR}}/codemap-freshness.sh", "timeout": 15 }
+        ]
       }
     ],
     "Stop": [

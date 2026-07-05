@@ -1,0 +1,15 @@
+# ABOUTME: ast-grep rule — NestJS @Controller/@Get/@Post/... decorators
+# ABOUTME: Matches class and method decorators; path is the first decorator argument (may be absent)
+id: nestjs-routes
+language: typescript
+severity: hint
+message: route
+rule:
+  pattern:
+    context: |
+      @$DEC($$$ARGS)
+      class C {}
+    selector: decorator
+constraints:
+  DEC:
+    regex: ^(Controller|Get|Post|Put|Delete|Patch|All|Sse)$

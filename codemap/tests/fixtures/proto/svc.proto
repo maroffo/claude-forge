@@ -1,0 +1,9 @@
+// ABOUTME: Test fixture — gRPC service definition for the proto regex extractor
+// ABOUTME: Two rpcs in one service, one streaming
+
+syntax = "proto3";
+
+service Telemetry {
+  rpc Ingest(IngestRequest) returns (IngestResponse);
+  rpc Stream(StreamRequest) returns (stream StreamResponse);
+}
