@@ -1,0 +1,15 @@
+# ABOUTME: ast-grep rule — FastAPI/APIRouter endpoint decorators
+# ABOUTME: Matches @app.get(...), @router.post(...); path is the first decorator argument
+id: fastapi-routes
+language: python
+severity: hint
+message: route
+rule:
+  pattern:
+    context: |
+      @$APP.$METHOD($$$ARGS)
+      def f(): pass
+    selector: decorator
+constraints:
+  METHOD:
+    regex: ^(get|post|put|delete|patch|head|options|websocket)$

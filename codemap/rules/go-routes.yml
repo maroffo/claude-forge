@@ -1,0 +1,11 @@
+# ABOUTME: ast-grep rule — Go HTTP route registrations (chi, net/http, chained receivers)
+# ABOUTME: Two-argument shape excludes Header.Get-style false positives; _test.go excluded by the generator
+id: go-routes
+language: go
+severity: hint
+message: route
+rule:
+  pattern: $R.$METHOD($PATH, $H)
+constraints:
+  METHOD:
+    regex: ^(Get|Post|Put|Delete|Patch|Head|Options|Handle|HandleFunc|Mount|Route)$

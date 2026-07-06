@@ -67,6 +67,14 @@
         ]
       }
     ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          { "type": "command", "command": "{{HOOKS_DIR}}/codemap-session.sh", "timeout": 10 }
+        ]
+      }
+    ],
     "Stop": [
       {
         "matcher": "",
