@@ -55,6 +55,7 @@ Files (new dir `codemap/`):
 | 3 | Regen trigger | post-commit (PostToolUse on git commit) + advisory freshness hook | Max 2026-07-05; no diff churn, staleness detectable | advisory ignored in practice → move into pre-commit gate |
 | 4 | Symbol index | never build; Serena/LSP only | live > stored for symbol truth | — |
 | 5 | Map size | hard cap ~1.2k tokens | aider lesson: unbounded maps get skipped | pilot shows cap too tight |
+| 6 | (supersedes #3) Delivery: ephemeral, NOT committed | SessionStart regen against working tree → out-of-tree `~/.claude-forge/codemaps/`, inject compact pointer | Committed+commit-stamped+regen-on-Bash manufactured the stale-artifact anti-goal (3 isolated reviewers unanimous 2026-07-05). Fresh-by-construction, no VCS churn, both prior hooks deleted | pointer ignored in traces, or SessionStart gen too slow |
 
 ## Progress
 
@@ -64,6 +65,7 @@ Files (new dir `codemap/`):
 - 2026-07-05: contract A written; Serena MCP registered local-scope on hikma-wasit (uvx, ide-assistant context), connection verified. Evaluate after ~5 sessions (context overhead < ~5k tokens/session).
 - 2026-07-05: validation on real code found 2 bugs (fixed): 566 endpoints buried wishew's workspace map → workspaces now rank above endpoints; hikmaai-frontend uses src/app not app → Next extractor supports both. Rollout DONE: CODEMAP.md committed on chore/codemap branch (unpushed) in all 7 targets (wasit, hikma-ai, pgpilot, mirsad, weaponizer, frontend, wishew-monorepo). Max pushes/PRs each.
 - 2026-07-05: both hooks installed live (symlinks + ~/.claude/settings.json: SessionStart startup|resume freshness; PostToolUse Bash regen). Freshness advisory proven firing on a staled map end-to-end via the symlinked wrapper. checkpoint:verify PASSED (Max approved endpoint-first cap, commit-into-work-repos, full rollout).
+- 2026-07-05/06: /second-opinion (3 isolated reviewers, unanimous) rejected the committed-artifact delivery. PIVOTED: unwound all 7 chore/codemap branches (CODEMAP.md removed from every work repo), deleted codemap-freshness + codemap-regen, built codemap-session (SessionStart, ephemeral, out-of-tree, injects pointer), swapped live hooks/symlinks. New contract 2026-07-06_codemap-ephemeral supersedes the toolkit contract (marked reverted). generate.py + rules kept unchanged. Full suite green. See Decision #6.
 
 ## Surprises & Discoveries
 

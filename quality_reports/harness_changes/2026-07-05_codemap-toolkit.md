@@ -60,3 +60,5 @@ hooks/settings.example.json, Makefile.
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+
+| 2026-07-06 | 1 session | design manufactured the stale-artifact anti-goal; 3 isolated reviewers unanimous | **reverted** — superseded by [[2026-07-06_codemap-ephemeral]] |
