@@ -70,3 +70,5 @@ hooks/tests/test_codemap_session.py, hooks/settings.example.json.
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+
+| 2026-07-06 | pre-merge | 3 isolated reviewers: full-body injection is a per-session tax; on-demand is the ideal | **superseded** before merge by [[2026-07-06_codemap-ondemand]] |

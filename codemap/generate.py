@@ -174,6 +174,26 @@ def extract_workspaces(repo):
     return sorted(set(found))
 
 
+def structural_summary(repo):
+    """Cheap orientation facts for the SessionStart nudge: detected stacks and
+    (if a monorepo) the workspace count. Manifest/glob only, NEVER an ast-grep
+    scan, so it is safe to run on every session start."""
+    stacks = detect_stacks(repo)
+    if not (stacks & (set(STACK_RULES) | {"proto", "next", "workspace"})):
+        return None
+    parts = []
+    if "workspace" in stacks:
+        n = len(extract_workspaces(repo))
+        if n:
+            parts.append(f"{n} pnpm workspaces")
+    label = {"go": "Go", "python": "Python", "ts": "Hono", "ts-nest": "NestJS",
+             "next": "Next.js", "proto": "gRPC/proto"}
+    langs = sorted({label.get(s, s) for s in stacks if s in label})
+    if langs:
+        parts.append(", ".join(langs))
+    return {"stacks": stacks, "summary": "; ".join(parts) if parts else "HTTP/RPC surfaces"}
+
+
 def _layout(repo):
     """Top-level directories with source-file counts."""
     rows = []
