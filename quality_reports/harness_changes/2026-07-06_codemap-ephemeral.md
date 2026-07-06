@@ -43,8 +43,13 @@ and no CODEMAP.md ever appears inside a repo.
   (override `CLAUDE_FORGE_CODEMAP_DIR`).
 - Deterministic generator, no LLM, no network (unchanged).
 - Silent for non-git dirs and repos with no mappable stack (zero cost, zero noise).
-- Injected pointer is compact (counts + path), not the full ~1.2k-token map body, so SessionStart
-  context cost stays small.
+- The map body (token-capped by the generator) is injected directly, not pointed at, so a lazy
+  agent cannot skip it. Self-labelled as a snapshot; live facts delegated to the LSP.
+- Generation is cached on `(HEAD, git status --porcelain)`: an unchanged tree reuses the last map
+  instead of re-scanning. Deterministic input, so the cache is not the stamp-trust that sank v1.
+- The out-of-tree filename carries an 8-char hash of the repo abspath, so two paths that share a
+  sanitized prefix (`foo-bar` vs `foo/bar`) never collide onto one file. Writes are atomic
+  (temp + `os.replace`), so concurrent sessions never read a half-written map.
 
 ## Falsification
 

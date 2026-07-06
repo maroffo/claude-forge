@@ -235,6 +235,13 @@ def generate(repo, token_cap=DEFAULT_TOKEN_CAP):
         lines += ["## Layout", *[f"- `{d}/` ({n} source files)" for d, n in layout], ""]
 
     # Hard token cap: drop from the end (lowest-rank sections last in doc order).
+    # Accepted tradeoff: truncation drops trailing lines, so on a repo with more
+    # endpoints than fit, the tail of the Endpoints section is cut (sorted by
+    # file:line, so roughly the last files alphabetically). Workspaces rank first,
+    # so a monorepo's package list always survives; the depth that gets cut is
+    # covered by the LSP layer on demand. We do NOT rank by reference centrality
+    # (aider-style PageRank): that needs a resolved symbol graph, which is exactly
+    # what the LSP already provides. The visible marker keeps the cut honest.
     marker = "\n*(truncated to fit token cap)*\n"
     budget = token_cap * 4 - len(marker)
     text = "\n".join(lines)

@@ -44,11 +44,11 @@ def main():
 
     out_dir = tempfile.mkdtemp(prefix="codemap-out-")
 
-    # 1. Go repo with endpoints -> map written out-of-tree, pointer injected, NOT in repo
+    # 1. Go repo with endpoints -> map body injected (not a thin pointer), written out-of-tree, NOT in repo
     repo = make_go_repo()
     out = run_hook(repo, out_dir)
-    assert "/ping" not in out, "hook must inject a compact pointer, not the full map body"
-    assert "code map" in out.lower() and "endpoint" in out.lower(), f"pointer missing counts: {out!r}"
+    assert "/ping" in out and "/pong" in out, "hook must inject the map body, not just a pointer"
+    assert "orientation map" in out.lower() and "endpoint" in out.lower(), f"headline missing: {out!r}"
     assert not os.path.exists(os.path.join(repo, "CODEMAP.md")), "must NOT write into the repo (ephemeral, out-of-tree)"
     maps = [f for f in os.listdir(out_dir) if f.endswith(".md")]
     assert maps, "map file not written to the out-of-tree dir"
@@ -83,7 +83,23 @@ def main():
     proc = subprocess.run([sys.executable, HOOK], input="not json", capture_output=True, text=True, timeout=30)
     assert proc.returncode == 0 and not proc.stdout.strip()
 
-    print("PASS  codemap-session (5 cases)")
+    # 6. slug() never collides across paths that share a sanitized prefix
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("cs", HOOK)
+    cs = importlib.util.module_from_spec(spec); spec.loader.exec_module(cs)
+    assert cs.slug("/home/u/foo-bar") != cs.slug("/home/u/foo/bar"), "slug collision: silent overwrite risk"
+
+    # 7. Cache: an unchanged tree does not rescan (map file mtime unchanged on 2nd run)
+    cache_dir = tempfile.mkdtemp(prefix="codemap-cache-")
+    repo2 = make_go_repo()
+    run_hook(repo2, cache_dir)
+    mapf = os.path.join(cache_dir, [f for f in os.listdir(cache_dir) if f.endswith(".md")][0])
+    assert os.path.isfile(mapf + ".key"), "cache key sidecar not written"
+    mtime1 = os.path.getmtime(mapf)
+    run_hook(repo2, cache_dir)  # unchanged tree -> cache hit, no rewrite
+    assert os.path.getmtime(mapf) == mtime1, "unchanged tree must hit cache, not regenerate"
+
+    print("PASS  codemap-session (7 cases)")
 
 
 if __name__ == "__main__":
