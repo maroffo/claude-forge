@@ -120,6 +120,8 @@ Build the table from the goal (3-7 observable truths). Fill `Evidence` via CLI/o
 **Shared integration surfaces** (even a 1-line change needs a sequential wave): routing tables, barrel exports / `index.*`, DI container config, dependency manifests (`go.mod`, `package.json`), migrations directory, shared test fixtures.
 
 If the plan requires edits to a shared surface, run the parallel batch first, then a **sequential INTEGRATE wave** for the shared files.
+
+**Pilot before a large run:** any fan-out over ~10 similar items (parallel agents, workflow stages, batch migrations) runs 1-2 items first; inspect the result, fix prompt or approach, then launch the rest. A full-fleet launch on an unproven prompt burns tokens at fleet scale.
 ### Permissions
 
 - Review agents: read-only.
