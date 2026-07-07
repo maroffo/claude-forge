@@ -106,9 +106,27 @@ git branch -d feat/user-auth
 
 ---
 
+## Post-PR Loop (babysitting)
+
+After a PR is opened, CI failures and review comments arrive asynchronously. Instead of Max polling, offer a time-based loop:
+
+```
+/loop 10m check PR #<N>: if CI failed, diagnose and fix; if new review comments, address them; commit fixes on the PR branch and push; stop when CI is green and no comments are unaddressed
+```
+
+Rules for the loop:
+
+- **Push authorization:** Max starting the `/loop` on a PR **is** the explicit push authorization, scoped to that PR branch and that loop session only. Outside a PR loop, the NEVER-push rule stands unchanged.
+- Never force-push inside a loop; `--force-with-lease` only, and only for rebase-on-main conflicts Max asked for.
+- Commits inside the loop follow the same conventional format and pre-commit gate (`make check && make test-e2e`); hooks are never bypassed under loop time pressure.
+- Match the interval to the external system: CI that takes ~10 minutes doesn't need a 2-minute loop.
+- Stop condition is part of the prompt (CI green + comments addressed); the loop must not idle-run after the PR merges: cancel it from the session that started it (interrupt, or ask the loop to stop).
+
+---
+
 ## Rules
 
-- NEVER push automatically (Max pushes manually)
+- NEVER push automatically (Max pushes manually; sole exception: an active Post-PR Loop, scoped to its PR branch, see above)
 - NEVER work on `main`/`master` unless explicitly authorized
 - Small, logical commits; no huge unrelated changes
 - `--force-with-lease`, never bare `--force` on shared branches
