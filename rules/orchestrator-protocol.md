@@ -38,6 +38,8 @@ If the whole task is in SKIP_SET, skip the protocol entirely and edit directly.
 10. STORE        → save session log + close the plan: fill Outcomes & Retrospective, move active/ → completed/ (unconditional: also on escalation/abandonment, marking outcome)
 ```
 
+At plan approval (between step 0 and step 1), if the task has a deterministic done-criterion, propose a `/goal` line for Max to set: see Goal-Backed Runs below.
+
 ## Research + Complexity (Step 0)
 
 research-analyst searches docs/solutions/, LEARNING.md, MEMORY.md, vault, then external. Returns: comparison table, recommendation, ecosystem solutions (avoid hand-rolling), 1-2 common pitfalls. MUST end with complexity verdict:
@@ -118,7 +120,6 @@ Build the table from the goal (3-7 observable truths). Fill `Evidence` via CLI/o
 **Shared integration surfaces** (even a 1-line change needs a sequential wave): routing tables, barrel exports / `index.*`, DI container config, dependency manifests (`go.mod`, `package.json`), migrations directory, shared test fixtures.
 
 If the plan requires edits to a shared surface, run the parallel batch first, then a **sequential INTEGRATE wave** for the shared files.
-
 ### Permissions
 
 - Review agents: read-only.
@@ -152,6 +153,16 @@ Present to the human:
 ### Just-do-it mode
 
 Skip final approval and auto-commit when ALL of: SCORE ≥ 80, no CRITICAL findings, BLAST-RADIUS clean. **Bypasses UAT** (no human walkthrough possible in this mode). Stops at a local commit on the feature branch: does not push, does not open a PR.
+
+## Goal-Backed Runs (optional)
+
+`/goal` (CLI ≥ 2.1.139) wraps a session-scoped prompt-based Stop hook: an evaluator (small fast model, no tool access) re-checks a completion condition after every turn and sends Claude back to work until it holds. It complements `score-evidence-guard`: the hook rejects SCORE claims lacking fresh evidence; `/goal` rejects stopping before the gate is met.
+
+- `/goal` is user-typed; Claude cannot set it. At plan approval, when the task has a deterministic done-criterion, propose the exact line for Max to set, phrased against the canonical Score Reporting format (step 6) so the evaluator finds it verbatim in the transcript, e.g.:
+  `/goal the transcript reports a line matching SCORE: <n>/100 (threshold: 80, gate: commit) with n >= 80, after make check && make test-e2e pass on the final code, or stop after 5 fix rounds`
+- The turn-cap clause mirrors the global 5-round ceiling (step 7). Reaching it triggers the escalation flow, never a silent stop.
+- The condition must be transcript-evaluable: the evaluator runs no commands, so it can only judge what the session surfaced. The step 6 `SCORE:` line format is exactly what it keys on.
+- Skip for SKIP_SET and for tasks whose done-criterion needs human judgment (visual, UX): those stay with UAT (step 9).
 
 ## Score Reporting (Step 6)
 
