@@ -47,3 +47,6 @@ that project path). One line, no repo changes.
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-07 | 0 pilot sessions on this workstation (registration absent from global and per-project `~/.claude.json`) | The piloted role (live LSP symbol navigation) is covered natively by first-party Claude Code LSP plugins, available for every language in the target matrix: `gopls-lsp` (Go) and `swift-lsp` (Swift) already enabled, `pyright-lsp` (Python) and `typescript-lsp` (TS) enabled 2026-07-07. Native plugins integrate into the `LSP` tool at zero per-session MCP schema cost, avoiding the ~5k-token falsification threshold entirely, and carry no `uvx`/external-server startup-flake risk. | **not adopted (superseded by native LSP plugins)** |
+
+Verdict: **reverted** (never adopted). The prediction (Serena navigation wins outweigh MCP context cost) was overtaken: native LSP plugins landed and deliver the same live-symbol-truth guarantee (Decision #4 of plan `2026-07-05_codemap-serena.md`: "never build; Serena/LSP only") without the context tax the contract itself flagged as the risk. Serena remains an optional on-demand `uvx` fallback for a language with no native LSP plugin; not the case for the current stack. The complementary CODEMAP layer is unaffected (tracked in `2026-07-06_codemap-ephemeral`).
