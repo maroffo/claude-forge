@@ -65,7 +65,7 @@ claude-forge repo
 ├── Makefile            → `make check` + `make test-e2e` (pre-commit gate)
 ├── scripts/            → check_repo.py (ABOUTME, em-dashes, frontmatter, schema)
 ├── hooks/              → Source for the enforcement hooks (installed to ~/.claude/hooks/)
-├── quality_reports/    → traces/ (gitignored), token_baselines/ (gitignored), harness_changes/ (committed audit trail)
+├── quality_reports/    → traces/ (gitignored), token_baselines/ (gitignored), harness_changes/ (committed audit trail), knowledge_sync/ (committed monthly propose-only reports)
 │
 Obsidian Vault (Documents/)
 ├── Projects/           → Per-project artifacts (overview, log, solutions)
@@ -211,6 +211,7 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | `refine-requirements/` | Structured requirements gathering before planning |
 | `clickup/` | Task management via MCP |
 | `gemini-review/` | Local code review with Gemini CLI |
+| `verify-frontend/` | End-to-end UI verification in a real browser (console gate, before/after screenshots, Lighthouse) |
 | `second-opinion/` | Second opinion from Gemini CLI on complex problems (auto-triggers for debugging, architecture, stuck reviews) |
 | `test-design-reviewer/` | Test quality assessment (Farley's 8 Properties, weighted scoring, Python calculator) |
 | `cognitive-load-analyzer/` | 8-dimension code complexity scoring (0-1000), sigmoid normalization, Python calculator |

@@ -9,7 +9,7 @@ compatibility: "Requires Obsidian CLI (obsidian MCP commands)."
 
 # Knowledge Sync
 
-Promotes recurring patterns from vault Second Brain notes into skill files. Runs on human schedule (monthly, post-milestone), never autonomously.
+Promotes recurring patterns from vault Second Brain notes into skill files. The APPLY step runs on human approval only, never autonomously. The scan-and-propose phase MAY run on a schedule (see Scheduled Mode).
 
 ## Signal Strength
 
@@ -80,6 +80,23 @@ obsidian append file="Second Brain - Development" content="..."
 #### cloud-infrastructure (1 candidate)
 ...
 ```
+
+## Scheduled Mode (propose-only)
+
+The scan half of this skill may run unattended; the APPLY gate never does. A scheduled run executes SCAN → FILTER → GROUP → PROPOSE, writes the report to `quality_reports/knowledge_sync/report-YYYY-MM-DD.md` in the forge repo, and STOPS. Max reviews the report later and triggers APPLY interactively.
+
+Runner: a user crontab entry (1st of the month, 09:23 local). **The human installs it manually**: persisting a headless autonomous run is a user-authorized action, Claude only documents the line (`crontab -l` to inspect, `crontab -r` or edit to remove). Replace `<forge-repo>` and `<claude-bin>` with your paths (`which claude`), and `mkdir -p ~/.claude/logs` first (cron fails silently on a missing redirect target):
+
+```
+23 9 1 * * cd <forge-repo> && <claude-bin> -p "Run the knowledge-sync skill in Scheduled Mode: SCAN, FILTER, GROUP, PROPOSE only. Write the report to quality_reports/knowledge_sync/report-$(date +\%Y-\%m-\%d).md. Do NOT apply any skill changes." >> ~/.claude/logs/knowledge-sync-cron.log 2>&1
+```
+
+Caveats:
+
+- cron does not catch up on runs missed while the machine sleeps: if the report is missing after the 1st, kick the same prompt manually.
+- The headless run depends on the settings.json allowlist covering the `obsidian` CLI; a permission denial shows up in the log file, not on screen.
+- The report lands on whatever branch is currently checked out in the forge repo. Reports are tracked in git (review history), not gitignored.
+- CronCreate (in-session scheduler) is NOT suitable here: its jobs are session-only and expire within 7 days.
 
 ## Quality Notes
 

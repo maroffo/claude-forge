@@ -34,6 +34,7 @@
 | Score commit/PR readiness | `score` | quality-gates rule |
 | Second opinion | `second-opinion` | `gemini-review` |
 | Assess test quality | `test-design-reviewer` | `gemini-review`, `_PATTERNS.md` |
+| Verify UI changes end-to-end | `verify-frontend` | `verification-protocol` rule, chrome-devtools MCP |
 | Setup/analyze project | `project-analyzer` | Language-specific |
 | Scaffold make check targets | `project-checks` | - |
 | Release/tag | `releasing-software` | `source-control` |
