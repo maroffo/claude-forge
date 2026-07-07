@@ -65,6 +65,7 @@ Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes 
 | Cognitive load analysis | `cognitive-load-analyzer` |
 | Legacy/untested code | `legacy-code-expert` |
 | Code review (pre-commit) | `gemini-review` |
+| UI verification (browser) | `verify-frontend` |
 | PR review (commit-aware) | `pr-review` |
 | Deep multi-LLM review | `advanced-review` |
 | Quality gate scoring | `score` |

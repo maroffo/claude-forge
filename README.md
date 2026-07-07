@@ -211,6 +211,7 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | `refine-requirements/` | Structured requirements gathering before planning |
 | `clickup/` | Task management via MCP |
 | `gemini-review/` | Local code review with Gemini CLI |
+| `verify-frontend/` | End-to-end UI verification in a real browser (console gate, before/after screenshots, Lighthouse) |
 | `second-opinion/` | Second opinion from Gemini CLI on complex problems (auto-triggers for debugging, architecture, stuck reviews) |
 | `test-design-reviewer/` | Test quality assessment (Farley's 8 Properties, weighted scoring, Python calculator) |
 | `cognitive-load-analyzer/` | 8-dimension code complexity scoring (0-1000), sigmoid normalization, Python calculator |

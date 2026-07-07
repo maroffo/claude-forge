@@ -13,6 +13,8 @@
 
 Run language-appropriate test + lint + build. Output MUST be pristine.
 
+For changes touching rendered UI, tests are not enough: run the `verify-frontend` skill (real browser, console gate, before/after screenshots) before reporting the change done.
+
 ## Rules
 
 - Every project: unit + integration + e2e
