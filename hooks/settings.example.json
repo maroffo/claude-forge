@@ -73,6 +73,18 @@
         "hooks": [
           { "type": "command", "command": "{{HOOKS_DIR}}/codemap-session.sh", "timeout": 10 }
         ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "{{HOOKS_DIR}}/checkpoint-reminder.sh", "timeout": 10 }
+        ]
+      },
+      {
+        "matcher": "compact|clear",
+        "hooks": [
+          { "type": "command", "command": "{{HOOKS_DIR}}/retrospective-nudge.sh", "timeout": 10 }
+        ]
       }
     ],
     "Stop": [
@@ -89,20 +101,6 @@
         "matcher": "",
         "hooks": [
           { "type": "command", "command": "{{HOOKS_DIR}}/session-end-trace.sh", "timeout": 10 }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "matcher": "",
-        "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/checkpoint-reminder.sh", "timeout": 10 }
-        ]
-      },
-      {
-        "matcher": "compact|clear",
-        "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/retrospective-nudge.sh", "timeout": 10 }
         ]
       }
     ],
