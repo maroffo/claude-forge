@@ -91,7 +91,7 @@ Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes 
 - **Solved problems:** Capture in `docs/solutions/[category]/` + vault copy (`<project> - Solutions`)
 - **Plans:** Repo-first (`quality_reports/plans/active|completed/`), vault mirror (`Plans/YYYY-MM-DD - description`); living-plan format in `rules/plan-first-workflow.md`
 - **Session logs:** Vault-first (`<project> - Log`), fallback `quality_reports/session_logs/`
-- **Vault-to-skills sync:** Run `knowledge-sync` weekly to promote recurring patterns
+- **Vault-to-skills sync:** `knowledge-sync` monthly (scheduled propose-only crontab run; APPLY stays manual)
 - **Cross-repo failure-modes:** Run `learning-loop` (monthly) to mine all LEARNING.md for recurring patterns and propose harness changes with change-contracts
 
 # Writing

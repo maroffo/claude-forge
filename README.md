@@ -65,7 +65,7 @@ claude-forge repo
 ├── Makefile            → `make check` + `make test-e2e` (pre-commit gate)
 ├── scripts/            → check_repo.py (ABOUTME, em-dashes, frontmatter, schema)
 ├── hooks/              → Source for the enforcement hooks (installed to ~/.claude/hooks/)
-├── quality_reports/    → traces/ (gitignored), token_baselines/ (gitignored), harness_changes/ (committed audit trail)
+├── quality_reports/    → traces/ (gitignored), token_baselines/ (gitignored), harness_changes/ (committed audit trail), knowledge_sync/ (committed monthly propose-only reports)
 │
 Obsidian Vault (Documents/)
 ├── Projects/           → Per-project artifacts (overview, log, solutions)
