@@ -83,7 +83,8 @@
 - [x] 2026-07-07 SCORE: 100/100 (threshold: 80, gate: commit)
 - [x] 2026-07-07 Commits: 42975e4 (W1), 9a77f83 (W2), c2ba127 (W3), 1f6c8fb (W4a), 116a687 (W4b), + plan
 - [x] 2026-07-07 crontab installed by Max (verified via crontab -l; macOS gotcha: crontab truncates argument paths at ~100 chars, install from a short path or stdin)
-- [ ] UAT with Max (/goal wording, push-exception scope) + push branch + move plan to completed/
+- [x] 2026-07-07 PR #65 pushed, merged by Max (implicit UAT approval), main pulled, verify-frontend live via skills symlink, no ln -s needed (hooks from the parallel train were pre-linked), local branch deleted
+- [x] 2026-07-07 plan closed → completed/
 
 ## Unresolved Questions
 
