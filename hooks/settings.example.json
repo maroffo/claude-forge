@@ -1,6 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "_comment_": "Merge this into ~/.claude/settings.json under 'permissions', 'hooks', and the top-level keys below. Replace {{HOOKS_DIR}} with the absolute path to your installed hooks (typically /Users/<you>/.claude/hooks or /home/<you>/.claude/hooks).",
+  "_comment_context_watcher": "context-watcher.sh assumes a 200K compaction window. If your auto-compact window differs, set CONTEXT_WATCHER_WINDOW (or CLAUDE_CODE_AUTO_COMPACT_WINDOW) to the window size in tokens, otherwise the 60/75/85% nudges fire early or late.",
   "_comment_effortLevel": "Tuned for Opus 4.8: xhigh is Anthropic's recommended effort for coding/agentic work. Drop the global default to 'high' if most sessions are light; bump heavy ones per-task with /effort. Omit the key entirely to use the model default. Note: 4.8 recalibrated effort, do not assume 4.7 token costs. To pin the model add \"model\": \"opus\" (alias resolves to latest Opus, never goes stale).",
   "effortLevel": "xhigh",
   "permissions": {
@@ -65,6 +66,12 @@
         "hooks": [
           { "type": "command", "command": "{{HOOKS_DIR}}/routing-advisor.sh", "timeout": 10 }
         ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "{{HOOKS_DIR}}/context-watcher.sh", "timeout": 10 }
+        ]
       }
     ],
     "SessionStart": [
@@ -84,6 +91,12 @@
         "matcher": "compact|clear",
         "hooks": [
           { "type": "command", "command": "{{HOOKS_DIR}}/retrospective-nudge.sh", "timeout": 10 }
+        ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          { "type": "command", "command": "{{HOOKS_DIR}}/compact-resume.sh", "timeout": 10 }
         ]
       }
     ],
@@ -115,6 +128,12 @@
         "matcher": "manual",
         "hooks": [
           { "type": "command", "command": "{{HOOKS_DIR}}/retrospective-nudge.sh", "timeout": 10 }
+        ]
+      },
+      {
+        "matcher": "auto",
+        "hooks": [
+          { "type": "command", "command": "{{HOOKS_DIR}}/compact-resume.sh", "timeout": 10 }
         ]
       }
     ]
