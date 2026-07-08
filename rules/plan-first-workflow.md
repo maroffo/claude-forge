@@ -87,6 +87,8 @@ Append to project log in vault: `obsidian append file="<project> - Log" content=
 
 When compressing or summarizing session state, regenerate from source files (code, tests, git log), never compress an existing summary. Summaries drift; the codebase is the lossless source of truth.
 
+A `[context-watcher]` nudge (context ≥60% of the compaction window) is a mandatory pause signal: update the living plan's `## Progress` and Next Action, or write `.continue-here.md`, BEFORE continuing the task; auto-compact can fire without further warning. After an auto-compact, the `[compact-resume]` prompt points back to exactly these files.
+
 When pausing mid-task: if a living plan exists (see Living Plans), update its `## Progress` and `## Decisions` sections instead — the plan is the resume point, and it accumulates instead of being deleted. Only for unplanned/simple work, write `.continue-here.md` in the working directory:
 
 ```markdown
