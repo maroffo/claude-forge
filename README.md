@@ -142,7 +142,7 @@ Launched by the orchestrator based on file patterns. All review agents are **rea
 |-------|---------|------|
 | `software-engineer` | Implementation subtasks, fix rounds | Scoped read-write, deviation rules (R1-R6), incremental commits |
 | `research-analyst` | Pre-plan unknowns, tech evaluation | Best practices, external repos, docs, prior art |
-| `security-reviewer` | Auth, input, API, secrets | OWASP, injection, credentials |
+| `security-reviewer` | Auth, input, API, secrets | OWASP, injection, credentials; threat-model + reachability gates before filing |
 | `performance-reviewer` | Hot paths, queries, caching | N+1, memory, allocations |
 | `architecture-reviewer` | Multi-file, new features | SOLID, coupling, API design |
 | `test-reviewer` | Test files, pre-PR | Coverage gaps, flaky patterns |
