@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ABOUTME: PostToolUse watcher that estimates context usage from the transcript tail
-# ABOUTME: Nudges saving resume state at 60/75/85% bands before auto-compact fires
+# ABOUTME: Nudges saving resume state on bands just below the auto-compact threshold
 
 """Context-occupancy watcher for the auto-compact boundary.
 
@@ -11,14 +11,22 @@ fields on stdin, so this hook computes occupancy the same way the statusline
 does: from the last assistant record in transcript_path,
 input_tokens + cache_creation_input_tokens + cache_read_input_tokens.
 
-At 60/75/85% of the compaction window it injects one nudge per band (via
-PostToolUse hookSpecificOutput.additionalContext) telling the model to save
-resume state now. A per-session marker file remembers the last band emitted;
-a drop back below the lowest band (post-compact) resets it so the next climb
-nudges again.
+Two things must line up with the real session for the nudge to be useful:
 
-Window size is not discoverable from hook input: CONTEXT_WATCHER_WINDOW or
-CLAUDE_CODE_AUTO_COMPACT_WINDOW (absolute tokens) override the 200K default.
+- **Window size.** Not discoverable from hook input. The 1M context window is
+  active unless CLAUDE_CODE_DISABLE_1M_CONTEXT=1, so that is the default;
+  CONTEXT_WATCHER_WINDOW or CLAUDE_CODE_AUTO_COMPACT_WINDOW (absolute tokens)
+  pin it explicitly. A 200K assumption on a 1M session fired the bands ~5x too
+  early (the bug this replaces).
+- **Threshold.** Auto-compact fires near CLAUDE_AUTOCOMPACT_PCT_OVERRIDE percent
+  of the window (default AUTOCOMPACT_DEFAULT_PCT). The bands sit a few points
+  BELOW that, so the nudge always precedes compaction wherever the threshold is
+  set, instead of at fixed absolute percentages.
+
+It injects one nudge per band (via PostToolUse
+hookSpecificOutput.additionalContext). A per-session marker file remembers the
+last band emitted; a drop back below the lowest band (post-compact) resets it
+so the next climb nudges again.
 
 Fail-open: any error exits 0 with no output.
 """
@@ -29,18 +37,23 @@ import re
 import sys
 from pathlib import Path
 
-BANDS = (60, 75, 85)
-DEFAULT_WINDOW = 200_000
+WINDOW_1M = 1_000_000
+WINDOW_STANDARD = 200_000
+# Auto-compact's default trigger, as a percent of the window, when
+# CLAUDE_AUTOCOMPACT_PCT_OVERRIDE is unset.
+AUTOCOMPACT_DEFAULT_PCT = 92
+# Pre-warning bands sit these many percentage points below the compact
+# threshold, ascending toward it, so the nudge always precedes auto-compact.
+BAND_OFFSETS = (15, 8, 3)
 TAIL_BYTES = 262_144
 MAX_SCAN_BYTES = 16_777_216  # single tool results can exceed 2MB; cap the backward scan
 
 NUDGE = (
-    "[context-watcher] Context is at ~{pct}% of the compaction window "
-    "(~{tokens} tokens of {window}). Auto-compact can fire without warning "
-    "and its summary is lossy. Save resume state now: update the living "
-    "plan's ## Progress and Next Action in quality_reports/plans/active/, "
-    "or write .continue-here.md (see plan-first-workflow), then continue "
-    "the task."
+    "[context-watcher] Context is at ~{pct}% of the {window}-token window "
+    "(~{tokens} tokens); auto-compact fires near {threshold}%. Its summary is "
+    "lossy, so save resume state now: update the living plan's ## Progress and "
+    "Next Action in quality_reports/plans/active/, or write .continue-here.md "
+    "(see plan-first-workflow), then continue the task."
 )
 
 
@@ -50,11 +63,37 @@ def _marker(session_id: str) -> Path:
 
 
 def window_tokens() -> int:
+    """Real context window in tokens.
+
+    An explicit override wins; otherwise the 1M window is assumed active unless
+    it was explicitly disabled. Guessing 200K on a 1M session is the failure
+    this replaces, so the default leans large; a genuinely 200K deployment sets
+    CLAUDE_CODE_DISABLE_1M_CONTEXT=1 or pins CONTEXT_WATCHER_WINDOW.
+    """
     for var in ("CONTEXT_WATCHER_WINDOW", "CLAUDE_CODE_AUTO_COMPACT_WINDOW"):
-        raw = os.environ.get(var, "")
+        raw = os.environ.get(var, "").strip()
         if raw.isdigit() and int(raw) > 0:
             return int(raw)
-    return DEFAULT_WINDOW
+    if os.environ.get("CLAUDE_CODE_DISABLE_1M_CONTEXT", "").strip() == "1":
+        return WINDOW_STANDARD
+    return WINDOW_1M
+
+
+def autocompact_pct() -> int:
+    """Percent of the window at which auto-compact fires."""
+    raw = os.environ.get("CLAUDE_AUTOCOMPACT_PCT_OVERRIDE", "").strip()
+    if raw.isdigit() and 0 < int(raw) <= 100:
+        return int(raw)
+    return AUTOCOMPACT_DEFAULT_PCT
+
+
+def bands(threshold: int) -> tuple[int, ...]:
+    """Ascending pre-warning bands just below the compact threshold.
+
+    Distinct and clamped to >=1; offsets that collapse into the same band (very
+    low thresholds) dedupe rather than fire twice at one level.
+    """
+    return tuple(sorted({max(1, threshold - off) for off in BAND_OFFSETS}))
 
 
 def context_tokens(transcript_path: str) -> int | None:
@@ -111,9 +150,10 @@ def main() -> None:
         return
     window = window_tokens()
     pct = tokens * 100 // window
+    threshold = autocompact_pct()
 
     marker = _marker(session_id)
-    band = max((b for b in BANDS if pct >= b), default=0)
+    band = max((b for b in bands(threshold) if pct >= b), default=0)
 
     if band == 0:
         # Post-compact drop: rearm so the next climb nudges again.
@@ -130,7 +170,7 @@ def main() -> None:
                 "hookSpecificOutput": {
                     "hookEventName": "PostToolUse",
                     "additionalContext": NUDGE.format(
-                        pct=pct, tokens=tokens, window=window
+                        pct=pct, tokens=tokens, window=window, threshold=threshold
                     ),
                 }
             }
