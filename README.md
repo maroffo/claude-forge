@@ -181,7 +181,7 @@ Skills are markdown files that teach Claude domain-specific patterns. They load 
 | `ios-debugger/` | Build, run, debug iOS apps via CLI (Xcode + Simulator) |
 | `cloud-infrastructure/` | AWS/GCP Well-Architected, security, cost, observability |
 
-Large skills use a `references/` subdirectory for detailed patterns (progressive disclosure: core in SKILL.md, details on demand). Currently: `android-kotlin/`, `apple-swift/`, `bujo-sync/`, `golang/`, `humanizer/`, `python/`, `rails/`, `react-nextjs/`, `ruby/`.
+Large skills use a `references/` subdirectory for detailed patterns (progressive disclosure: core in SKILL.md, details on demand). Currently: `android-kotlin/`, `apple-swift/`, `bujo-sync/`, `golang/`, `humanizer/`, `mail-writer/`, `python/`, `rails/`, `react-nextjs/`, `ruby/`.
 
 ### Shared Reference Files
 
@@ -230,6 +230,7 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | `table-image/` | Render tables/diagrams as hand-drawn sketch images |
 | `humanizer/` | Remove AI writing patterns (inflated symbolism, rule of three, etc.) |
 | `blog-writer/` | Write blog posts from Second Brain, IDEAS.md, or free prompts |
+| `mail-writer/` | Write short, direct emails: Castonguay rules + Max's distilled voice + humanizer pass |
 
 ### Personal Workflows
 
