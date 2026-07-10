@@ -165,7 +165,7 @@ GITHUB_USER=$(git config user.name 2>/dev/null || echo "")
 read -rp "GitHub username [${GITHUB_USER:-detect from git}]: " input_gh
 GITHUB_USER="${input_gh:-$GITHUB_USER}"
 
-FULL_NAME="" ; VAULT_PATH="" ; VAULT_NAME="" ; EMAIL_ADDRESS="" ; BLOG_PATH="" ; BLOG_VAULT_FOLDER=""
+FULL_NAME="" ; VAULT_PATH="" ; EMAIL_ADDRESS="" ; BLOG_PATH="" ; BLOG_VAULT_FOLDER=""
 
 # ADR=6, CONTENT=5
 if is_selected 6 || is_selected 5; then
@@ -177,9 +177,6 @@ if is_selected 3; then
   default_vault="$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents"
   read -rp "Obsidian vault path [$default_vault]: " input_vault
   VAULT_PATH="${input_vault:-$default_vault}"
-  default_vname="$(basename "$VAULT_PATH")"
-  read -rp "Vault name [$default_vname]: " input_vname
-  VAULT_NAME="${input_vname:-$default_vname}"
 fi
 
 # EMAIL=4
