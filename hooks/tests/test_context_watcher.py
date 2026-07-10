@@ -12,6 +12,9 @@ import uuid
 
 HOOK = os.path.join(os.path.dirname(__file__), "..", "context-watcher.py")
 WINDOW = 100_000  # round window so token counts map to percentages directly
+# Pin the compact threshold so bands are deterministic regardless of the
+# ambient CLAUDE_AUTOCOMPACT_PCT_OVERRIDE. Offsets (15, 8, 3) -> bands 65/72/77.
+THRESHOLD = 80
 
 
 def marker_path(session_id):
@@ -48,8 +51,14 @@ def write_transcript(tokens):
     return fh.name
 
 
-def run_hook(payload):
-    env = dict(os.environ, CONTEXT_WATCHER_WINDOW=str(WINDOW))
+def run_hook(payload, extra_env=None):
+    env = dict(
+        os.environ,
+        CONTEXT_WATCHER_WINDOW=str(WINDOW),
+        CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=str(THRESHOLD),
+    )
+    if extra_env is not None:
+        env.update(extra_env)
     proc = subprocess.run(
         [sys.executable, HOOK], input=json.dumps(payload),
         capture_output=True, text=True, timeout=30, env=env,
@@ -79,41 +88,42 @@ def nudge_context(out):
 
 def test_below_threshold_silent():
     sid = f"test-{uuid.uuid4()}"
-    transcript = write_transcript(50_000)  # 50% < 60
+    transcript = write_transcript(50_000)  # 50% < lowest band (65)
     out = run_hook(payload(sid, transcript))
     assert out == "", out
     assert not os.path.exists(marker_path(sid))
     cleanup(sid, transcript)
-    print("PASS  below 60% stays silent")
+    print("PASS  below lowest band stays silent")
 
 
 def test_first_band_nudges_once():
     sid = f"test-{uuid.uuid4()}"
-    transcript = write_transcript(65_000)  # 65% -> band 60
+    transcript = write_transcript(65_000)  # 65% -> band 65 (threshold 80 - 15)
     out = run_hook(payload(sid, transcript))
     ctx = nudge_context(out)
     assert "[context-watcher]" in ctx and "65%" in ctx, ctx
+    assert "80%" in ctx, ctx  # names the auto-compact threshold
     assert "quality_reports/plans/active/" in ctx, ctx
     # same band again: silent
     out2 = run_hook(payload(sid, transcript))
     assert out2 == "", out2
     cleanup(sid, transcript)
-    print("PASS  60% band nudges exactly once")
+    print("PASS  first band nudges exactly once")
 
 
 def test_band_escalation():
     sid = f"test-{uuid.uuid4()}"
-    t65 = write_transcript(65_000)
-    t80 = write_transcript(80_000)
-    t90 = write_transcript(90_000)
+    t65 = write_transcript(65_000)  # band 65
+    t73 = write_transcript(73_000)  # band 72
+    t78 = write_transcript(78_000)  # band 77
     assert nudge_context(run_hook(payload(sid, t65)))
-    assert "80%" in nudge_context(run_hook(payload(sid, t80)))
-    assert "90%" in nudge_context(run_hook(payload(sid, t90)))
-    assert run_hook(payload(sid, t90)) == ""
+    assert "73%" in nudge_context(run_hook(payload(sid, t73)))
+    assert "78%" in nudge_context(run_hook(payload(sid, t78)))
+    assert run_hook(payload(sid, t78)) == ""
     cleanup(sid, t65)
-    cleanup(sid, t80)
-    cleanup(sid, t90)
-    print("PASS  bands escalate 60 -> 75 -> 85, once each")
+    cleanup(sid, t73)
+    cleanup(sid, t78)
+    print("PASS  bands escalate 65 -> 72 -> 77, once each")
 
 
 def test_post_compact_drop_rearms():
@@ -127,6 +137,23 @@ def test_post_compact_drop_rearms():
     cleanup(sid, t65)
     cleanup(sid, t10)
     print("PASS  post-compact drop rearms the watcher")
+
+
+def test_window_autodetect_1m_default():
+    """No window override: 1M is assumed unless disabled, so 250K reads ~25% (silent);
+    disabling 1M drops the window to 200K and the same tokens exceed the top band."""
+    sid = f"test-{uuid.uuid4()}"
+    transcript = write_transcript(250_000)
+    # 1M default: 25% < lowest band -> silent.
+    out = run_hook(payload(sid, transcript),
+                   extra_env={"CONTEXT_WATCHER_WINDOW": "", "CLAUDE_CODE_DISABLE_1M_CONTEXT": "0"})
+    assert out == "", out
+    # 1M disabled -> 200K window: 125% -> tops out, nudges.
+    out2 = run_hook(payload(sid, transcript),
+                    extra_env={"CONTEXT_WATCHER_WINDOW": "", "CLAUDE_CODE_DISABLE_1M_CONTEXT": "1"})
+    assert "[context-watcher]" in nudge_context(out2), out2
+    cleanup(sid, transcript)
+    print("PASS  window auto-detects 1M vs 200K from DISABLE_1M_CONTEXT")
 
 
 def test_large_trailing_record_still_found():
@@ -157,6 +184,7 @@ def main():
     test_first_band_nudges_once()
     test_band_escalation()
     test_post_compact_drop_rearms()
+    test_window_autodetect_1m_default()
     test_large_trailing_record_still_found()
     test_missing_transcript_fails_open()
     print("test_context_watcher: all tests passed")
