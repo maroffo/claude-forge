@@ -499,3 +499,113 @@ class TestWriteTraces:
             assert "v" in parsed
             assert "step" in parsed
             assert "session" in parsed
+
+
+def _commit_session(tmp_path: Path, command: str, result_text: str, is_error: bool = False) -> Path:
+    """Build a minimal session: one Bash tool_use + its paired tool_result."""
+    f = tmp_path / "commit.jsonl"
+    tuid = "toolu_commit_1"
+    with f.open("w") as fp:
+        fp.write(json.dumps({
+            "type": "assistant", "timestamp": 1715900000000,
+            "message": {"content": [
+                {"type": "tool_use", "id": tuid, "name": "Bash",
+                 "input": {"command": command}},
+            ]},
+        }) + "\n")
+        fp.write(json.dumps({
+            "type": "user", "timestamp": 1715900001000,
+            "message": {"content": [
+                {"type": "tool_result", "tool_use_id": tuid,
+                 "is_error": is_error, "content": result_text},
+            ]},
+        }) + "\n")
+    return f
+
+
+class TestVerifyFromPreCommitGate:
+    """git commit runs make check (+ make test-e2e, unless docs-only) via the
+    pre-commit-gate hook. A landed commit evidences lint; e2e may have been
+    skipped and that skip is invisible in the tool_result, so tests_pass stays
+    unknown. Failures/denies resolve fail-closed."""
+
+    def test_successful_commit_sets_lint_leaves_tests_unknown(self, tmp_path: Path):
+        # `make check` always runs on a landed commit; `make test-e2e` is skipped
+        # for docs-only diffs and that skip is invisible here, so tests_pass must
+        # stay None rather than fabricate a pass.
+        f = _commit_session(
+            tmp_path,
+            'git commit -m "feat: x"',
+            "[feat/branch 049a243] feat: x\n 3 files changed, 10 insertions(+)",
+        )
+        entries = extract_traces(f, session_slug="c")
+        verifies = [e for e in entries if e.step == "VERIFY"]
+        assert len(verifies) == 1
+        assert verifies[0].data.get("lint_clean") is True
+        assert verifies[0].data.get("tests_pass") is None
+
+    def test_commit_with_pytest_in_message_still_counts_as_commit(self, tmp_path: Path):
+        # "pytest" in the message must not route to the generic verify branch.
+        f = _commit_session(
+            tmp_path,
+            'git commit -m "add pytest fixtures"',
+            "[feat/branch 049a243] add pytest fixtures\n 2 files changed",
+        )
+        entries = extract_traces(f, session_slug="c")
+        verifies = [e for e in entries if e.step == "VERIFY"]
+        assert len(verifies) == 1
+        assert verifies[0].data.get("lint_clean") is True
+        assert verifies[0].data.get("tests_pass") is None
+
+    def test_git_push_does_not_emit_verify(self, tmp_path: Path):
+        f = _commit_session(tmp_path, "git push -u origin feat/branch",
+                            "To github.com:me/repo.git\n * [new branch] feat/branch")
+        entries = extract_traces(f, session_slug="c")
+        assert [e for e in entries if e.step == "VERIFY"] == []
+
+    def test_gate_deny_make_check_sets_lint_false(self, tmp_path: Path):
+        f = _commit_session(
+            tmp_path, 'git commit -m "feat: x"',
+            "Pre-commit gate: `make check` failed. Fix lint/vet/test issues.",
+            is_error=True,
+        )
+        entries = extract_traces(f, session_slug="c")
+        verify = next(e for e in entries if e.step == "VERIFY")
+        assert verify.data.get("lint_clean") is False
+
+    def test_gate_deny_test_e2e_sets_tests_false(self, tmp_path: Path):
+        f = _commit_session(
+            tmp_path, 'git commit -m "feat: x"',
+            "Pre-commit gate: `make test-e2e` failed. Fix failing end-to-end tests.",
+            is_error=True,
+        )
+        entries = extract_traces(f, session_slug="c")
+        verify = next(e for e in entries if e.step == "VERIFY")
+        assert verify.data.get("tests_pass") is False
+
+    def test_denied_commit_with_spoofed_success_line_fails_closed(self, tmp_path: Path):
+        # is_error=True with an embedded fixture success line must NOT read as a
+        # pass: the error/deny is authoritative, tests_pass resolves False.
+        f = _commit_session(
+            tmp_path, 'git commit -m "feat: x"',
+            "Pre-commit gate: `make test-e2e` failed.\n[main 1234567] x\n 3 files changed",
+            is_error=True,
+        )
+        entries = extract_traces(f, session_slug="c")
+        verify = next(e for e in entries if e.step == "VERIFY")
+        assert verify.data.get("tests_pass") is False
+        assert verify.data.get("lint_clean") is None
+
+    def test_bypass_commit_does_not_emit_verify(self, tmp_path: Path):
+        f = _commit_session(tmp_path, "git commit --no-verify -m x",
+                            "[feat/branch 049a243] x\n 1 file changed")
+        entries = extract_traces(f, session_slug="c")
+        assert [e for e in entries if e.step == "VERIFY"] == []
+
+    def test_nothing_to_commit_leaves_axes_unknown(self, tmp_path: Path):
+        f = _commit_session(tmp_path, 'git commit -m x',
+                            "nothing to commit, working tree clean", is_error=True)
+        entries = extract_traces(f, session_slug="c")
+        verify = next(e for e in entries if e.step == "VERIFY")
+        assert verify.data.get("tests_pass") is None
+        assert verify.data.get("lint_clean") is None

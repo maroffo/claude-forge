@@ -89,6 +89,16 @@ BLAST_BASH_PATTERNS = ["ast-grep", "sg --pattern", "sg -p ", "ast_grep"]
 # Bash command substrings indicating a git commit (signals end of FIX/IMPLEMENT round).
 COMMIT_BASH_PATTERNS = ["git commit", "git push"]
 
+# Flags that skip the pre-commit-gate hook; a commit carrying one is NOT
+# verification evidence (and they are forbidden by the harness anyway).
+COMMIT_VERIFY_BYPASS = ("--no-verify", "--no-hooks", "--no-pre-commit-hook")
+
+# Positive markers that a `git commit` actually landed: the commit summary line
+# (`[branch abc1234] msg`) or the diffstat (`N files changed`). Resolved
+# positively rather than from is_error, because both a pre-commit-gate deny and
+# a plain "nothing to commit" surface as errors.
+COMMIT_SUCCESS_PATTERN = re.compile(r"\b\d+ files? changed\b|\[\S+ [0-9a-f]{7,}\]")
+
 
 def _extract_timestamp(msg: dict[str, Any]) -> datetime:
     ts = msg.get("timestamp")
@@ -161,9 +171,41 @@ def _verify_target_fields(cmd: str) -> list[str]:
     return fields
 
 
+def _apply_commit_verify_result(entry: TraceEntry, is_error: bool, tail: str) -> None:
+    """Resolve a git-commit VERIFY from its tool_result, fail-closed.
+
+    The pre-commit-gate runs `make check` (lint) on every commit and
+    `make test-e2e` (tests) UNLESS the staged diff is docs-only, in which case
+    e2e is skipped. The skip marker is not surfaced in the commit's tool_result
+    (verified empirically), so from a landed commit we can only prove lint:
+
+    - On any error/deny (`is_error`, the "Pre-commit gate:" reason prefix, or a
+      failure marker), fail closed: set the named axis False, never True.
+    - On success, set only `lint_clean=True`. `tests_pass` stays None (unknown),
+      because we cannot tell a docs-only commit (e2e skipped) from a code one.
+
+    So `tests_pass` is never asserted True from a commit; that would fabricate a
+    pass the commit does not evidence.
+    """
+    low = tail.lower()
+    if is_error or "pre-commit gate:" in low or VERIFY_FAIL_PATTERN.search(tail):
+        if "make check" in low:
+            entry.data["lint_clean"] = False
+        if "test-e2e" in low:
+            entry.data["tests_pass"] = False
+        # A non-gate failure (e.g. "nothing to commit") names no axis: stays None.
+        return
+    if COMMIT_SUCCESS_PATTERN.search(tail):
+        entry.data["lint_clean"] = True
+
+
 def _apply_verify_result(entry: TraceEntry, cmd: str, is_error: bool, text: str) -> None:
     """Resolve a pending VERIFY entry's outcome from its tool_result."""
-    success = not is_error and not VERIFY_FAIL_PATTERN.search(text[-VERIFY_SCAN_TAIL:])
+    tail = text[-VERIFY_SCAN_TAIL:]
+    if "git commit" in cmd.lower():
+        _apply_commit_verify_result(entry, is_error, tail)
+        return
+    success = not is_error and not VERIFY_FAIL_PATTERN.search(tail)
     fields = _verify_target_fields(cmd)
     if success:
         for field in fields:
@@ -340,7 +382,28 @@ def _process_tool_use(
     if name == "Bash":
         counters["bash_calls"] += 1
         cmd = _bash_command(tool_input)
-        if _matches_any(cmd, VERIFY_BASH_PATTERNS):
+        cmd_lower = cmd.lower()
+        # `git commit` is checked before the generic verify patterns: a commit
+        # message like `-m "add pytest fixtures"` would otherwise match "pytest"
+        # and take the wrong branch (undercounting the commit).
+        if "git commit" in cmd_lower:
+            counters["commits"] += 1
+            # The pre-commit-gate PreToolUse hook runs `make check` +
+            # `make test-e2e` before the commit executes, so a successful commit
+            # is verification evidence. The bypass flags are forbidden by the
+            # harness and do not actually skip this hook (it is not a git hook);
+            # we still decline to emit VERIFY for them, conservatively.
+            if not any(b in cmd_lower for b in COMMIT_VERIFY_BYPASS):
+                counters["verify_runs"] += 1
+                entry = _new_entry(
+                    session_slug, ts, "VERIFY",
+                    {"tests_pass": None, "lint_clean": None, "build_ok": None},
+                )
+                entries.append(entry)
+                if block_id:
+                    pending_verify[block_id] = (entry, cmd)
+                tool_signaled_steps.add("VERIFY")
+        elif _matches_any(cmd, VERIFY_BASH_PATTERNS):
             counters["verify_runs"] += 1
             entry = _new_entry(
                 session_slug, ts, "VERIFY",
@@ -359,6 +422,7 @@ def _process_tool_use(
             ))
             tool_signaled_steps.add("BLAST_RADIUS")
         elif _matches_any(cmd, COMMIT_BASH_PATTERNS):
+            # `git push` and other commit-family commands: counted, no VERIFY.
             counters["commits"] += 1
         return
 
