@@ -59,6 +59,7 @@
 | Render table as image | `table-image` | `_generate_image.py` |
 | Edit/review text for AI patterns | `humanizer` | - |
 | Write blog posts (Max) | `blog-writer` | `humanizer`, `cover-image`, `_SECOND_BRAIN.md` |
+| Write emails (Max) | `mail-writer` | `humanizer` |
 | Write blog posts (Mauro Medda) | `mauro-blogger` | private repo, symlinked locally like `advanced-review` |
 | Publish LinkedIn post | `linkedin-post` | private repo, symlinked locally |
 | Analyze code cognitive load | `cognitive-load-analyzer` | `gemini-review`, language-specific |

@@ -80,6 +80,7 @@ Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes 
 | Humanize AI text | `humanizer` |
 | Architecture decisions | `adr` |
 | Blog writing | `blog-writer` |
+| Email writing | `mail-writer` |
 | Skill creation/review | `skill-forge` |
 | Execution traces/token baseline | `harness-trace` |
 | Harness optimization (trace-driven) | `harness-mechanic` |
