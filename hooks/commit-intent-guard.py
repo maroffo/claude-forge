@@ -20,7 +20,12 @@ COMMENT_PATTERNS = [
     (r"^TODO\b", "TODO comment"),
     (r"^FIXME\b", "FIXME comment"),
     (r"^XXX\b(?!\-)", "XXX marker"),
-    (r"^placeholder\b", "placeholder"),
+    # "placeholder" only in stub-intent form: the bare word, followed by
+    # punctuation, or followed by a stub-intent word. Descriptive mid-sentence
+    # uses must pass: in redaction/templating codebases "placeholder" is domain
+    # vocabulary (e.g. the [ENTITY_TYPE] placeholder), and wrapped comments can
+    # put it at line start (contract: 2026-07-11_commit-intent-guard-placeholder-fp).
+    (r"^placeholder\b(?:\s*$|\s*[:.\-]|\s+(?:for|until|impl\w*|code|logic|value|here|only)\b)", "placeholder"),
 ]
 # Statement-level stubs (non-comment, detected in code context)
 STATEMENT_PATTERNS = [
