@@ -109,11 +109,54 @@ def main():
             "// entity replaced by its [ENTITY_TYPE] placeholder",
         ):
             assert staged(legit) is None, f"domain-vocab-ok:{legit}"
+
+        # stale-index on index-mutating commands: the scan must judge what the
+        # command WILL commit, not the pre-add index
+        # (contract: 2026-07-11_commit-intent-guard-stale-index.md)
+        def git(*args):
+            subprocess.run(["git", "-C", feat_repo, *args], capture_output=True, check=True)
+
+        def write(name, content):
+            with open(os.path.join(feat_repo, name), "w") as f:
+                f.write(content + "\n")
+
+        def clean_repo():
+            git("reset", "--hard", "HEAD")
+            git("clean", "-fd")
+
+        write("f.go", "// fine")
+        git("add", "f.go")
+        git("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-m", "feat: base")
+
+        # false-deny regression: stub staged, then FIXED in worktree; the chained
+        # add stages the fix, so the commit is clean and must pass
+        write("f.go", "// TODO wire the real parser")
+        git("add", "f.go")
+        write("f.go", "// fixed for real")
+        assert run_py("commit-intent-guard.py", 'git add f.go && git commit -m "feat: x"', cwd=feat_repo) is None, "stale-fix-allowed"
+        clean_repo()
+
+        # bypass closure, tracked file: stub only in the worktree, chained add
+        # (or commit -a) would commit it: deny even though the index is clean
+        write("f.go", "// TODO wire the real parser")
+        assert is_deny(run_py("commit-intent-guard.py", 'git add f.go && git commit -m "feat: x"', cwd=feat_repo)), "bypass-add-chain-denied"
+        assert is_deny(run_py("commit-intent-guard.py", 'git commit -am "feat: x"', cwd=feat_repo)), "bypass-commit-a-denied"
+
+        # boundary: plain commit does NOT judge unstaged worktree content
+        assert run_py("commit-intent-guard.py", 'git commit -m "feat: x"', cwd=feat_repo) is None, "plain-commit-ignores-worktree"
+        clean_repo()
+
+        # bypass closure, untracked file: diff HEAD cannot see it, the named-file
+        # (and add .) scan must
+        write("stub2.go", "// placeholder: implement")
+        assert is_deny(run_py("commit-intent-guard.py", 'git add stub2.go && git commit -m "feat: x"', cwd=feat_repo)), "bypass-untracked-named-denied"
+        assert is_deny(run_py("commit-intent-guard.py", 'git add . && git commit -m "feat: x"', cwd=feat_repo)), "bypass-untracked-dot-denied"
+        git("clean", "-fd")
     finally:
         shutil.rmtree(main_repo, ignore_errors=True)
         shutil.rmtree(feat_repo, ignore_errors=True)
 
-    print("PASS  commit-gates (24 cases)")
+    print("PASS  commit-gates (30 cases)")
 
 
 if __name__ == "__main__":

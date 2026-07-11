@@ -2,7 +2,9 @@
 # ABOUTME: PreToolUse Tier A commit-intent guard (stub detection, conventional message, deletion advisory)
 # ABOUTME: Deny on stub/malformed message, advisory on unplanned deletions
 
+import fnmatch
 import json
+import os
 import re
 import subprocess
 import sys
@@ -32,6 +34,19 @@ STATEMENT_PATTERNS = [
     (r"^\s*raise\s+NotImplementedError", "raise NotImplementedError"),
     (r"^\s*pass\s*#\s*stub\b", "stub pass"),
 ]
+
+# A commit command that ALSO mutates the index (a chained `git add`, or commit
+# flags that pull straight from the working tree: -a / combined short flags like
+# -am, --all, --include) makes `git diff --cached` stale: PreToolUse runs BEFORE
+# the command, so the index it sees is pre-add. For those commands the scan reads
+# `git diff HEAD` (index + working tree) plus the untracked files the add names.
+# Over-matching only widens the scan — the fail-safe direction.
+# Contract: 2026-07-11_commit-intent-guard-stale-index.md
+INDEX_MUTATING_RE = re.compile(
+    r"\bgit\b[^|;&]*\badd\b"
+    r"|\bcommit\b[^|;&]*\s-[a-zA-Z]*a[a-zA-Z]*\b"
+    r"|\bcommit\b[^|;&]*\s--(?:all|include)\b"
+)
 
 
 def extract_commit_message(command):
@@ -74,14 +89,35 @@ def _extract_comment_body(content):
     return None
 
 
-def scan_added_lines_for_stubs():
+def _skip_file(path):
+    """Files where markers can legitimately appear as documentation or data."""
+    return (
+        any(path.endswith(sfx) for sfx in STUB_SCAN_SKIP_SUFFIXES)
+        or any(p in path for p in STUB_SCAN_SKIP_PATHS)
+    )
+
+
+def _stub_in_line(content):
+    """Return (line, label) if the line carries an unfinished-work marker, else None.
+    TODO/FIXME/XXX/placeholder only in comment context (not string literals or
+    documentation tables); NotImplementedError and stub-pass as statements anywhere."""
+    comment = _extract_comment_body(content)
+    if comment is not None:
+        for pat, label in COMMENT_PATTERNS:
+            if re.search(pat, comment):
+                return (content.strip()[:100], label)
+    for pat, label in STATEMENT_PATTERNS:
+        if re.search(pat, content):
+            return (content.strip()[:100], label)
+    return None
+
+
+def scan_added_lines_for_stubs(diff_cmd):
     """Return list of (line, label) for unfinished-work markers in ADDED diff lines.
-    Markdown/docs and vendored paths are skipped. TODO/FIXME/XXX/placeholder are
-    only flagged when they appear in a comment context (not inside string literals
-    or documentation tables). raise NotImplementedError and stub-pass are flagged
-    anywhere they appear as statements.
-    """
-    diff = sh("git diff --cached").stdout
+    Markdown/docs and vendored paths are skipped. diff_cmd is `git diff --cached`
+    for a plain commit, `git diff HEAD` when the command mutates the index (see
+    INDEX_MUTATING_RE)."""
+    diff = sh(diff_cmd).stdout
     issues = []
     current_file = None
     for line in diff.splitlines():
@@ -91,32 +127,61 @@ def scan_added_lines_for_stubs():
             continue
         if not line.startswith("+") or line.startswith("+++"):
             continue
-        if current_file is None:
+        if current_file is None or _skip_file(current_file):
             continue
-        if any(current_file.endswith(sfx) for sfx in STUB_SCAN_SKIP_SUFFIXES):
-            continue
-        if any(p in current_file for p in STUB_SCAN_SKIP_PATHS):
-            continue
-
-        content = line[1:]
-
-        # Comment-context markers (TODO/FIXME/XXX/placeholder): only inside comments
-        comment = _extract_comment_body(content)
-        if comment is not None:
-            for pat, label in COMMENT_PATTERNS:
-                if re.search(pat, comment):
-                    issues.append((content.strip()[:100], label))
-                    break
-        # Statement-level stubs: anywhere, but only if the whole line matches
-        for pat, label in STATEMENT_PATTERNS:
-            if re.search(pat, content):
-                issues.append((content.strip()[:100], label))
-                break
+        hit = _stub_in_line(line[1:])
+        if hit:
+            issues.append(hit)
     return issues
 
 
-def staged_deletions():
-    r = sh("git diff --cached --name-only --diff-filter=D")
+def _add_targets(command):
+    """Best-effort pathspec tokens of every chained `git add` in the command.
+    `-A`/`--all` (and `.`) normalize to "." (scan every untracked file)."""
+    targets = []
+    for m in re.finditer(r"\bgit\b(?:\s+-C\s+\S+)?\s+add\s+([^|;&]*)", command):
+        for tok in m.group(1).split():
+            if tok.startswith("-"):
+                if tok in ("-A", "--all"):
+                    targets.append(".")
+                continue
+            targets.append(tok.strip("'\""))
+    return targets
+
+
+def scan_untracked_for_stubs(targets):
+    """Scan untracked files matched by the add targets. `git diff HEAD` cannot see
+    untracked content, so a chained `git add newfile && git commit` would otherwise
+    stage and commit a stub the diff scan never saw."""
+    if not targets:
+        return []
+    untracked = sh("git ls-files --others --exclude-standard").stdout.splitlines()
+    issues = []
+    for path in untracked:
+        if _skip_file(path):
+            continue
+        matched = any(
+            t == "." or path == t
+            or path.startswith(t.rstrip("/") + "/")
+            or fnmatch.fnmatch(path, t)
+            for t in targets
+        )
+        if not matched or not os.path.isfile(path):
+            continue
+        try:
+            with open(path, encoding="utf-8", errors="ignore") as f:
+                for raw in f:
+                    hit = _stub_in_line(raw.rstrip("\n"))
+                    if hit:
+                        issues.append(hit)
+                        break
+        except OSError:
+            continue
+    return issues
+
+
+def staged_deletions(diff_cmd):
+    r = sh(f"{diff_cmd} --name-only --diff-filter=D")
     return [p for p in r.stdout.splitlines() if p]
 
 
@@ -174,8 +239,16 @@ def main():
                 f"Got: `{first_line[:100]}`"
             )
 
-    # 2. Stub detection on ADDED lines
-    stubs = scan_added_lines_for_stubs()
+    # 2. Stub detection on ADDED lines. An index-mutating command (chained add,
+    # commit -a/--all/--include) is judged on `git diff HEAD` + the untracked
+    # files the add names, because the staged index is pre-command and stale.
+    index_mutating = bool(INDEX_MUTATING_RE.search(cmd))
+    diff_cmd = "git diff --cached"
+    if index_mutating and sh("git rev-parse --verify -q HEAD").returncode == 0:
+        diff_cmd = "git diff HEAD"  # unborn branch keeps the --cached fallback
+    stubs = scan_added_lines_for_stubs(diff_cmd)
+    if index_mutating:
+        stubs += scan_untracked_for_stubs(_add_targets(cmd))
     if stubs:
         lines = "\n".join(f"  - {label}: `{line}`" for line, label in stubs[:5])
         more = f"\n  ... and {len(stubs) - 5} more" if len(stubs) > 5 else ""
@@ -186,8 +259,8 @@ def main():
             "commit with a plan entry justifying the stub."
         )
 
-    # 3. Unplanned deletions: advisory
-    dels = staged_deletions()
+    # 3. Unplanned deletions: advisory (same stale-index reasoning as the stub scan)
+    dels = staged_deletions(diff_cmd)
     if dels:
         advise(
             "Heads up: this commit deletes files: "
