@@ -83,11 +83,37 @@ def main():
             assert is_deny(run_py("commit-intent-guard.py", f'git commit {flag} -m "feat: x"', cwd=feat_repo)), f"bypass:{flag}"
         # clean conventional commit passes
         assert run_py("commit-intent-guard.py", 'git commit -m "feat: ok"', cwd=feat_repo) is None, "intent-clean-ok"
+
+        # stub scan: "placeholder" fires only in stub-intent form, not as domain
+        # vocabulary (contract: 2026-07-11_commit-intent-guard-placeholder-fp)
+        def staged(content):
+            path = os.path.join(feat_repo, "scan.go")
+            with open(path, "w") as f:
+                f.write(content + "\n")
+            subprocess.run(["git", "-C", feat_repo, "add", "scan.go"], capture_output=True, check=True)
+            result = run_py("commit-intent-guard.py", 'git commit -m "feat: ok"', cwd=feat_repo)
+            subprocess.run(["git", "-C", feat_repo, "reset"], capture_output=True, check=True)
+            return result
+
+        for stub in (
+            "// placeholder",
+            "// placeholder: wire the real parser",
+            "// placeholder for the real implementation",
+            "// placeholder implementation",
+            "// TODO fix this",
+        ):
+            assert is_deny(staged(stub)), f"stub-denied:{stub}"
+        for legit in (
+            "// placeholder and its presence marks the region for replacement",
+            "// the placeholder appears while the raw text block is redacted",
+            "// entity replaced by its [ENTITY_TYPE] placeholder",
+        ):
+            assert staged(legit) is None, f"domain-vocab-ok:{legit}"
     finally:
         shutil.rmtree(main_repo, ignore_errors=True)
         shutil.rmtree(feat_repo, ignore_errors=True)
 
-    print("PASS  commit-gates (16 cases)")
+    print("PASS  commit-gates (24 cases)")
 
 
 if __name__ == "__main__":
