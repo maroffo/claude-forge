@@ -59,6 +59,7 @@ Split into independent workstreams. Each software-engineer receives: **scope** (
 | Sub-step | When it runs | How | Trace data | Skip when |
 |----------|--------------|-----|------------|-----------|
 | **LOCALIZE** (1a) | Before any edits | Engineer outputs `files_to_edit`. Orchestrator checks files exist and align with plan. WARN on extras. STOP on missing planned files UNLESS engineer provides `scope_reduction_rationale` (e.g., "File `X` turned out not to need editing because ..."). | `{files_planned, files_proposed, precision, recall, mismatches, scope_reduction_rationale?}` | Plan lists exact files; single-file task |
+| **BENCH-BASELINE** (1a, hot-path) | With LOCALIZE, before any edits | If the task touches a repo's hot-path packages (mirsad `internal/{lsh,pii,decode,control,adapter,proxy,cache}` today), run that repo's `make bench-baseline` on the clean pre-edit tree → `.bench/baseline.txt`. Machine must be quiet (see VERIFY). | `{baseline_captured, bench_pkgs, baseline_path}` | No `bench-baseline` target; task touches no hot-path package |
 | **REPRODUCE** (1b) | Bug-fix only, after LOCALIZE | Script that FAILS on current code and PASSES after the fix. Target files from LOCALIZE. | `{script, fails_before_fix, passes_after_fix}` (passes_after_fix null until VERIFY) | Not a bug-fix; purely visual bug; plan says infeasible |
 | **DRIFT** (1c) | After each subtask (including parallel ones, using `git diff -- <files_for_subtask>` to avoid races) | Fresh-context agent receives: subtask description + scoped diff. One question: "Did we build exactly this, no more, no less?" Verdict: aligned / minor drift (WARN, proceed) / significant drift (STOP). | `{subtask_id, verdict, deviations}` | Single subtask; trivial (<10 LOC) |
 
@@ -67,6 +68,8 @@ Split into independent workstreams. Each software-engineer receives: **scope** (
 Run tests, lint, build. Max 2 retries on flake; on the 3rd failure, STOP and escalate (same flow as Step 7 escalation).
 
 If REPRODUCE ran (step 1b), also confirm `reproduction_confirmed = true`: the script that previously FAILED must now PASS. If not, the fix didn't address the reported bug; return to FIX.
+
+If a `.bench/baseline.txt` exists for the task (BENCH-BASELINE ran), also run `make bench-compare`. Exit ≠ 0 ⇒ a **Major** finding, never an auto-fail: either fix the regression, or add an explicit accept-with-rationale row to the plan's Decisions table ("expected cost of feature X: +N% on Y"). Never a silent accept. The A/B is only valid on a **quiet** machine — competing benchmark or build processes invalidate the same-session comparison (observed live).
 
 ## Review Routing (Step 3)
 
