@@ -15,6 +15,8 @@ Run language-appropriate test + lint + build. Output MUST be pristine.
 
 For changes touching rendered UI, tests are not enough: run the `verify-frontend` skill (real browser, console gate, before/after screenshots) before reporting the change done.
 
+For hot-path tasks (a `.bench/baseline.txt` was captured at task start), run `make bench-compare` before declaring the change done; a significant regression is a Major finding to fix or explicitly accept, not a silent pass. See orchestrator-protocol.md (BENCH-BASELINE / VERIFY).
+
 ## Rules
 
 - Every project: unit + integration + e2e
