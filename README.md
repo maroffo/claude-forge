@@ -209,6 +209,7 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | `releasing-software/` | Pre-release checklist, no-tag-without-green-CI |
 | `obsidian/` | Obsidian vault operations via CLI (CRUD, search, daily notes, graph, tasks) |
 | `refine-requirements/` | Structured requirements gathering before planning |
+| `plan-forge/` | Issue or in-session analysis to locked ExecPlan on disk + paste-ready implementation prompt + /goal line (deep code analysis, second opinion, REPRODUCE-first, exhaustive E2E, opus subagents in a worktree) |
 | `clickup/` | Task management via MCP |
 | `gemini-review/` | Local code review with Gemini CLI |
 | `verify-frontend/` | End-to-end UI verification in a real browser (console gate, before/after screenshots, Lighthouse) |
