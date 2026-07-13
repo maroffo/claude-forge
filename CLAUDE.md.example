@@ -49,6 +49,7 @@ Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes 
 | Domain | Skill |
 |--------|-------|
 | Requirements refinement | `refine-requirements` (auto-triggered for 🟡/🔴) |
+| Issue/analysis → plan + impl prompt + /goal | `plan-forge` |
 | Git commit/workflow | `source-control` (`commit` redirects here) |
 | Go | `golang` |
 | Android/Kotlin | `android-kotlin` |
