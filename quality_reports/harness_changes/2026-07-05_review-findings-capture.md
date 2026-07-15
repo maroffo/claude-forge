@@ -36,3 +36,4 @@ A session whose reviewer report visibly contains severity counts (either format)
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-15 | 5 post-fix sessions, 13 REVIEW events | 10/13 with parsed severity counts; 3 empty `{}` (6ca2d622 arch, c8dad2d3 arch+sec), consistent with the documented async/metadata-only gap; no fabricated counts observed; falsification not fired | interim (window is 10 sessions), on track for **kept** |

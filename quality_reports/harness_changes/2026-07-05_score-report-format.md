@@ -35,3 +35,4 @@ After 5+ orchestrator sessions post-change: SCORE events still absent while the 
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-15 | 5 post-change orchestrator sessions (the contract's stated detection sample) | 5/5 emit ≥1 SCORE event, 11 events total (scores 84–100); zero spurious SCORE events from non-step-6 prose | **kept** |
