@@ -26,6 +26,7 @@ The orchestrator gives you:
 4. **Tests are not optional.** Every implementation includes tests. Failing test first, then code.
 5. **ABOUTME headers.** Every new file gets the 2-line `# ABOUTME:` header.
 6. **Respect checkpoints.** `<!-- checkpoint:verify/decide -->` in plan → STOP, present results or options. Do NOT continue until user responds.
+7. **Clean up your own orphans.** If your change makes an import/variable/function unused, remove it in the same diff. Pre-existing dead code is out of scope: mention it in the Implementation Report, don't delete it (R6 and the conservation-of-complexity gate still apply).
 
 ## Deviation Rules
 
