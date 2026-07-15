@@ -39,7 +39,7 @@ uv run -- harness-trace baseline --base-dir /path/to/claude-forge
 
 ## Extraction strategy
 
-`extract` uses two signal sources, in order of precision:
+`extract` uses three signal sources, in order of precision:
 
 1. **Tool-use blocks** (primary, high precision). Walks every `tool_use` block in the assistant messages, then resolves outcomes from the paired `tool_result` blocks (matched by `tool_use_id`) in the user messages:
 
@@ -49,14 +49,15 @@ uv run -- harness-trace baseline --base-dir /path/to/claude-forge
    | `Agent(subagent_type=*)` (non-reviewer) | `ROUTE` |
    | `Bash` matching `pytest\|make test\|go test\|npm test\|cargo test\|rspec` | `VERIFY`, `tests_pass` resolved from the result |
    | `Bash` matching `make check` | `VERIFY`, `lint_clean` resolved from the result |
-   | `Bash` matching `ast-grep\|sg --pattern` | `BLAST_RADIUS` |
    | `Edit` / `Write` / `MultiEdit` | counted into `IMPLEMENT` aggregate |
    | `WebFetch` to `arxiv\|docs` | `RESEARCH` |
    | `AskUserQuestion` | counted into `safety_compliance.hitl_gates_hit` |
 
    Outcome resolution is fail-safe: a result that never arrives (truncated session, async agent) or says nothing about an axis leaves it unknown; failure markers in output override a clean exit (`pytest || true` chains); counts are never fabricated from prose.
 
-2. **Text regex** (fallback). Applied only to messages whose tool stream did not already surface the step, and only for steps that are typically pure text (`SCORE`, `FIX`, `LOOP`, `UAT`, plus `VERIFY`/`REVIEW` when no tool signal exists). This avoids the v1 problem where prose like "tests pass" in a chat triggered fake VERIFY entries.
+2. **Literal report lines** (exact formats mandated by `rules/orchestrator-protocol.md`): `LOCALIZE: planned=… proposed=…` → `LOCALIZE`, `REPRODUCE: script=… fails_before_fix=…` → `REPRODUCE`, `DRIFT: subtask=… verdict=…` → `DRIFT_CHECK`, `BLAST-RADIUS: clean|MAJOR=n MINOR=m|skipped (…)` → `BLAST_RADIUS`. Detection and extraction share one compiled pattern per step; lines are checked independently per message (the protocol co-locates them). `BLAST_RADIUS` is keyed ONLY on this line: ast-grep usage is not a signal (the always-use-sg rule saturated it). Fenced code blocks are stripped first so quoted lines cannot forge events.
+
+3. **Text regex** (fallback prose heuristics). Applied only to messages whose tool stream did not already surface the step, and only for steps that are typically pure text (`SCORE`, `FIX`, `LOOP`, `UAT`, plus `VERIFY`/`REVIEW` when no tool signal exists). This avoids the v1 problem where prose like "tests pass" in a chat triggered fake VERIFY entries.
 
 `SUMMARY` is always synthesized last from JSONL aggregates: `duration_min` (last_ts - first_ts), `files_changed` (Edit+Write count), and the 6-dimension `metrics` object (paper §5.2.1). No `SUMMARY` is emitted for sessions with zero other entries.
 
@@ -76,7 +77,7 @@ One JSONL line per orchestrator step. `v2` adds `rejected_alternatives` (top-lev
 |------|-------------|
 | REFINE | ambiguities_found, questions_asked |
 | RESEARCH | complexity, sources_consulted |
-| LOCALIZE | files_planned, files_proposed, files_actually_changed, precision, recall, mismatches |
+| LOCALIZE | files_planned, files_proposed, files_actually_changed, planned_count, proposed_count, precision, recall (tri-state: null = not reported), mismatches |
 | REPRODUCE | script, fails_before_fix, passes_after_fix |
 | IMPLEMENT | agents, files_changed, subtask_count, localization_precision |
 | DRIFT_CHECK | subtask_id, verdict, deviations |

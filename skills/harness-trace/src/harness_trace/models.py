@@ -78,9 +78,14 @@ class LocalizeData(BaseModel):
 
     files_planned: list[str] = Field(default_factory=list)
     files_proposed: list[str] = Field(default_factory=list)
+    # Counts from the one-line LOCALIZE report (file lists don't fit on it).
+    planned_count: int | None = None
+    proposed_count: int | None = None
     files_actually_changed: list[str] = Field(default_factory=list)  # from git diff post-VERIFY
-    precision: float = 0.0  # len(correct) / len(proposed), vs plan
-    recall: float = 0.0  # len(correct) / len(planned), vs plan
+    # None = not reported; 0.0 is a real (worst) score, never a default
+    # (tri-state convention, same as VerifyData).
+    precision: float | None = None  # len(correct) / len(proposed), vs plan
+    recall: float | None = None  # len(correct) / len(planned), vs plan
     mismatches: list[str] = Field(default_factory=list)  # files in proposed but not planned
 
 
