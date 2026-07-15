@@ -29,6 +29,7 @@
 - Breaking API change without migration
 - Blast radius contradiction (doc/test references old behavior after API change)
 - Unjustified deletion of >20% of a file or removal of existing functions
+- Overengineering: speculative abstraction for single-use code, unrequested configurability, error handling for unreachable scenarios (test: would a senior engineer call this overcomplicated? plan-mandated structure is exempt)
 
 **Minor (-3 each):**
 - Style inconsistencies
@@ -36,6 +37,7 @@
 - Suboptimal but functional implementation
 - TODO without tracking issue
 - Stale comment or doc referencing removed/changed logic
+- Orphaned symbol: import/variable/function made unused by this same change and not removed
 
 ## Severity Vocabulary (canonical)
 
