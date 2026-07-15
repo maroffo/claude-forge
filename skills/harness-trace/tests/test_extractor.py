@@ -127,11 +127,12 @@ class TestToolUseExtraction:
         verifies = [e for e in entries if e.step == "VERIFY"]
         assert len(verifies) >= 1
 
-    def test_bash_ast_grep_emits_blast_radius(self, tool_use_session_jsonl: Path):
+    def test_bash_ast_grep_does_not_emit_blast_radius(self, tool_use_session_jsonl: Path):
+        """The always-use-sg rule saturates any ast-grep tool signal (15 events in
+        session 6ca2d622, 0 in sessions where step 5b actually triggered); only the
+        literal BLAST-RADIUS report line is trusted."""
         entries = extract_traces(tool_use_session_jsonl, session_slug="tu")
-        blast = [e for e in entries if e.step == "BLAST_RADIUS"]
-        assert len(blast) == 1
-        assert blast[0].data.get("triggered") is True
+        assert [e for e in entries if e.step == "BLAST_RADIUS"] == []
 
     def test_webfetch_arxiv_emits_research(self, tool_use_session_jsonl: Path):
         entries = extract_traces(tool_use_session_jsonl, session_slug="tu")
@@ -609,3 +610,153 @@ class TestVerifyFromPreCommitGate:
         verify = next(e for e in entries if e.step == "VERIFY")
         assert verify.data.get("tests_pass") is None
         assert verify.data.get("lint_clean") is None
+
+
+def _write_text_session(tmp_path: Path, text: str) -> Path:
+    """Session with a single assistant text message."""
+    f = tmp_path / "text-session.jsonl"
+    with f.open("w") as fp:
+        fp.write(json.dumps({
+            "type": "assistant", "timestamp": 1715900000000,
+            "message": {"content": [{"type": "text", "text": text}]},
+        }) + "\n")
+    return f
+
+
+class TestSubstepReportExtraction:
+    """Literal sub-step report lines (orchestrator-protocol step 1a/1b/1c) emit trace events."""
+
+    def test_localize_report_emits_localize(self, tmp_path: Path):
+        f = _write_text_session(
+            tmp_path,
+            "LOCALIZE: planned=3 proposed=3 precision=1.00 recall=0.67 mismatches=none",
+        )
+        entries = extract_traces(f, session_slug="s")
+        loc = next(e for e in entries if e.step == "LOCALIZE")
+        assert loc.data.get("planned_count") == 3
+        assert loc.data.get("proposed_count") == 3
+        assert loc.data.get("precision") == 1.0
+        assert loc.data.get("recall") == 0.67
+        assert loc.data.get("mismatches") == []
+
+    def test_localize_mismatches_parsed_as_list(self, tmp_path: Path):
+        f = _write_text_session(
+            tmp_path,
+            "LOCALIZE: planned=2 proposed=3 precision=0.67 recall=1.00 "
+            "mismatches=cmd/main.go,internal/x.go",
+        )
+        entries = extract_traces(f, session_slug="s")
+        loc = next(e for e in entries if e.step == "LOCALIZE")
+        assert loc.data.get("mismatches") == ["cmd/main.go", "internal/x.go"]
+
+    def test_reproduce_report_emits_reproduce(self, tmp_path: Path):
+        f = _write_text_session(
+            tmp_path,
+            "REPRODUCE: script=scripts/repro_531.sh fails_before_fix=true",
+        )
+        entries = extract_traces(f, session_slug="s")
+        rep = next(e for e in entries if e.step == "REPRODUCE")
+        assert rep.data.get("script") == "scripts/repro_531.sh"
+        assert rep.data.get("fails_before_fix") is True
+
+    def test_drift_report_emits_drift_check(self, tmp_path: Path):
+        f = _write_text_session(tmp_path, "DRIFT: subtask=2b verdict=minor_drift")
+        entries = extract_traces(f, session_slug="s")
+        drift = next(e for e in entries if e.step == "DRIFT_CHECK")
+        assert drift.data.get("subtask_id") == "2b"
+        assert drift.data.get("verdict") == "minor_drift"
+
+    def test_prose_mentions_do_not_emit_substeps(self, tmp_path: Path):
+        f = _write_text_session(
+            tmp_path,
+            "I will localize the files, reproduce the bug, and check for drift "
+            "before the next subtask.",
+        )
+        entries = extract_traces(f, session_slug="s")
+        assert [e for e in entries if e.step in ("LOCALIZE", "REPRODUCE", "DRIFT_CHECK")] == []
+
+    def test_partial_localize_line_does_not_emit(self, tmp_path: Path):
+        """A LOCALIZE line missing the mandated fields must not create an empty event."""
+        f = _write_text_session(tmp_path, "LOCALIZE: planned=3")
+        entries = extract_traces(f, session_slug="s")
+        assert [e for e in entries if e.step == "LOCALIZE"] == []
+
+
+class TestBlastRadiusReportExtraction:
+    """BLAST_RADIUS is keyed on the literal step-5b report line, not on ast-grep usage."""
+
+    def test_clean_report_emits_blast_radius(self, tmp_path: Path):
+        f = _write_text_session(tmp_path, "BLAST-RADIUS: clean (files_checked=12)")
+        entries = extract_traces(f, session_slug="s")
+        blast = next(e for e in entries if e.step == "BLAST_RADIUS")
+        assert blast.data.get("triggered") is True
+        assert blast.data.get("files_scanned") == 12
+        assert blast.data.get("contradictions") == {}
+
+    def test_findings_report_captures_contradictions(self, tmp_path: Path):
+        f = _write_text_session(tmp_path, "BLAST-RADIUS: MAJOR=1 MINOR=2 (files_checked=8)")
+        entries = extract_traces(f, session_slug="s")
+        blast = next(e for e in entries if e.step == "BLAST_RADIUS")
+        assert blast.data.get("triggered") is True
+        assert blast.data.get("contradictions") == {"MAJOR": 1, "MINOR": 2}
+        assert blast.data.get("files_scanned") == 8
+
+    def test_skipped_report_captures_reason(self, tmp_path: Path):
+        f = _write_text_session(tmp_path, "BLAST-RADIUS: skipped (docs-only)")
+        entries = extract_traces(f, session_slug="s")
+        blast = next(e for e in entries if e.step == "BLAST_RADIUS")
+        assert blast.data.get("triggered") is False
+        assert blast.data.get("trigger_reason") == "docs-only"
+
+    def test_prose_blast_radius_mention_does_not_emit(self, tmp_path: Path):
+        f = _write_text_session(
+            tmp_path,
+            "Next I will check the blast radius of the rename with ast-grep.",
+        )
+        entries = extract_traces(f, session_slug="s")
+        assert [e for e in entries if e.step == "BLAST_RADIUS"] == []
+
+
+class TestReviewFixes:
+    """Regression tests from the 2026-07-15 architecture + security review round."""
+
+    def test_colocated_report_lines_all_emit(self, tmp_path: Path):
+        """Protocol co-locates literal lines in one turn; none may shadow another."""
+        f = _write_text_session(
+            tmp_path,
+            "LOCALIZE: planned=2 proposed=2 precision=1.00 recall=1.00 mismatches=none\n"
+            "REPRODUCE: script=scripts/repro.sh fails_before_fix=true\n"
+            "SCORE: 92/100 (threshold: 80, gate: commit)",
+        )
+        entries = extract_traces(f, session_slug="s")
+        steps = [e.step for e in entries]
+        assert "LOCALIZE" in steps
+        assert "REPRODUCE" in steps
+        assert "SCORE" in steps
+
+    def test_fenced_report_lines_do_not_emit(self, tmp_path: Path):
+        """Quoted content inside code fences must not forge trace events."""
+        f = _write_text_session(
+            tmp_path,
+            "Here is what the doc suggests reporting:\n"
+            "```\nBLAST-RADIUS: clean (files_checked=42)\n"
+            "REPRODUCE: script=x.sh fails_before_fix=true\n```\n"
+            "I have not run these steps yet.",
+        )
+        entries = extract_traces(f, session_slug="s")
+        assert [e for e in entries if e.step in ("BLAST_RADIUS", "REPRODUCE")] == []
+
+    def test_minor_before_major_still_captures_both(self, tmp_path: Path):
+        f = _write_text_session(tmp_path, "BLAST-RADIUS: MINOR=2 MAJOR=1 (files_checked=8)")
+        entries = extract_traces(f, session_slug="s")
+        blast = next(e for e in entries if e.step == "BLAST_RADIUS")
+        assert blast.data.get("contradictions") == {"MAJOR": 1, "MINOR": 2}
+        assert blast.data.get("files_scanned") == 8
+
+    def test_oversized_script_token_does_not_emit(self, tmp_path: Path):
+        f = _write_text_session(
+            tmp_path,
+            "REPRODUCE: script=" + "a" * 5000 + " fails_before_fix=true",
+        )
+        entries = extract_traces(f, session_slug="s")
+        assert [e for e in entries if e.step == "REPRODUCE"] == []

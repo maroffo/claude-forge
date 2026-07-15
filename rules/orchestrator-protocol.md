@@ -63,6 +63,14 @@ Split into independent workstreams. Each software-engineer receives: **scope** (
 | **REPRODUCE** (1b) | Bug-fix only, after LOCALIZE | Script that FAILS on current code and PASSES after the fix. Target files from LOCALIZE. | `{script, fails_before_fix, passes_after_fix}` (passes_after_fix null until VERIFY) | Not a bug-fix; purely visual bug; plan says infeasible |
 | **DRIFT** (1c) | After each subtask (including parallel ones, using `git diff -- <files_for_subtask>` to avoid races) | Fresh-context agent receives: subtask description + scoped diff. One question: "Did we build exactly this, no more, no less?" Verdict: aligned / minor drift (WARN, proceed) / significant drift (STOP). | `{subtask_id, verdict, deviations}` | Single subtask; trivial (<10 LOC) |
 
+Report each executed sub-step on one literal line, exactly like `SCORE:` (the trace extractor keys on these; free-form phrasing is invisible in telemetry):
+
+```
+LOCALIZE: planned=<n> proposed=<m> precision=<p> recall=<r> mismatches=none|<file1,file2>
+REPRODUCE: script=<path> fails_before_fix=true|false
+DRIFT: subtask=<id> verdict=aligned|minor_drift|significant_drift
+```
+
 ## VERIFY (Step 2)
 
 Run tests, lint, build. Max 2 retries on flake; on the 3rd failure, STOP and escalate (same flow as Step 7 escalation).
@@ -97,11 +105,11 @@ After RE-VERIFY, before SCORE. Detects entropy: docs, tests, imports still refer
 
 1. **CLI pre-filter:** `ast-grep` or qualified regex for changed symbols; collect importers, docs, tests referencing them.
 2. **Fresh-context agent** receives only snippets of related files (not full files). Flags stale references, old-behavior assertions, comments describing removed logic, broken imports.
-3. **Report:** MAJOR (functional contradiction) or MINOR (stale comment/doc). CRITICAL contradictions re-enter FIX (step 4) before SCORE.
+3. **Report:** MAJOR (functional contradiction) or MINOR (stale comment/doc). CRITICAL contradictions re-enter FIX (step 4) before SCORE. Close with one literal line the trace extractor keys on (ast-grep usage is NOT a signal; only this line is): `BLAST-RADIUS: clean (files_checked=<k>)` or `BLAST-RADIUS: MAJOR=<n> MINOR=<m> (files_checked=<k>)`.
 
 ### Skip when
 
-Docs-only; pure refactors with no API change; pre-filter found 0 related files.
+Docs-only; pure refactors with no API change; pre-filter found 0 related files. When a trigger held but a skip condition applies, say so on the same literal line: `BLAST-RADIUS: skipped (<reason>)`.
 
 ## UAT: Goal-Backward Verification (Step 9)
 

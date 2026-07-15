@@ -14,6 +14,9 @@ from harness_trace.models import SCHEMA_VERSION, TraceEntry
 # ---- Text-based step patterns (fallback when tool signal is absent) ---------
 
 # Each row: (regex, step_name). Tried in order against assistant message text.
+# Loose prose heuristics only: the literal report lines (LOCALIZE/REPRODUCE/
+# DRIFT/BLAST-RADIUS) are handled separately via LITERAL_REPORT_STEPS below,
+# where detection and extraction share one compiled pattern.
 STEP_PATTERNS: list[tuple[str, str]] = [
     (r"requirements?\s+refinement|refin(?:e|ing)\s+requirements?", "REFINE"),
     (r"complexity.*?:\s*(simple|moderate|complex)", "RESEARCH"),
@@ -42,6 +45,27 @@ AGENT_PATTERN = re.compile(
 )
 COMPLEXITY_PATTERN = re.compile(
     r"complexity\s*[:\-]?\s*(simple|moderate|complex)", re.IGNORECASE
+)
+
+# Literal sub-step report lines (orchestrator-protocol steps 1a/1b/1c/5b).
+# The normative format lives in rules/orchestrator-protocol.md; these compiled
+# patterns are the single source for BOTH detection and extraction (see
+# LITERAL_REPORT_STEPS), so a detected line always yields data. Digits bounded
+# like FINDINGS_PATTERN; floats capped; free-text captures bounded too (a
+# crafted multi-KB token must not become a multi-KB trace field).
+LOCALIZE_REPORT_PATTERN = re.compile(
+    r"\bLOCALIZE:\s*planned=(\d{1,6})\s+proposed=(\d{1,6})"
+    r"(?:\s+precision=(\d\.?\d{0,4}))?(?:\s+recall=(\d\.?\d{0,4}))?"
+    r"(?:\s+mismatches=(\S{1,2000}))?",
+    re.IGNORECASE,
+)
+MISMATCHES_LIST_CAP = 50
+REPRODUCE_REPORT_PATTERN = re.compile(
+    r"\bREPRODUCE:\s*script=(\S{1,256})\s+fails_before_fix=(true|false)", re.IGNORECASE
+)
+DRIFT_REPORT_PATTERN = re.compile(
+    r"\bDRIFT:\s*subtask=(\S{1,64})\s+verdict=(aligned|minor_drift|significant_drift)",
+    re.IGNORECASE,
 )
 
 # ---- Tool-use signals (primary, high-precision) -----------------------------
@@ -83,8 +107,20 @@ VERIFY_FAIL_PATTERN = re.compile(
 VERIFY_SCAN_TAIL = 100_000
 REVIEW_SCAN_HEAD = 200_000
 
-# Bash command substrings indicating blast-radius analysis.
-BLAST_BASH_PATTERNS = ["ast-grep", "sg --pattern", "sg -p ", "ast_grep"]
+# BLAST_RADIUS is keyed on the literal step-5b report line, never on ast-grep
+# tool usage: the always-use-sg code-search rule saturates that signal (15
+# events in one session from ordinary searches, 0 in sessions where step 5b
+# actually triggered). Detection matches the whole line; severities and
+# files_checked are then scanned within it, so field order does not matter.
+BLAST_REPORT_LINE_PATTERN = re.compile(
+    r"\bBLAST-RADIUS:\s*(?:clean|skipped|MAJOR=\d{1,6}|MINOR=\d{1,6})[^\n]*",
+    re.IGNORECASE,
+)
+BLAST_SKIP_REASON_PATTERN = re.compile(
+    r"\bBLAST-RADIUS:\s*skipped\s*(?:\(([^)\n]{0,200})\))?", re.IGNORECASE
+)
+BLAST_SEVERITY_PATTERN = re.compile(r"(MAJOR|MINOR)=(\d{1,6})", re.IGNORECASE)
+BLAST_FILES_CHECKED_PATTERN = re.compile(r"\(files_checked=(\d{1,6})\)", re.IGNORECASE)
 
 # Bash command substrings indicating a git commit (signals end of FIX/IMPLEMENT round).
 COMMIT_BASH_PATTERNS = ["git commit", "git push"]
@@ -306,6 +342,52 @@ def _extract_text_step_data(step: str, text: str) -> dict[str, Any]:
             findings[sev] = findings.get(sev, 0) + int(sm.group(2))
         if findings:
             data["findings"] = findings
+    elif step == "LOCALIZE":
+        m = LOCALIZE_REPORT_PATTERN.search(text)
+        if m:
+            data["planned_count"] = int(m.group(1))
+            data["proposed_count"] = int(m.group(2))
+            if m.group(3):
+                data["precision"] = float(m.group(3))
+            if m.group(4):
+                data["recall"] = float(m.group(4))
+            raw_mismatches = m.group(5)
+            if raw_mismatches:
+                data["mismatches"] = (
+                    []
+                    if raw_mismatches.lower() == "none"
+                    else raw_mismatches.split(",")[:MISMATCHES_LIST_CAP]
+                )
+    elif step == "REPRODUCE":
+        m = REPRODUCE_REPORT_PATTERN.search(text)
+        if m:
+            data["script"] = m.group(1)
+            data["fails_before_fix"] = m.group(2).lower() == "true"
+    elif step == "DRIFT_CHECK":
+        m = DRIFT_REPORT_PATTERN.search(text)
+        if m:
+            data["subtask_id"] = m.group(1)
+            data["verdict"] = m.group(2).lower()
+    elif step == "BLAST_RADIUS":
+        line_m = BLAST_REPORT_LINE_PATTERN.search(text)
+        if line_m:
+            line = line_m.group(0)
+            skip_m = BLAST_SKIP_REASON_PATTERN.search(line)
+            if skip_m:
+                data["triggered"] = False
+                data["trigger_reason"] = (skip_m.group(1) or "skipped").strip()
+            else:
+                # `clean` reports have no severity tokens: contradictions stays {}.
+                # trigger_reason is left default; the report line does not say
+                # WHY step 5b triggered, and a constant filler carries no signal.
+                data["triggered"] = True
+                data["contradictions"] = {
+                    sev.upper(): int(count)
+                    for sev, count in BLAST_SEVERITY_PATTERN.findall(line)
+                }
+                files_m = BLAST_FILES_CHECKED_PATTERN.search(line)
+                if files_m:
+                    data["files_scanned"] = int(files_m.group(1))
     elif step == "SCORE":
         m = SCORE_PATTERN.search(text)
         if m:
@@ -415,12 +497,6 @@ def _process_tool_use(
             if block_id:
                 pending_verify[block_id] = (entry, cmd)
             tool_signaled_steps.add("VERIFY")
-        elif _matches_any(cmd, BLAST_BASH_PATTERNS):
-            entries.append(_new_entry(
-                session_slug, ts, "BLAST_RADIUS",
-                {"triggered": True, "trigger_reason": "ast-grep invoked"},
-            ))
-            tool_signaled_steps.add("BLAST_RADIUS")
         elif _matches_any(cmd, COMMIT_BASH_PATTERNS):
             # `git push` and other commit-family commands: counted, no VERIFY.
             counters["commits"] += 1
@@ -588,15 +664,35 @@ def extract_traces(session_path: Path, session_slug: str | None = None) -> list[
                 text_candidates.append((ts, text))
 
     # Second pass: text fallback for steps the tool stream did not cover.
-    # Apply ONLY to steps that benefit from regex (REFINE, SCORE, FIX, UAT, LOOP,
-    # REVIEW/VERIFY if no tool signal). This avoids the v1 problem where prose
-    # like "tests pass" in a casual chat would create false steps.
+    # Two classes of pattern:
+    #   1. Literal report lines (LITERAL_REPORT_STEPS): exact mandated formats,
+    #      checked independently per message because the protocol co-locates
+    #      them in one turn (LOCALIZE + REPRODUCE, BLAST-RADIUS + SCORE).
+    #   2. Prose heuristics (STEP_PATTERNS): loose regexes, first-match-wins
+    #      per message. This avoids the v1 problem where prose like "tests
+    #      pass" in a casual chat would create false steps.
     text_only_eligible = {
         "REFINE", "RESEARCH", "IMPLEMENT", "VERIFY", "REVIEW",
         "FIX", "SCORE", "LOOP", "UAT",
     }
+    literal_report_steps: list[tuple[str, re.Pattern[str]]] = [
+        ("LOCALIZE", LOCALIZE_REPORT_PATTERN),
+        ("REPRODUCE", REPRODUCE_REPORT_PATTERN),
+        ("DRIFT_CHECK", DRIFT_REPORT_PATTERN),
+        ("BLAST_RADIUS", BLAST_REPORT_LINE_PATTERN),
+    ]
 
     for ts, text in text_candidates:
+        # Fenced code blocks may quote report lines or step-like prose verbatim
+        # (same forgery vector as review bullets, see _parse_review_sections):
+        # strip them before any step matching.
+        text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
+        for step_name, report_pattern in literal_report_steps:
+            if report_pattern.search(text):
+                entries.append(_new_entry(
+                    session_slug, ts, step_name,
+                    _extract_text_step_data(step_name, text),
+                ))
         for pattern, step_name in STEP_PATTERNS:
             if step_name not in text_only_eligible:
                 continue
