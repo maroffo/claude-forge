@@ -36,3 +36,4 @@ Re-extracting a session known to have ended green (e.g. 15ffb338) yields all-fal
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-15 | 5 post-fix sessions (8b9ec97a, 6ca2d622, 539ab00c, c8dad2d3, c95e129a), ~60 VERIFY events | Tri-state outcomes throughout, real red→green cycles visible (e.g. 8b9ec97a), zero fabricated all-false rows; falsification not fired | interim (window is 10 sessions), on track for **kept** |
