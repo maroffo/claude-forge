@@ -97,15 +97,19 @@ Cross-reference Phase 3 findings against the Phase 2 narrative. For each finding
 | Conscious suppression with valid reason | Downgrade to Minor |
 | Conscious suppression without justification | Keep severity |
 
+### Phase 4b: Evidence gate
+
+No Critical or Major finding reaches consolidation as a bare claim. Bug-class claims require an **executable red-green test** written and run inside `$PR_REVIEW_DIR` (fails on the PR branch = demonstrated; fails on the merge base too = pre-existing). Non-executable finding classes use the evidence taxonomy instead (CWE + line, Big-O derivation, grep-able convention, named principle). A test that does NOT fail means the claim is unproven: escalate it to Phase 6, never report it as-is. Full protocol, taxonomy, budget, and skip conditions: `references/evidence.md`.
+
 ### Phase 5: Consolidation and scoring
 
 Deduplicate: when several reviewers find the same issue, keep one entry with cross-references, e.g. `[Security/Architecture]`. Order the report by severity (Critical first), then by component within each band.
 
-Score per `rules/quality-gates.md` (Critical = auto-fail, Major -10, Minor -3; commit >= 80, PR merge >= 90, excellence >= 95). Do not restate the rubric here.
+Score per `rules/quality-gates.md` (Critical = auto-fail, Major -10, Minor -3; commit >= 80, PR merge >= 90, excellence >= 95). Do not restate the rubric here. Only evidence-backed Critical/Major findings count toward the score; claims escalated as unproven (Phase 4b) are excluded until second-opinion resolves them.
 
 ### Phase 6: Second opinion (gated)
 
-Invoke `/second-opinion` **only when** reviewer verdicts conflict or a Critical finding is contested. Otherwise skip it: it spins up isolated containers and is not free. When invoked, pass the disputed finding(s), the conflicting verdicts, and ask which classification is correct and why. Synthesize the answer into the final severities.
+Invoke `/second-opinion` **only when** reviewer verdicts conflict, a Critical finding is contested, or a Critical/Major claim came back **unproven** from the Phase 4b evidence gate (its red-green test did not fail). Otherwise skip it: it spins up isolated containers and is not free. When invoked, pass the disputed finding(s), the conflicting verdicts (for unproven claims: the test and its passing output), and ask which classification is correct and why. For unproven claims, keep only if second-opinion supplies new evidence; otherwise drop and count under "Hallucinations caught". Synthesize the answer into the final severities.
 
 ### Phase 7: Present report
 
@@ -113,7 +117,7 @@ Use the report structure in `references/output-format.md`: header (branch, scope
 
 ### Phase 8: Cleanup
 
-Always remove the temp clone after the report, whatever the outcome, and even on interruption (build failure, agent timeout, user abort):
+Always remove the temp clone after the report, whatever the outcome, and even on interruption (build failure, agent timeout, user abort). Evidence tests live only in the clone: make sure surviving repro tests were copied into the report (Phase 4b deliverable) before deleting.
 
 ```bash
 rm -rf "$PR_REVIEW_DIR"; unset PR_REVIEW_DIR
@@ -125,6 +129,7 @@ Stale `pr-review-*` directories under `$TMPDIR` are safe to delete at any time.
 
 - **Never relay raw agent output**: synthesize, deduplicate, verify.
 - **Every Critical must be source-verified**: read the actual `file:line` before reporting.
+- **Every Critical/Major must carry evidence** (Phase 4b): a claim without a failing test or a taxonomy-backed proof is not a finding.
 - **Commit context changes severity**: a conscious deferral is not a bug.
 - **Pre-existing issues**: still block (green pipeline is everyone's responsibility) but don't penalize the author's score.
 - **Large PRs (> 50 files)**: always recommend reject-and-split, even if quality is high.
