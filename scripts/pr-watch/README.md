@@ -12,7 +12,7 @@ survives logout/reboot and keeps no Claude session open.
 
 | File | Role |
 |------|------|
-| `pr-watch.sh` | The poller. Mechanical scope filter (assigned-to-me OR terraform/infra/golang/database/build by path) + Haiku triage for the fuzzy "is it architecture?" residue. In-scope PRs get a `claude -p --model opus` `/pr-review` that posts the comment. |
+| `pr-watch.sh` | The poller. Mechanical scope filter (assigned-to-me OR terraform/infra/golang/database/build/security by path) + Haiku triage for the fuzzy "is it architecture?" residue. In-scope PRs get a `claude -p --model opus` `/pr-review` that posts the comment. |
 | `pr-watch-menubar.py` | rumps menu-bar GUI (run via `uv run --script`). Status glyph + reviews-today count, last reviews (clickable to the PR), recent activity, Poll-now / Pause-Resume / open-log. `--selftest` prints status JSON, no GUI. |
 | `com.wishew.pr-watch.plist` | LaunchAgent template for the bot (every 600s). |
 | `com.wishew.pr-watch-menubar.plist` | LaunchAgent template for the GUI (KeepAlive). |

@@ -68,6 +68,7 @@ echo "$prs" | jq -c '.[]' | while read -r pr; do
   grep -qE '^services/.+\.go$|^services/[^/]+/go\.(mod|sum)$' <<<"$paths"     && bucket="${bucket:-golang}"
   grep -qE '(^|/)migrations/|/schema\.prisma$'                <<<"$paths"     && bucket="${bucket:-database}"
   grep -qE '(^|/)nx\.json$|(^|/)turbo\.json$|(^|/)tsconfig\.base' <<<"$paths" && bucket="${bucket:-build-system}"
+  grep -qE '^docs/security/|(^|/)(privacy|auth)/'             <<<"$paths"     && bucket="${bucket:-security}"
 
   decision="skip"; why="$bucket"
   if [ -n "$bucket" ]; then
