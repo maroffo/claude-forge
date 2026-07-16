@@ -54,6 +54,8 @@ research-analyst searches docs/solutions/, LEARNING.md, MEMORY.md, vault, then e
 
 Split into independent workstreams. Each software-engineer receives: **scope** (files), **plan** (subtask + criteria), **context** (lang/framework). Single-scope: implement directly. See parallelism rules below.
 
+**Declared exclusions (page faults).** Any brief that scopes context (engineer or reviewer) also declares what was deliberately cut and how to recover it: `excluded: <files/areas>; read on demand from <path>`. An implicit omission reads as "does not exist" and the agent concludes from absence; a declared one is a recoverable page fault. One line, listing only deliberate cuts, never an inventory of everything untouched.
+
 ### Sub-protocols
 
 | Sub-step | When it runs | How | Trace data | Skip when |
