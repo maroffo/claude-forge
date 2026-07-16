@@ -79,7 +79,7 @@ Build a commit graph tracking `introduced_in[finding]`, `fixed_in[finding]`, and
 
 Route reviewers by file pattern using the **Review Routing table in `rules/orchestrator-protocol.md` (Step 3)**. Do not duplicate that table here; apply it as written. In parallel, run `/gemini-review` on the diff segmented by package (target < 3000 lines per segment) using `prompts/gemini-segment.md`.
 
-Each delegated reviewer receives the full diff (`/tmp/pr<N>-diff.patch`), the project CLAUDE.md conventions, and `$PR_REVIEW_DIR` as the working directory, with instructions to read real source (never hallucinate) and classify each finding as Critical/Major/Minor with exact `file:line`.
+Each delegated reviewer receives a **domain slice**, not the full diff: only the hunks of files its routing pattern matched, within a soft budget of ~20k token per brief (drop whole out-of-domain files first; if still over, keep the hunks and cut surrounding context). The brief declares the cut per the page-fault rule in `rules/orchestrator-protocol.md` (Step 1): `excluded: <files>; read on demand from /tmp/pr<N>-diff.patch or $PR_REVIEW_DIR`. Simple PRs (< 300 lines) pass whole, slicing overhead is not worth it there. Every reviewer also gets the project CLAUDE.md conventions and `$PR_REVIEW_DIR` as the working directory, with instructions to read real source (never hallucinate) and classify each finding as Critical/Major/Minor with exact `file:line`.
 
 Gemini hallucination patterns to filter (cross-validate every Gemini Critical against source): language-feature availability by version, database-engine limits misattributed across engines, standard-library APIs that do not exist.
 
