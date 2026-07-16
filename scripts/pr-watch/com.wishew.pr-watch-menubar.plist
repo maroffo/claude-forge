@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  LaunchAgent template for the PR-watch menu-bar GUI (pr-watch-menubar.py, lives in claude-forge).
+  Install (see install.sh in this dir, or manually):
+    mkdir -p ~/.local/state/pr-watch
+    sed -e "s#__FORGE__#$(cd ../.. && pwd)#g" -e "s#__USER__#$(id -un)#g" \
+        com.wishew.pr-watch-menubar.plist > ~/Library/LaunchAgents/com.wishew.pr-watch-menubar.plist
+    launchctl load  ~/Library/LaunchAgents/com.wishew.pr-watch-menubar.plist   # show it now
+    launchctl unload ~/Library/LaunchAgents/com.wishew.pr-watch-menubar.plist  # hide/stop it
+  The app hides its Dock icon (accessory activation policy); KeepAlive restarts it if it crashes.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.wishew.pr-watch-menubar</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/uv</string>
+    <string>run</string>
+    <string>--script</string>
+    <string>__FORGE__/scripts/pr-watch/pr-watch-menubar.py</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/Users/__USER__/.local/bin</string>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/Users/__USER__/.local/state/pr-watch/menubar.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/__USER__/.local/state/pr-watch/menubar.err.log</string>
+</dict>
+</plist>

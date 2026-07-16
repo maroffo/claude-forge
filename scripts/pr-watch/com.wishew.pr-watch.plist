@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  LaunchAgent template for the PR-watch bot (pr-watch.sh, lives in claude-forge).
+  Install (see install.sh in this dir, or manually):
+    mkdir -p ~/.local/state/pr-watch    # launchd opens StandardOutPath BEFORE the script runs; the dir must exist
+    sed -e "s#__FORGE__#$(cd ../.. && pwd)#g" \
+        -e 's#__ABS_REPO__#/ABS/PATH/TO/reviewed-repo#g' \
+        -e "s#__USER__#$(id -un)#g" \
+        com.wishew.pr-watch.plist > ~/Library/LaunchAgents/com.wishew.pr-watch.plist
+    launchctl load  ~/Library/LaunchAgents/com.wishew.pr-watch.plist   # go live
+    launchctl unload ~/Library/LaunchAgents/com.wishew.pr-watch.plist  # stop
+  Runs every 600s while logged in. State + logs: ~/.local/state/pr-watch/
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.wishew.pr-watch</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__FORGE__/scripts/pr-watch/pr-watch.sh</string>
+  </array>
+
+  <key>StartInterval</key>
+  <integer>600</integer>
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/Users/__USER__/.local/bin</string>
+    <!-- The script lives in claude-forge; point it at the repo whose PRs to review. -->
+    <key>PR_WATCH_REPO_DIR</key>
+    <string>__ABS_REPO__</string>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/Users/__USER__/.local/state/pr-watch/launchd.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/__USER__/.local/state/pr-watch/launchd.err.log</string>
+</dict>
+</plist>
