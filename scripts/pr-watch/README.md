@@ -17,6 +17,7 @@ survives logout/reboot and keeps no Claude session open.
 | `com.wishew.pr-watch.plist` | LaunchAgent template for the bot (every 600s). |
 | `com.wishew.pr-watch-menubar.plist` | LaunchAgent template for the GUI (KeepAlive). |
 | `install.sh` | Substitutes machine paths into the templates and (re)loads both agents. |
+| `smoke-test.sh` | `./smoke-test.sh <pr-number>` runs a no-post `/pr-review` and asserts the skill + keys actually fire (SUBSTEPS line). Re-run after a claude/gh/gemini upgrade. |
 
 ## Install
 
