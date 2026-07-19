@@ -27,6 +27,7 @@
 | Issue/analysis to plan + impl prompt | `plan-forge` | `second-opinion`, plan-first-workflow rule |
 | Autonomous issue to PR loop (hikmaAI) | `issue-loop-hikma` | client repo (claude-hikma-skills), symlinked locally; `issue-triage-hikma`, `plan-forge` |
 | Auto-triage open issues (hikmaAI) | `issue-triage-hikma` | client repo (claude-hikma-skills), symlinked locally; `issue-loop-hikma` |
+| Autonomous issue to PR loop (Wishew) | `issue-loop-wishew` | private repo (claude-skills-wishew), symlinked locally; `plan-forge`, `work-next-wishew` |
 | Work with legacy/untested code | `legacy-code-expert` | `verification-protocol`, language-specific |
 | Write code | Language-specific | `_PATTERNS.md`, `_AST_GREP.md` |
 | Search/refactor code | `_AST_GREP.md` | Language-specific |
