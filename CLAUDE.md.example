@@ -50,6 +50,8 @@ Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes 
 |--------|-------|
 | Requirements refinement | `refine-requirements` (auto-triggered for 🟡/🔴) |
 | Issue/analysis → plan + impl prompt + /goal | `plan-forge` |
+| Issue → PR autonomous loop | `issue-loop-hikma` |
+| Issue auto-triage | `issue-triage-hikma` |
 | Git commit/workflow | `source-control` (`commit` redirects here) |
 | Go | `golang` |
 | Android/Kotlin | `android-kotlin` |
