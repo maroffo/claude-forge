@@ -7,17 +7,11 @@
   "permissions": {
     "deny": [
       "Edit(**/.git/hooks/**)",
-      "Write(**/.git/hooks/**)",
       "Edit(~/.ssh/**)",
-      "Write(~/.ssh/**)",
       "Edit(~/.aws/credentials)",
-      "Write(~/.aws/credentials)",
       "Edit(~/.config/gcloud/**)",
-      "Write(~/.config/gcloud/**)",
       "Edit(**/id_rsa)",
-      "Edit(**/id_ed25519)",
-      "Write(**/id_rsa)",
-      "Write(**/id_ed25519)"
+      "Edit(**/id_ed25519)"
     ]
   },
   "hooks": {
