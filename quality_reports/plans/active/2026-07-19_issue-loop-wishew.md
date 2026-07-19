@@ -73,8 +73,12 @@ Board: claim = In progress, PR aperto = In review, escalation = Backlog + `agent
 - [x] 2026-07-19: W1-W4 + review fleet (0 Critical, 6 Major, 10 Minor, tutti fixati) + re-verify
   verde; claude-skills-wishew commit 1947629 (skill) + 9173bdf (work-next fix/refactor)
 - [x] 2026-07-19: W5 su claude-forge (contract + _INDEX + CLAUDE.md.example + piano); symlink attivo
-- [ ] W6 pilot (gated su push + merge delle due MR da parte di Max): `loop.py bootstrap` (crea le
-  label), poi 1 issue banale watched, poi /loop cap 2
+- [x] 2026-07-19: W6 pilot COMPLETO, end-to-end watched su #3030 → PR wishew-monorepo#3485
+  (In review + agent:qa, follow-up #3484 filed). Percorsi esercitati dal vivo: verdetti
+  human (#944) e needs-spec (#1749), claim+collision guard, plan-forge con verifica che ha
+  REFUTATO un claim dell'issue (user_tags viva), second-opinion 2-lab (Claude timeout),
+  impl subagent opus, review fleet (3 Minor fixati; security ritentata dopo stallo),
+  SCORE 97/100, finish con recovery da steps_done. Prossimo: /loop cap 2
 
 ## Surprises & Discoveries
 
@@ -85,6 +89,12 @@ Board: claim = In progress, PR aperto = In review, escalation = Backlog + `agent
   security stanno entrambi al seam script/agente (titolo in shell, superfici CI pre-merge):
   lo script era pulito, il boundary no. Il pattern `--title` vulnerabile esisteva identico
   nel work.py pre-esistente: fixato anche lì.
+- Pilot #3030: 3 bug reali di harness scovati e fixati in-flight: (1) skip_done troncava la
+  paginazione e rendeva invisibili gli item freschi (claude-skills#2); (2) agent SSH senza
+  identità in sessione remota → core.sshCommand repo-local sulla chiave -remote; (3) gh pr
+  edit richiede read:org che il token non ha → label via REST (claude-skills#3). Più: Docker
+  error-dialog ha richiesto intervento umano (rail all-reviewers-down aveva l'alternativa
+  giusta: gate umano esplicito offerto via AskUserQuestion).
 
 ## Outcomes & Retrospective
 
