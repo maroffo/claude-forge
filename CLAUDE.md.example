@@ -41,7 +41,7 @@ Context window auto-compacts. Don't stop early. Save state before refresh if nee
 Non-code/paths/docs → grep/glob
 
 # Workflow
-Rules in `rules/` auto-load: orchestrator (contractor mode), plan-first, TDD verification, quality gates (80/90/95). Agents in `agents/` launched by orchestrator based on file patterns — use subagents for parallel/isolated workstreams, work directly for simple tasks.
+Rules in `rules/` auto-load: orchestrator (contractor mode), plan-first, TDD verification, quality gates (80/90/95), response shape (answer length). Agents in `agents/` launched by orchestrator based on file patterns — use subagents for parallel/isolated workstreams, work directly for simple tasks.
 Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes via `## Vault Context`.
 
 # Skills (`~/.claude/skills/`)
