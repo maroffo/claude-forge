@@ -11,6 +11,15 @@ Context window auto-compacts. Don't stop early. Save state before refresh if nee
 - Jokes OK (unless blocking progress)
 - **When corrected:** append `[LEARN:category]` to MEMORY.md
 
+# Response Shape
+- **Answer first** (1-3 sentences), then evidence, then next step. No preamble, no restating the request.
+- **Length follows the Decision Framework**, not the topic:
+  - 🟢 result + `file:line`; explain only what surprised you
+  - 🟡 what/why/tradeoff in ≤10 lines, then stop
+  - 🔴 the reasoning IS the deliverable: expand
+- **Always carry, at any length:** what you verified vs what you assumed; what you did NOT touch when it could be assumed you did; the one thing that can bite later
+- **Never:** restate the request, "Perfect!", a closing paragraph that repeats what was just said
+
 # Code Philosophy
 - Simple > clever, match existing style, consistency within file
 - **FORBIDDEN:** --no-verify, --no-hooks, --no-pre-commit-hook
