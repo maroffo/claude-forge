@@ -84,7 +84,7 @@ docker run --rm \
   -v <PROJECT_ROOT>:/workspace:ro \
   claude-reviewer:latest \
   --print \
-  --model opus \
+  --model fable \
   "$(cat <PROMPT_FILE>)"
 ```
 
@@ -95,7 +95,7 @@ docker run --rm \
   -v <PROJECT_ROOT>:/workspace:ro \
   gemini-reviewer:latest \
   -p "$(cat <PROMPT_FILE>)" \
-  -m gemini-3.1-pro-preview \
+  -m gemini-3.6-flash \
   --sandbox false \
   2>&1 | grep -v "^\[WARN\] Skipping unreadable" | grep -v "^Warning: Could not read"
 ```
