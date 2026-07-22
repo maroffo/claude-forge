@@ -67,6 +67,10 @@ DRIFT_REPORT_PATTERN = re.compile(
     r"\bDRIFT:\s*subtask=(\S{1,64})\s+verdict=(aligned|minor_drift|significant_drift)",
     re.IGNORECASE,
 )
+EXECUTOR_REPORT_PATTERN = re.compile(
+    r"\bEXECUTOR:\s*(\S{1,64})\s+model=(\S{1,128})\s+subtask=(\S{1,64})",
+    re.IGNORECASE,
+)
 
 # ---- Tool-use signals (primary, high-precision) -----------------------------
 
@@ -368,6 +372,12 @@ def _extract_text_step_data(step: str, text: str) -> dict[str, Any]:
         if m:
             data["subtask_id"] = m.group(1)
             data["verdict"] = m.group(2).lower()
+    elif step == "EXECUTOR":
+        m = EXECUTOR_REPORT_PATTERN.search(text)
+        if m:
+            data["executor"] = m.group(1)
+            data["model"] = m.group(2)
+            data["subtask_id"] = m.group(3)
     elif step == "BLAST_RADIUS":
         line_m = BLAST_REPORT_LINE_PATTERN.search(text)
         if line_m:
@@ -680,6 +690,7 @@ def extract_traces(session_path: Path, session_slug: str | None = None) -> list[
         ("REPRODUCE", REPRODUCE_REPORT_PATTERN),
         ("DRIFT_CHECK", DRIFT_REPORT_PATTERN),
         ("BLAST_RADIUS", BLAST_REPORT_LINE_PATTERN),
+        ("EXECUTOR", EXECUTOR_REPORT_PATTERN),
     ]
 
     for ts, text in text_candidates:

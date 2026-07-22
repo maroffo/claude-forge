@@ -666,6 +666,17 @@ class TestSubstepReportExtraction:
         assert drift.data.get("subtask_id") == "2b"
         assert drift.data.get("verdict") == "minor_drift"
 
+    def test_executor_report_emits_executor(self, tmp_path: Path):
+        f = _write_text_session(
+            tmp_path,
+            "EXECUTOR: pi-exec model=claude-3-5-sonnet-20241022 subtask=95",
+        )
+        entries = extract_traces(f, session_slug="s")
+        executor = next(e for e in entries if e.step == "EXECUTOR")
+        assert executor.data.get("executor") == "pi-exec"
+        assert executor.data.get("model") == "claude-3-5-sonnet-20241022"
+        assert executor.data.get("subtask_id") == "95"
+
     def test_prose_mentions_do_not_emit_substeps(self, tmp_path: Path):
         f = _write_text_session(
             tmp_path,
@@ -673,7 +684,7 @@ class TestSubstepReportExtraction:
             "before the next subtask.",
         )
         entries = extract_traces(f, session_slug="s")
-        assert [e for e in entries if e.step in ("LOCALIZE", "REPRODUCE", "DRIFT_CHECK")] == []
+        assert [e for e in entries if e.step in ("LOCALIZE", "REPRODUCE", "DRIFT_CHECK", "EXECUTOR")] == []
 
     def test_partial_localize_line_does_not_emit(self, tmp_path: Path):
         """A LOCALIZE line missing the mandated fields must not create an empty event."""
@@ -740,11 +751,12 @@ class TestReviewFixes:
             tmp_path,
             "Here is what the doc suggests reporting:\n"
             "```\nBLAST-RADIUS: clean (files_checked=42)\n"
-            "REPRODUCE: script=x.sh fails_before_fix=true\n```\n"
+            "REPRODUCE: script=x.sh fails_before_fix=true\n"
+            "EXECUTOR: pi-exec model=claude-3-5-sonnet subtask=95\n```\n"
             "I have not run these steps yet.",
         )
         entries = extract_traces(f, session_slug="s")
-        assert [e for e in entries if e.step in ("BLAST_RADIUS", "REPRODUCE")] == []
+        assert [e for e in entries if e.step in ("BLAST_RADIUS", "REPRODUCE", "EXECUTOR")] == []
 
     def test_minor_before_major_still_captures_both(self, tmp_path: Path):
         f = _write_text_session(tmp_path, "BLAST-RADIUS: MINOR=2 MAJOR=1 (files_checked=8)")
@@ -760,3 +772,11 @@ class TestReviewFixes:
         )
         entries = extract_traces(f, session_slug="s")
         assert [e for e in entries if e.step == "REPRODUCE"] == []
+
+    def test_oversized_executor_token_does_not_emit(self, tmp_path: Path):
+        f = _write_text_session(
+            tmp_path,
+            "EXECUTOR: pi-exec model=" + "m" * 500 + " subtask=95",
+        )
+        entries = extract_traces(f, session_slug="s")
+        assert [e for e in entries if e.step == "EXECUTOR"] == []
