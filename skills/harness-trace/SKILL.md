@@ -55,7 +55,7 @@ uv run -- harness-trace baseline --base-dir /path/to/claude-forge
 
    Outcome resolution is fail-safe: a result that never arrives (truncated session, async agent) or says nothing about an axis leaves it unknown; failure markers in output override a clean exit (`pytest || true` chains); counts are never fabricated from prose.
 
-2. **Literal report lines** (exact formats mandated by `rules/orchestrator-protocol.md`): `LOCALIZE: planned=… proposed=…` → `LOCALIZE`, `REPRODUCE: script=… fails_before_fix=…` → `REPRODUCE`, `DRIFT: subtask=… verdict=…` → `DRIFT_CHECK`, `BLAST-RADIUS: clean|MAJOR=n MINOR=m|skipped (…)` → `BLAST_RADIUS`. Detection and extraction share one compiled pattern per step; lines are checked independently per message (the protocol co-locates them). `BLAST_RADIUS` is keyed ONLY on this line: ast-grep usage is not a signal (the always-use-sg rule saturated it). Fenced code blocks are stripped first so quoted lines cannot forge events.
+2. **Literal report lines** (exact formats mandated by `rules/orchestrator-protocol.md`): `LOCALIZE: planned=… proposed=…` → `LOCALIZE`, `REPRODUCE: script=… fails_before_fix=…` → `REPRODUCE`, `DRIFT: subtask=… verdict=…` → `DRIFT_CHECK`, `BLAST-RADIUS: clean|MAJOR=n MINOR=m|skipped (…)` → `BLAST_RADIUS`, `EXECUTOR: <executor> model=<id> subtask=<id>` → `EXECUTOR`. Detection and extraction share one compiled pattern per step; lines are checked independently per message (the protocol co-locates them). `BLAST_RADIUS` is keyed ONLY on this line: ast-grep usage is not a signal (the always-use-sg rule saturated it). Fenced code blocks are stripped first so quoted lines cannot forge events.
 
 3. **Text regex** (fallback prose heuristics). Applied only to messages whose tool stream did not already surface the step, and only for steps that are typically pure text (`SCORE`, `FIX`, `LOOP`, `UAT`, plus `VERIFY`/`REVIEW` when no tool signal exists). This avoids the v1 problem where prose like "tests pass" in a chat triggered fake VERIFY entries.
 
@@ -91,6 +91,7 @@ One JSONL line per orchestrator step. `v2` adds `rejected_alternatives` (top-lev
 | SUMMARY | tokens_in/out, model, duration, final_score, **metrics** (v2) |
 | **PERMISSION_EVENT** (v2) | tool, action, outcome (granted/denied/denied_by_settings/auto_approved/error/timeout/bypassed), reason. Callers must redact secrets in `action`. |
 | **ROUTE** (v2) | router, target, alternatives_considered, decision_basis |
+| **EXECUTOR** (v2) | executor, model, subtask_id |
 
 ### v2 cross-cutting fields
 

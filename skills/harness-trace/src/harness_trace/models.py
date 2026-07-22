@@ -30,6 +30,7 @@ StepName = Literal[
     # v2: cross-cutting events captured as first-class steps.
     "PERMISSION_EVENT",
     "ROUTE",
+    "EXECUTOR",
 ]
 
 
@@ -108,6 +109,12 @@ class DriftCheckData(BaseModel):
     subtask_id: str = ""
     verdict: Literal["aligned", "minor_drift", "significant_drift"] = "aligned"
     deviations: list[dict[str, str]] = Field(default_factory=list)  # [{desc}]
+
+
+class ExecutorData(BaseModel):
+    executor: str = ""
+    model: str = ""
+    subtask_id: str = ""
 
 
 class VerifyData(BaseModel):
@@ -236,6 +243,7 @@ STEP_DATA_MODELS: dict[StepName, type[BaseModel]] = {
     "SUMMARY": SummaryData,
     "PERMISSION_EVENT": PermissionEventData,
     "ROUTE": RouteData,
+    "EXECUTOR": ExecutorData,
 }
 
 
