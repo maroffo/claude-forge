@@ -108,9 +108,11 @@ The matching settings fragment lives at [`hooks/settings.example.json`](hooks/se
 | `session-end-trace.py` | SessionEnd | No-op outside claude-forge cwd. Otherwise auto-runs `harness-trace extract` against the session's transcript and writes the result under `quality_reports/traces/<date>_<session_id>.jsonl`. Closes the loop for the `harness-mechanic` Evolution Agent (see [Telemetry](#telemetry)) |
 | Path protection | `permissions.deny` in settings.json | Blocks edits to `.git/hooks/`, `~/.ssh/`, `~/.aws/credentials`, gcloud/gemini keys, `id_rsa`/`id_ed25519` |
 
-The repo ships `Makefile` + `scripts/check_repo.py` implementing `make check` (ABOUTME, em-dashes scoped to `skills/`, frontmatter basics, frontmatter-first on SKILL.md, skill schema), `make test-e2e` (skill schema + the hook regression suite under `hooks/tests/`, 70+ cases), and `make doc-garden` (stale cross-reference scan of the governance docs, phase 1 of the learning-loop doc-gardening pass). All commit gates also match the `git -C <path> commit` form.
+The repo ships `Makefile` + `scripts/check_repo.py` implementing `make check` (ABOUTME, em-dashes scoped to `skills/`, frontmatter basics, frontmatter-first on SKILL.md, skill schema), `make test-e2e` (skill schema + the hook regression suite under `hooks/tests/`, 70+ cases, + the script suites under `scripts/tests/`), and `make doc-garden` (stale cross-reference scan of the governance docs, phase 1 of the learning-loop doc-gardening pass). All commit gates also match the `git -C <path> commit` form.
 
 `scripts/metrics-weekly.sh` computes three signals to decide whether the enforcement is working: revert rate, fix-up rate, median time-to-next-touch. Run it as a baseline, apply enforcement, re-run after two weeks. If drift indicators don't drop, upgrade Tier A to Tier B (semantic check) or Tier C (full LLM agent).
+
+`scripts/pi-exec` routes cost-sensitive implementation or mechanical-analysis subtasks to the pi coding agent driving gemini flash (Google-billed): the orchestrator stays sole committer and review stays native, per the Executor selection subsection of `rules/orchestrator-protocol.md` and the change contract `quality_reports/harness_changes/2026-07-22_pi-flash-executor.md`.
 
 ## Telemetry
 

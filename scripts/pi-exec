@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+# ABOUTME: Routes a scoped implementation/analysis subtask to the pi coding agent + gemini flash (Google-billed).
+# ABOUTME: Builds a hygienic headless pi invocation from a brief file; pi never commits (orchestrator stays sole committer).
+
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+usage: pi-exec --brief <file> --workdir <dir> [--model <id>] [--thinking <level>] [--dry-run]
+
+  --brief <file>      Brief/prompt file passed to pi as @<file> (required, readable).
+  --workdir <dir>     Directory pi runs in; its CLAUDE.md/AGENTS.md are discovered (required).
+  --model <id>        Model id (default: google/gemini-3.6-flash).
+  --thinking <level>  Thinking level (default: low).
+  --dry-run           Print the command and workdir, then exit without running pi.
+
+GEMINI_API_KEY must be set (non-empty) for every invocation, including --dry-run.
+
+Exit codes: 2 = bad arguments / unreadable brief / bad workdir; 3 = GEMINI_API_KEY unset or empty.
+Codes 2 and 3 are wrapper exit codes; a real run exits with pi's own exit status.
+EOF
+}
+
+die() {
+  local code="$1"
+  shift
+  printf 'pi-exec: %s\n' "$*" >&2
+  exit "$code"
+}
+
+brief=""
+workdir=""
+model="google/gemini-3.6-flash"
+thinking="low"
+dry_run=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --brief)
+      [[ $# -ge 2 ]] || die 2 "--brief requires a file path"
+      brief="$2"
+      shift 2
+      ;;
+    --workdir)
+      [[ $# -ge 2 ]] || die 2 "--workdir requires a directory path"
+      workdir="$2"
+      shift 2
+      ;;
+    --model)
+      [[ $# -ge 2 ]] || die 2 "--model requires a value"
+      model="$2"
+      shift 2
+      ;;
+    --thinking)
+      [[ $# -ge 2 ]] || die 2 "--thinking requires a value"
+      thinking="$2"
+      shift 2
+      ;;
+    --dry-run)
+      dry_run=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      die 2 "unknown argument: $1"
+      ;;
+  esac
+done
+
+# Argument validation (exit 2), in order: presence, brief readable, workdir is a directory.
+[[ -n "$brief" ]] || die 2 "--brief is required"
+[[ -n "$workdir" ]] || die 2 "--workdir is required"
+[[ -f "$brief" && -r "$brief" ]] || die 2 "brief file not readable: $brief"
+[[ -d "$workdir" ]] || die 2 "workdir is not a directory: $workdir"
+
+# Canonicalize the brief to an absolute path now, before any `cd "$workdir"`, so a
+# relative brief cannot resolve to a different file once pi runs in a different workdir.
+brief="$(cd "$(dirname "$brief")" && pwd)/$(basename "$brief")"
+
+# Credential gate (exit 3), always checked before any pi invocation, even for --dry-run.
+[[ -n "${GEMINI_API_KEY:-}" ]] || die 3 "GEMINI_API_KEY is unset or empty"
+
+# Context-file discovery stays ON (Decision 6): no --no-context-files, no --no-session.
+cmd=(pi -p --model "$model" --thinking "$thinking" \
+  --no-extensions --no-skills --no-prompt-templates --no-themes "@$brief")
+
+if [[ "$dry_run" -eq 1 ]]; then
+  # %q per element preserves word boundaries even when a token contains spaces.
+  printf '%q ' "${cmd[@]}"
+  printf '\n'
+  printf 'workdir: %s\n' "$workdir"
+  exit 0
+fi
+
+# Real run: emit the trace marker BEFORE invoking pi (never printed in dry-run).
+# Strip control characters (newlines, carriage returns, and the rest) so a crafted
+# value cannot forge extra transcript lines.
+safe_model=$(printf '%s' "$model" | tr -d '[:cntrl:]')
+safe_brief=$(printf '%s' "$brief" | tr -d '[:cntrl:]')
+safe_workdir=$(printf '%s' "$workdir" | tr -d '[:cntrl:]')
+printf 'EXECUTOR: pi-exec model=%s brief=%s workdir=%s\n' "$safe_model" "$safe_brief" "$safe_workdir"
+
+marker=$(mktemp)
+trap 'rm -f "$marker"' EXIT
+
+pi_rc=0
+( cd "$workdir" && "${cmd[@]}" ) || pi_rc=$?
+
+# Best-effort: echo the newest pi session .jsonl written since the run started.
+# Scope the search to the sessions directory when present, else the whole ~/.pi tree.
+session_root="$HOME/.pi"
+if [[ -d "$HOME/.pi/agent/sessions" ]]; then
+  session_root="$HOME/.pi/agent/sessions"
+fi
+
+newest=""
+newest_mtime=0
+while IFS= read -r f; do
+  [[ -n "$f" ]] || continue
+  m=$(stat -f %m "$f" 2>/dev/null || stat -c %Y "$f" 2>/dev/null || echo 0)
+  if (( m > newest_mtime )); then
+    newest_mtime="$m"
+    newest="$f"
+  fi
+done < <(find "$session_root" -type f -name '*.jsonl' -newer "$marker" 2>/dev/null)
+
+if [[ -n "$newest" ]]; then
+  printf 'session: %s\n' "$newest"
+else
+  printf 'session: no new pi session file found under %s\n' "$session_root"
+fi
+
+exit "$pi_rc"
