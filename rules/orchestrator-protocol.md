@@ -60,6 +60,8 @@ Split into independent workstreams. Each software-engineer receives: **scope** (
 
 Default executor is the native software-engineer subagent. Cost-sensitive scoped implementation or mechanical-analysis subtasks MAY instead route to `scripts/pi-exec` (the pi coding agent driving gemini flash, Google-billed), invoked via Bash, to conserve Anthropic credits.
 
+Preferred invocation in DELEGATED prompts (fresh implementing sessions): the `software-engineer-pi` agent from the registry, a thin haiku driver that runs the wrapper and relays results; it is not a skill and must not be searched for as one. It cannot edit files or implement natively, so "executor unavailable" surfaces as a loud report, never as a silent fallback. Direct Bash invocation of the wrapper remains valid for the orchestrator in-session. If pi fails a subtask twice, re-implementation goes to the native software-engineer and the fallback is DECLARED in the summary (it is the change contract's falsification signal, never silent).
+
 Constraints on a pi-executed subtask (non-negotiable, since pi runs outside Claude Code's hook loop):
 - The orchestrator is the sole committer: pi never commits. Hooks that fire on Claude Code tool events (verify-before-stop, aboutme-enforcer) cannot see pi processes; pre-commit-gate still gates every commit because the orchestrator makes them all.
 - DRIFT (1c) is mandatory and its skip conditions are void: every pi-executed subtask gets a fresh-context drift check, even a single trivial one.
