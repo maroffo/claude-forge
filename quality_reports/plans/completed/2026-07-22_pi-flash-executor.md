@@ -51,7 +51,7 @@ Append-only after this point. The implementing session does NOT relitigate; exec
 ### W4 - docs + follow-ups
 - [ ] W4.1 README: add pi-exec to the scripts/components inventory IF such an inventory exists (check first; do not invent a section).
 - [ ] W4.2 Live smoke (manual, Google-billed cents, requires GEMINI_API_KEY in env): toy brief in a throwaway git dir, real pi run edits a file, EXECUTOR line + session path printed, exit 0. Record output in Surprises.
-- [ ] W4.3 Follow-up issues DRAFTED here (orchestrator files them at PR time): (a) pilot pi-exec on 1 real scoped subtask, then append the Result row to the change contract; (b) run `pi update` once the registry includes gemini-3.6-flash and drop the custom-ID warning from the smoke expectations; (c) evaluate a role-prompt library for pi briefs (`agents/pi/*.md`) after the pilot; (d) harness-trace: add an EXECUTOR literal-line event type to the extractor (LITERAL_REPORT_STEPS currently knows only LOCALIZE/REPRODUCE/DRIFT/BLAST-RADIUS) so pi-executed subtasks are counted without grep.
+- [x] W4.3 Follow-up issues DRAFTED here and filed at PR time as #92 #93 #94 #95: (a) pilot pi-exec on 1 real scoped subtask, then append the Result row to the change contract; (b) run `pi update` once the registry includes gemini-3.6-flash and drop the custom-ID warning from the smoke expectations; (c) evaluate a role-prompt library for pi briefs (`agents/pi/*.md`) after the pilot; (d) harness-trace: add an EXECUTOR literal-line event type to the extractor (LITERAL_REPORT_STEPS currently knows only LOCALIZE/REPRODUCE/DRIFT/BLAST-RADIUS) so pi-executed subtasks are counted without grep.
 
 ## E2E matrix
 
@@ -85,7 +85,7 @@ The matrix is the union of: argument validation (2, 3, 6) x flag pass-through (4
 - [x] W4 docs + live smoke + follow-ups drafted (2026-07-22, README inventory + stale line fixed, smoke EXIT=0)
 - [x] Review round + fixes (2026-07-22, round 1/5: fleet architecture+security+dx+test found 3 MAJOR + 9 MINOR, all fixed and re-verified; BLAST-RADIUS MAJOR=1 resolved in-PR as Decision 12 + follow-up (d))
 - [x] PR + SCORE (2026-07-22: PR #96 open, not merged; follow-ups filed as #92 #93 #94 #95; SCORE 100/100, threshold 90, gate pr, fresh make check + make test-e2e evidence)
-- [ ] Close-out (plan moved to completed/, retrospective filled)
+- [x] Close-out (2026-07-22: PR #96 merged, plan moved to completed/, retrospective filled; pilot continues in #92)
 
 ## Surprises & Discoveries
 
@@ -106,4 +106,9 @@ The matrix is the union of: argument validation (2, 3, 6) x flag pass-through (4
 | 12 | EXECUTOR line ownership | Split: the ORCHESTRATOR reports `EXECUTOR: pi-exec model=<id> subtask=<id>` in its transcript (trace signal); the wrapper's stdout line (model/brief/workdir) is a local log | Review found the rule mandated a line nobody produced, and the harness-trace extractor does not parse EXECUTOR at all; counting is by grep until follow-up (d) lands | extractor support lands (then simplify the rule note) |
 
 ## Outcomes & Retrospective
-(fill at close: shipped, gaps, lessons)
+
+**Shipped** (PR #96, merged 2026-07-22): scripts/pi-exec wrapper (7-case offline TDD suite wired into make test-e2e, shellcheck in lint-shell), Executor selection subsection in orchestrator-protocol, change contract with countable falsification, README inventory entries. Plus, via the pilot itself: EXECUTOR event type in harness-trace (PR #97, closes #95), implemented BY pi-exec as datapoint 1/5 with fix_rounds=0.
+
+**Gaps / open**: pilot at 1/5 (#92); custom-ID warning until `pi update` (#93); role-prompt library decision deferred (#94); wrapper has no `--resume` for warm fix rounds (add only if fix rounds prove frequent); vault mirror skipped (Obsidian not running at plan time).
+
+**Lessons**: (1) The verification layer is what makes a flash-class implementer viable: DRIFT + native review + orchestrator-only commits carried the quality burden, and the first-shot pilot success rode on brief precision, which is Claude-side work and should be budgeted as such. (2) A silently SKIPping lint gate (shellcheck absent) let "shellcheck-clean" pass as prose; gates that can skip must be provisioned before their first real gate moment. (3) The review fleet caught the contract metric being unmeasurable as written (an EXECUTOR line nobody produced, extractor blind to it): a falsification clause needs a named counting mechanism at write time, not just a threshold. (4) The cost split worked as designed: implementation tokens on Google, judgment tokens (spec, DRIFT, review, score) on Claude.
