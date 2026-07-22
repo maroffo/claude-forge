@@ -51,7 +51,7 @@ Append-only after this point. The implementing session does NOT relitigate; exec
 ### W4 - docs + follow-ups
 - [ ] W4.1 README: add pi-exec to the scripts/components inventory IF such an inventory exists (check first; do not invent a section).
 - [ ] W4.2 Live smoke (manual, Google-billed cents, requires GEMINI_API_KEY in env): toy brief in a throwaway git dir, real pi run edits a file, EXECUTOR line + session path printed, exit 0. Record output in Surprises.
-- [ ] W4.3 Follow-up issues DRAFTED here (orchestrator files them at PR time): (a) pilot pi-exec on 1 real scoped subtask, then append the Result row to the change contract; (b) run `pi update` once the registry includes gemini-3.6-flash and drop the custom-ID warning from the smoke expectations; (c) evaluate a role-prompt library for pi briefs (`agents/pi/*.md`) after the pilot.
+- [ ] W4.3 Follow-up issues DRAFTED here (orchestrator files them at PR time): (a) pilot pi-exec on 1 real scoped subtask, then append the Result row to the change contract; (b) run `pi update` once the registry includes gemini-3.6-flash and drop the custom-ID warning from the smoke expectations; (c) evaluate a role-prompt library for pi briefs (`agents/pi/*.md`) after the pilot; (d) harness-trace: add an EXECUTOR literal-line event type to the extractor (LITERAL_REPORT_STEPS currently knows only LOCALIZE/REPRODUCE/DRIFT/BLAST-RADIUS) so pi-executed subtasks are counted without grep.
 
 ## E2E matrix
 
@@ -83,7 +83,7 @@ The matrix is the union of: argument validation (2, 3, 6) x flag pass-through (4
 - [x] W2 wrapper TDD + Makefile wiring (2026-07-22, RED then GREEN; DRIFT verdict minor_drift, accepted as Decision 11)
 - [x] W3 rule edit (2026-07-22, DRIFT verdict aligned)
 - [x] W4 docs + live smoke + follow-ups drafted (2026-07-22, README inventory + stale line fixed, smoke EXIT=0)
-- [ ] Review round + fixes
+- [x] Review round + fixes (2026-07-22, round 1/5: fleet architecture+security+dx+test found 3 MAJOR + 9 MINOR, all fixed and re-verified; BLAST-RADIUS MAJOR=1 resolved in-PR as Decision 12 + follow-up (d))
 - [ ] PR + SCORE
 - [ ] Close-out (plan moved to completed/, retrospective filled)
 
@@ -93,6 +93,7 @@ The matrix is the union of: argument validation (2, 3, 6) x flag pass-through (4
 - shellcheck was NOT installed on this host: `make check` printed `SKIP shellcheck`, so lint-shell never exercised the new wrapper and "shellcheck-clean" was prose, not evidence. Installed via brew (Decision 10); fresh `make check` now reports `PASS shellcheck` with scripts/pi-exec in the list.
 - README line 111 went stale from our own Makefile change (it enumerated `make test-e2e` coverage as hooks/tests only); caught during W4.1, fixed in the same PR (blast-radius item resolved at source).
 - W4.2 live smoke (real Gemini call, Google-billed): `EXECUTOR: pi-exec model=google/gemini-3.6-flash brief=.../brief.md workdir=.../pi-smoke`, pi created hello.txt with the exact requested content, session JSONL path echoed (`~/.pi/agent/sessions/...2026-07-22T14-34-19...jsonl`), EXIT=0. The custom-ID warning (`Model "gemini-3.6-flash" not found for provider "google". Using custom model id.`) still prints, as expected until follow-up (b) runs `pi update`.
+- Review round 1 material findings: (1) relative `--brief` was validated in the caller cwd but resolved by pi inside workdir after `cd` (validated file could differ from the file pi reads; fixed by canonicalizing to absolute); (2) the rule mandated an `EXECUTOR: ... subtask=<id>` line nobody produced AND skills/harness-trace's extractor has no EXECUTOR event type at all, so the contract's falsification metric was unmeasurable as written (fixed as Decision 12 + follow-up (d)); (3) the suite's `assertIn("-p", ...)` was satisfied by the `--no-prompt-templates` substring, a tautology (fixed with token-bound assertions).
 
 ## Decisions
 (append-only; execution-time decisions land here as new numbered rows)
@@ -101,6 +102,7 @@ The matrix is the union of: argument validation (2, 3, 6) x flag pass-through (4
 |---|----------|--------|-----------|------------|
 | 10 | shellcheck availability | Installed via brew on this host during execution | lint-shell SKIPped silently, making the wrapper's lint status unverifiable; the gate must actually run | host provisioning moves to a managed setup |
 | 11 | W2 minor drift | Accepted: `--help`/usage block and extra `workdir:` line in dry-run output | DRIFT flagged both as unrequested; kept as operability aids, no behavioral change, tests unaffected | either interferes with trace parsing or tests |
+| 12 | EXECUTOR line ownership | Split: the ORCHESTRATOR reports `EXECUTOR: pi-exec model=<id> subtask=<id>` in its transcript (trace signal); the wrapper's stdout line (model/brief/workdir) is a local log | Review found the rule mandated a line nobody produced, and the harness-trace extractor does not parse EXECUTOR at all; counting is by grep until follow-up (d) lands | extractor support lands (then simplify the rule note) |
 
 ## Outcomes & Retrospective
 (fill at close: shipped, gaps, lessons)

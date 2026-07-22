@@ -9,6 +9,7 @@
 - `scripts/tests/test_pi_exec.py` (new offline test suite)
 - `Makefile` (lint-shell + test-e2e wiring for the two files above)
 - `rules/orchestrator-protocol.md` (new "Executor selection" subsection under Implementation, Step 1)
+- `README.md` (documents the pi-exec executor)
 
 ## Failure mode targeted
 
@@ -16,7 +17,7 @@ Weekly Anthropic credit exhaustion mid-week with backlog still open (observed 20
 
 ## Predicted improvement
 
-Anthropic token spend per implemented issue drops 40-60% on tasks whose implementation subtasks route through pi-exec, measured via harness-trace using the literal `EXECUTOR:` report lines over the first 5 tasks.
+Anthropic token spend per implemented issue drops 40-60% on tasks whose implementation subtasks route through pi-exec, measured by counting the literal `EXECUTOR:` transcript report lines over the first 5 tasks (via grep until harness-trace extractor support for EXECUTOR lands, tracked as follow-up (d) in the plan).
 
 ## Invariants preserved
 
@@ -31,7 +32,7 @@ Over the first 5 pi-executed subtasks: mean fix rounds > 2x the traced baseline,
 
 ## Rollback
 
-Stop invoking `scripts/pi-exec`; `git revert <commit>`. Affects: scripts/pi-exec, scripts/tests/test_pi_exec.py, Makefile, rules/orchestrator-protocol.md.
+Stop invoking `scripts/pi-exec`; `git revert <commit>`. Affects: scripts/pi-exec, scripts/tests/test_pi_exec.py, Makefile, rules/orchestrator-protocol.md, README.md.
 
 ---
 

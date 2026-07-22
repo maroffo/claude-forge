@@ -61,10 +61,10 @@ Split into independent workstreams. Each software-engineer receives: **scope** (
 Default executor is the native software-engineer subagent. Cost-sensitive scoped implementation or mechanical-analysis subtasks MAY instead route to `scripts/pi-exec` (the pi coding agent driving gemini flash, Google-billed), invoked via Bash, to conserve Anthropic credits.
 
 Constraints on a pi-executed subtask (non-negotiable, since pi runs outside Claude Code's hook loop):
-- The orchestrator is the sole committer: pi never commits, and hooks (pre-commit-gate, verify-before-stop, aboutme-enforcer) cannot see pi processes.
+- The orchestrator is the sole committer: pi never commits. Hooks that fire on Claude Code tool events (verify-before-stop, aboutme-enforcer) cannot see pi processes; pre-commit-gate still gates every commit because the orchestrator makes them all.
 - DRIFT (1c) is mandatory and its skip conditions are void: every pi-executed subtask gets a fresh-context drift check, even a single trivial one.
 - Review and spec roles are never routed to pi: cross-model review of Gemini-written code is the point (native Fable/Opus stays adversarial).
-- The subtask reports the literal line `EXECUTOR: pi-exec model=<id> subtask=<id>` (the trace extractor keys on it, like LOCALIZE/DRIFT).
+- The ORCHESTRATOR reports each pi-executed subtask on one literal transcript line, exactly like LOCALIZE/DRIFT: `EXECUTOR: pi-exec model=<id> subtask=<id>`. The wrapper's own stdout `EXECUTOR:` line (model/brief/workdir) is a local log, not the trace signal.
 
 ### Sub-protocols
 

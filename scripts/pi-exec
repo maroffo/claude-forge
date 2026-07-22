@@ -14,7 +14,10 @@ usage: pi-exec --brief <file> --workdir <dir> [--model <id>] [--thinking <level>
   --thinking <level>  Thinking level (default: low).
   --dry-run           Print the command and workdir, then exit without running pi.
 
+GEMINI_API_KEY must be set (non-empty) for every invocation, including --dry-run.
+
 Exit codes: 2 = bad arguments / unreadable brief / bad workdir; 3 = GEMINI_API_KEY unset or empty.
+Codes 2 and 3 are wrapper exit codes; a real run exits with pi's own exit status.
 EOF
 }
 
@@ -73,6 +76,10 @@ done
 [[ -f "$brief" && -r "$brief" ]] || die 2 "brief file not readable: $brief"
 [[ -d "$workdir" ]] || die 2 "workdir is not a directory: $workdir"
 
+# Canonicalize the brief to an absolute path now, before any `cd "$workdir"`, so a
+# relative brief cannot resolve to a different file once pi runs in a different workdir.
+brief="$(cd "$(dirname "$brief")" && pwd)/$(basename "$brief")"
+
 # Credential gate (exit 3), always checked before any pi invocation, even for --dry-run.
 [[ -n "${GEMINI_API_KEY:-}" ]] || die 3 "GEMINI_API_KEY is unset or empty"
 
@@ -81,13 +88,20 @@ cmd=(pi -p --model "$model" --thinking "$thinking" \
   --no-extensions --no-skills --no-prompt-templates --no-themes "@$brief")
 
 if [[ "$dry_run" -eq 1 ]]; then
-  printf '%s\n' "${cmd[*]}"
+  # %q per element preserves word boundaries even when a token contains spaces.
+  printf '%q ' "${cmd[@]}"
+  printf '\n'
   printf 'workdir: %s\n' "$workdir"
   exit 0
 fi
 
 # Real run: emit the trace marker BEFORE invoking pi (never printed in dry-run).
-printf 'EXECUTOR: pi-exec model=%s brief=%s workdir=%s\n' "$model" "$brief" "$workdir"
+# Strip control characters (newlines, carriage returns, and the rest) so a crafted
+# value cannot forge extra transcript lines.
+safe_model=$(printf '%s' "$model" | tr -d '[:cntrl:]')
+safe_brief=$(printf '%s' "$brief" | tr -d '[:cntrl:]')
+safe_workdir=$(printf '%s' "$workdir" | tr -d '[:cntrl:]')
+printf 'EXECUTOR: pi-exec model=%s brief=%s workdir=%s\n' "$safe_model" "$safe_brief" "$safe_workdir"
 
 marker=$(mktemp)
 trap 'rm -f "$marker"' EXIT
@@ -96,6 +110,12 @@ pi_rc=0
 ( cd "$workdir" && "${cmd[@]}" ) || pi_rc=$?
 
 # Best-effort: echo the newest pi session .jsonl written since the run started.
+# Scope the search to the sessions directory when present, else the whole ~/.pi tree.
+session_root="$HOME/.pi"
+if [[ -d "$HOME/.pi/agent/sessions" ]]; then
+  session_root="$HOME/.pi/agent/sessions"
+fi
+
 newest=""
 newest_mtime=0
 while IFS= read -r f; do
@@ -105,12 +125,12 @@ while IFS= read -r f; do
     newest_mtime="$m"
     newest="$f"
   fi
-done < <(find "$HOME/.pi" -type f -name '*.jsonl' -newer "$marker" 2>/dev/null)
+done < <(find "$session_root" -type f -name '*.jsonl' -newer "$marker" 2>/dev/null)
 
 if [[ -n "$newest" ]]; then
   printf 'session: %s\n' "$newest"
 else
-  printf 'session: no new pi session file found under ~/.pi\n'
+  printf 'session: no new pi session file found under %s\n' "$session_root"
 fi
 
 exit "$pi_rc"
