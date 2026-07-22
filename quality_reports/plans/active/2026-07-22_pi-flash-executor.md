@@ -79,19 +79,28 @@ The matrix is the union of: argument validation (2, 3, 6) x flag pass-through (4
 
 ## Progress
 - [x] Analysis + plan (2026-07-22, planning session; second opinion skipped: mechanical plumbing, design approved in-session)
-- [ ] W1 contract
-- [ ] W2 wrapper TDD + Makefile wiring
-- [ ] W3 rule edit
-- [ ] W4 docs + live smoke + follow-ups drafted
+- [x] W1 contract (2026-07-22, authored first, commits with the change)
+- [x] W2 wrapper TDD + Makefile wiring (2026-07-22, RED then GREEN; DRIFT verdict minor_drift, accepted as Decision 11)
+- [x] W3 rule edit (2026-07-22, DRIFT verdict aligned)
+- [x] W4 docs + live smoke + follow-ups drafted (2026-07-22, README inventory + stale line fixed, smoke EXIT=0)
 - [ ] Review round + fixes
 - [ ] PR + SCORE
 - [ ] Close-out (plan moved to completed/, retrospective filled)
 
 ## Surprises & Discoveries
-(fill during execution, with evidence: command output, diff, red test)
+
+- W2.1 RED recorded: suite run with pi-exec absent fails 6/6 with `FileNotFoundError: ... scripts/pi-exec`, `Ran 6 tests ... FAILED (errors=6)`, exit 1. GREEN after W2.2: `Ran 6 tests ... OK`.
+- shellcheck was NOT installed on this host: `make check` printed `SKIP shellcheck`, so lint-shell never exercised the new wrapper and "shellcheck-clean" was prose, not evidence. Installed via brew (Decision 10); fresh `make check` now reports `PASS shellcheck` with scripts/pi-exec in the list.
+- README line 111 went stale from our own Makefile change (it enumerated `make test-e2e` coverage as hooks/tests only); caught during W4.1, fixed in the same PR (blast-radius item resolved at source).
+- W4.2 live smoke (real Gemini call, Google-billed): `EXECUTOR: pi-exec model=google/gemini-3.6-flash brief=.../brief.md workdir=.../pi-smoke`, pi created hello.txt with the exact requested content, session JSONL path echoed (`~/.pi/agent/sessions/...2026-07-22T14-34-19...jsonl`), EXIT=0. The custom-ID warning (`Model "gemini-3.6-flash" not found for provider "google". Using custom model id.`) still prints, as expected until follow-up (b) runs `pi update`.
 
 ## Decisions
 (append-only; execution-time decisions land here as new numbered rows)
+
+| # | Decision | Choice | Rationale | Revisit if |
+|---|----------|--------|-----------|------------|
+| 10 | shellcheck availability | Installed via brew on this host during execution | lint-shell SKIPped silently, making the wrapper's lint status unverifiable; the gate must actually run | host provisioning moves to a managed setup |
+| 11 | W2 minor drift | Accepted: `--help`/usage block and extra `workdir:` line in dry-run output | DRIFT flagged both as unrequested; kept as operability aids, no behavioral change, tests unaffected | either interferes with trace parsing or tests |
 
 ## Outcomes & Retrospective
 (fill at close: shipped, gaps, lessons)

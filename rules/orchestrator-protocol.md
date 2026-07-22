@@ -56,6 +56,16 @@ Split into independent workstreams. Each software-engineer receives: **scope** (
 
 **Declared exclusions (page faults).** Any brief that scopes context (engineer or reviewer) also declares what was deliberately cut and how to recover it: `excluded: <files/areas>; read on demand from <path>`. An implicit omission reads as "does not exist" and the agent concludes from absence; a declared one is a recoverable page fault. One line, listing only deliberate cuts, never an inventory of everything untouched.
 
+### Executor selection
+
+Default executor is the native software-engineer subagent. Cost-sensitive scoped implementation or mechanical-analysis subtasks MAY instead route to `scripts/pi-exec` (the pi coding agent driving gemini flash, Google-billed), invoked via Bash, to conserve Anthropic credits.
+
+Constraints on a pi-executed subtask (non-negotiable, since pi runs outside Claude Code's hook loop):
+- The orchestrator is the sole committer: pi never commits, and hooks (pre-commit-gate, verify-before-stop, aboutme-enforcer) cannot see pi processes.
+- DRIFT (1c) is mandatory and its skip conditions are void: every pi-executed subtask gets a fresh-context drift check, even a single trivial one.
+- Review and spec roles are never routed to pi: cross-model review of Gemini-written code is the point (native Fable/Opus stays adversarial).
+- The subtask reports the literal line `EXECUTOR: pi-exec model=<id> subtask=<id>` (the trace extractor keys on it, like LOCALIZE/DRIFT).
+
 ### Sub-protocols
 
 | Sub-step | When it runs | How | Trace data | Skip when |
