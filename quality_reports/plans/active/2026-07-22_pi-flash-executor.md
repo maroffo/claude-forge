@@ -84,7 +84,7 @@ The matrix is the union of: argument validation (2, 3, 6) x flag pass-through (4
 - [x] W3 rule edit (2026-07-22, DRIFT verdict aligned)
 - [x] W4 docs + live smoke + follow-ups drafted (2026-07-22, README inventory + stale line fixed, smoke EXIT=0)
 - [x] Review round + fixes (2026-07-22, round 1/5: fleet architecture+security+dx+test found 3 MAJOR + 9 MINOR, all fixed and re-verified; BLAST-RADIUS MAJOR=1 resolved in-PR as Decision 12 + follow-up (d))
-- [ ] PR + SCORE
+- [x] PR + SCORE (2026-07-22: PR #96 open, not merged; follow-ups filed as #92 #93 #94 #95; SCORE 100/100, threshold 90, gate pr, fresh make check + make test-e2e evidence)
 - [ ] Close-out (plan moved to completed/, retrospective filled)
 
 ## Surprises & Discoveries
