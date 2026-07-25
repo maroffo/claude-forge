@@ -77,14 +77,14 @@ Obsidian Vault (Documents/)
 **Agents** are launched by the orchestrator based on which files changed.
 **Skills** activate based on project context or user invocation.
 
-**Effort, not model downgrade, is the cost lever.** The main session runs at `xhigh` (`effortLevel` in `settings.example.json`, Anthropic's coding/agentic recommendation for Opus 4.8). Each subagent pins its own `effort:` in frontmatter: review agents and research at `medium`, harness-mechanic at `high`, project-analyzer at `low` (plus `model: haiku`), software-engineer omits `effort:` to inherit the session. Opus 4.8 recalibrated effort (`high` thinks less, `xhigh` more), so these are 4.8 baselines, not ported 4.7 values. Override any session or task with `/effort`. See `rules/orchestrator-protocol.md`.
+**Effort, not model downgrade, is the cost lever.** The main session runs at `xhigh` (`effortLevel` in `settings.example.json`, Anthropic's coding/agentic recommendation for Opus 4.8). Each subagent pins its own `effort:` in frontmatter: review agents and research at `medium`, harness-mechanic at `high`, project-analyzer at `low` (plus `model: haiku`), software-engineer omits `effort:` to inherit the session. Opus 4.8 recalibrated effort (`high` thinks less, `xhigh` more), so these are 4.8 baselines, not ported 4.7 values. Override any session or task with `/effort`. See the `orchestrator` skill.
 
 ## Rules (Always Active)
 
 | Rule | Purpose |
 |------|---------|
-| `orchestrator-protocol` | Contractor mode: research → localize → reproduce (bug-fix) → implement → verify → review → fix → score → loop (global 5-round ceiling, then escalate). Atomic skill metrics in traces for cascade analysis. |
-| `plan-first-workflow` | Requirements refinement, append-only decisions register, checkpoints, context preservation ("never summarize summaries") |
+| `orchestrator-protocol` | Spine of contractor mode: the loop steps, SKIP_SET, the literal report lines traces key on, and the safety invariants. The detail lives in the `orchestrator` skill, loaded before step 1 |
+| `plan-first-workflow` | Requirements refinement, append-only decisions register, complexity budget, checkpoints, context preservation ("never summarize summaries") |
 | `verification-protocol` | TDD process, mandatory test/lint/build cycle, outcome verification tables |
 | `quality-gates` | Scoring: 80 commit, 90 PR, 95 excellence |
 
@@ -112,7 +112,7 @@ The repo ships `Makefile` + `scripts/check_repo.py` implementing `make check` (A
 
 `scripts/metrics-weekly.sh` computes three signals to decide whether the enforcement is working: revert rate, fix-up rate, median time-to-next-touch. Run it as a baseline, apply enforcement, re-run after two weeks. If drift indicators don't drop, upgrade Tier A to Tier B (semantic check) or Tier C (full LLM agent).
 
-`scripts/pi-exec` routes cost-sensitive implementation or mechanical-analysis subtasks to the pi coding agent driving gemini flash (Google-billed): the orchestrator stays sole committer and review stays native, per the Executor selection subsection of `rules/orchestrator-protocol.md` and the change contract `quality_reports/harness_changes/2026-07-22_pi-flash-executor.md`.
+`scripts/pi-exec` routes cost-sensitive implementation or mechanical-analysis subtasks to the pi coding agent driving gemini flash (Google-billed): the orchestrator stays sole committer and review stays native, per the Executor selection subsection of the `orchestrator` skill and the change contract `quality_reports/harness_changes/2026-07-22_pi-flash-executor.md`.
 
 ## Telemetry
 
@@ -212,6 +212,7 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | `obsidian/` | Obsidian vault operations via CLI (CRUD, search, daily notes, graph, tasks) |
 | `refine-requirements/` | Structured requirements gathering before planning |
 | `plan-forge/` | Issue or in-session analysis to locked ExecPlan on disk + paste-ready implementation prompt + /goal line (deep code analysis, second opinion, REPRODUCE-first, exhaustive E2E, opus subagents in a worktree) |
+| `orchestrator/` | Full contractor-mode loop, loaded on demand before step 1: sub-protocols (LOCALIZE, BENCH-BASELINE, REPRODUCE, DRIFT), review routing, blast radius, UAT, parallelism and effort caps, escalation, goal-backed runs |
 | `clickup/` | Task management via MCP |
 | `gemini-review/` | Local code review with Gemini CLI |
 | `verify-frontend/` | End-to-end UI verification in a real browser (console gate, before/after screenshots, Lighthouse) |

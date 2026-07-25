@@ -58,4 +58,4 @@ pi output tail:
 anomalies: <none | loud description: unexpected files touched, exit != 0, missing session, ...>
 ```
 
-The first line is exact: the orchestrator relays it verbatim as its own literal transcript line (per orchestrator-protocol Executor selection, the ORCHESTRATOR's transcript line is the trace signal; yours is the carrier). After your report the orchestrator owns everything: DRIFT, verification commands, fix-round decision, commits.
+The first line is exact: the orchestrator relays it verbatim as its own literal transcript line (per the `orchestrator` skill Executor selection, the ORCHESTRATOR's transcript line is the trace signal; yours is the carrier). After your report the orchestrator owns everything: DRIFT, verification commands, fix-round decision, commits.

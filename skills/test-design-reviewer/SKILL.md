@@ -137,7 +137,7 @@ Each subsection always present; use "None detected." when empty.
 
 ## Integration with Review Pipeline
 
-This skill is invoked by the orchestrator when test files are in scope (see `orchestrator-protocol.md`, review routing step). Can also be invoked directly via `/test-design-reviewer`.
+This skill is invoked by the orchestrator when test files are in scope (see the `orchestrator` skill, review routing step). Can also be invoked directly via `/test-design-reviewer`.
 
 ## Deterministic Scoring Calculator
 
