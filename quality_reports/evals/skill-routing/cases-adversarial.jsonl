@@ -1,6 +1,5 @@
 {"id": 1, "prompt": "prima di aprire la PR voglio sapere se regge o se mi conviene lavorarci ancora", "expected": "score", "cluster": "review", "note": "chiede readiness contro una soglia, non un elenco di findings"}
 {"id": 2, "prompt": "dai un'occhiata al diff prima che chiudo, non voglio sorprese banali", "expected": "gemini-review", "cluster": "review", "note": "pre-commit veloce"}
-{"id": 3, "prompt": "il modulo dei pagamenti va in produzione lunedi, non mi posso permettere buchi", "expected": "advanced-review", "cluster": "review", "note": "profondita' e evidenza, non velocita'"}
 {"id": 4, "prompt": "e' la terza diagnosi che sbaglio su questo bug, sono fermo", "expected": "second-opinion", "cluster": "review", "note": "2+ tentativi falliti di root cause"}
 {"id": 5, "prompt": "abbiamo quaranta test verdi e le regressioni passano lo stesso", "expected": "test-design-reviewer", "cluster": "review", "note": "qualita' dei test, non copertura"}
 {"id": 6, "prompt": "voglio una seconda opinione sul codice che ho appena scritto", "expected": "gemini-review", "cluster": "review", "note": "trappola: dice 'seconda opinione' ma e' una code review"}
@@ -16,9 +15,7 @@
 {"id": 16, "prompt": "questo pezzo suona finto, troppo lucidato", "expected": "humanizer", "cluster": "writing"}
 {"id": 17, "prompt": "voglio raccontare questa esperienza sul mio sito", "expected": "blog-writer", "cluster": "writing"}
 {"id": 18, "prompt": "devo rispondere al cliente che si lamenta del ritardo, sii diretto", "expected": "mail-writer", "cluster": "writing"}
-{"id": 19, "prompt": "l'articolo e' online, facciamolo girare sul social del lavoro", "expected": "linkedin-post", "cluster": "writing"}
 {"id": 20, "prompt": "ho venti articoli salvati da settimane, falli diventare qualcosa di utile", "expected": "process-clippings", "cluster": "vault"}
-{"id": 21, "prompt": "sono indietro di tre settimane con le iscrizioni via mail, recuperiamo", "expected": "newsletter-digest", "cluster": "vault", "note": "newsletter vs clippings"}
 {"id": 22, "prompt": "la versione e' pronta, mettiamola fuori", "expected": "releasing-software", "cluster": "ops"}
 {"id": 23, "prompt": "il branch e' pieno di commit sporchi, sistemiamolo prima di aprire la PR", "expected": "source-control", "cluster": "ops", "note": "workflow git, non un singolo commit"}
 {"id": 24, "prompt": "ho cambiato il colore del bottone, controlla che non abbia rotto il layout", "expected": "verify-frontend", "cluster": "ops"}

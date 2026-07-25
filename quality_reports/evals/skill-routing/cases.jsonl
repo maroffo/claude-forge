@@ -1,5 +1,4 @@
 {"id": 1, "prompt": "rivedi le mie modifiche prima che committo", "expected": "gemini-review", "cluster": "review", "note": "pre-commit, non PR"}
-{"id": 2, "prompt": "fammi una review approfondita di questo modulo, voglio essere sicuro prima del rilascio", "expected": "advanced-review", "cluster": "review", "note": "deep vs pre-commit"}
 {"id": 3, "prompt": "guarda la PR 214 e dimmi cosa non va", "expected": "pr-review", "cluster": "review", "note": "PR-level"}
 {"id": 4, "prompt": "questo e' pronto per una PR?", "expected": "score", "cluster": "review", "note": "gate, non review"}
 {"id": 5, "prompt": "non sono convinto di questo approccio, sfidalo", "expected": "second-opinion", "cluster": "review", "note": "challenge, non code review"}
@@ -14,9 +13,7 @@
 {"id": 14, "prompt": "quanto costa in token la mia sessione tipo?", "expected": "harness-trace", "cluster": "knowledge", "note": "capture vs optimize"}
 {"id": 15, "prompt": "le mie regole funzionano? ottimizzale sulla base dei dati", "expected": "harness-mechanic", "cluster": "knowledge"}
 {"id": 16, "prompt": "scrivi un post sul blog su questa cosa", "expected": "blog-writer", "cluster": "writing"}
-{"id": 17, "prompt": "scrivi il post per il blog di mauro", "expected": "mauro-blogger", "cluster": "writing"}
 {"id": 18, "prompt": "rispondi a questa mail del cliente", "expected": "mail-writer", "cluster": "writing"}
-{"id": 19, "prompt": "pubblica su linkedin l'articolo che abbiamo scritto", "expected": "linkedin-post", "cluster": "writing"}
 {"id": 20, "prompt": "questo testo sa troppo di AI, sistemalo", "expected": "humanizer", "cluster": "writing"}
 {"id": 21, "prompt": "cerca nel vault le note su event sourcing", "expected": "obsidian", "cluster": "vault"}
 {"id": 22, "prompt": "processa gli articoli che ho salvato questa settimana", "expected": "process-clippings", "cluster": "vault", "note": "clippings vs newsletter"}

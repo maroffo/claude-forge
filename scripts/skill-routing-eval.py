@@ -13,6 +13,10 @@ SKILLS = ROOT / "skills"
 EVAL = ROOT / "quality_reports" / "evals" / "skill-routing"
 CASES = EVAL / "cases.jsonl"  # overridden by --cases
 
+# Answers that mean "the call failed", not "the judge routed wrongly". Scoring them
+# as misses deflates the number and makes an infra outage look like a regression.
+INFRA_FAILURES = ("HTTP_", "UNPARSEABLE", "MISSING")
+
 
 def descriptions() -> dict[str, str]:
     """name -> description, parsed from the frontmatter of every SKILL.md."""
@@ -32,8 +36,25 @@ def descriptions() -> dict[str, str]:
 
 
 def load_cases(path: Path | None = None) -> list[dict]:
+    """Cases, validated against the live catalog.
+
+    A case expecting a skill absent from `skills/` can never pass: the judge is
+    only ever shown the catalog. Machine-local skills (gitignored symlinks) make
+    this silent, so the measurement would differ per machine. Fail at load time.
+    """
     src = path or CASES
-    return [json.loads(line) for line in src.read_text().splitlines() if line.strip()]
+    cases = [json.loads(line) for line in src.read_text().splitlines() if line.strip()]
+    catalog = descriptions()
+    unroutable = [(c["id"], c["expected"]) for c in cases if c["expected"] != "none" and c["expected"] not in catalog]
+    if unroutable:
+        listed = ", ".join(f'{cid}:{name}' for cid, name in unroutable)
+        sys.exit(
+            f"{src.name}: {len(unroutable)} case(s) expect a skill absent from "
+            f"skills/ ({len(catalog)} present): {listed}.\n"
+            "The catalog the judge sees cannot contain them, so they can never pass. "
+            "Drop the cases, or vendor a stub SKILL.md, before measuring."
+        )
+    return cases
 
 
 def build(cases_path: Path | None = None) -> str:
@@ -82,7 +103,10 @@ def ask_gemini(prompt: str, model: str, key: str) -> dict:
     import urllib.request
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
-    body = json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode()
+    # temperature 0: a routing measurement compared across runs must not resample.
+    body = json.dumps(
+        {"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"temperature": 0}}
+    ).encode()
     req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=90) as resp:
@@ -126,33 +150,45 @@ def score(answers_path: Path, cases_path: Path | None = None) -> int:
         sys.exit(f"{answers_path}: no JSON array found")
     answers = json.loads(m.group(0))
 
+    by_id = {a["id"]: a for a in answers}
+    unknown = sorted(set(by_id) - set(cases))
+    if unknown:
+        sys.exit(f"{answers_path}: answer id(s) {unknown} are not in the case file. Wrong pairing, refusing to score.")
+
+    # The denominator is the cases DEFINED, never the answers received: a truncated
+    # judge reply must not be able to print a perfect score for part of the suite.
+    infra = sorted(a["id"] for a in answers if str(a["choice"]).startswith(INFRA_FAILURES))
+
     hits = 0
     misses = []
-    for a in answers:
-        case = cases.get(a["id"])
-        if not case:
-            continue
-        if a["choice"] == case["expected"]:
+    for cid, case in sorted(cases.items()):
+        a = by_id.get(cid)
+        if a is None:
+            misses.append((case["prompt"], case["expected"], "NO-ANSWER", ""))
+        elif a["choice"] == case["expected"]:
             hits += 1
         else:
             misses.append((case["prompt"], case["expected"], a["choice"], a.get("runner_up", "")))
 
-    total = len(answers)
-    print(f"routing accuracy: {hits}/{total} = {hits / total:.0%}\n")
+    total = len(cases)
+    if infra:
+        print(f"REFUSING to report accuracy: {len(infra)} case(s) failed at the API, not at routing: {infra}")
+        print("Rerun those cases; an infra failure scored as a miss deflates the number.\n")
+    else:
+        print(f"routing accuracy: {hits}/{total} = {hits / total:.0%}\n")
     if misses:
         print("misses (prompt | expected | chosen | runner-up):")
         for p, e, c, r in misses:
             print(f"  {p[:52]:52s} | {e:22s} | {c:22s} | {r}")
 
     by_cluster: dict[str, list[int]] = {}
-    for a in answers:
-        case = cases.get(a["id"])
-        if case:
-            by_cluster.setdefault(case["cluster"], []).append(int(a["choice"] == case["expected"]))
+    for cid, case in cases.items():
+        a = by_id.get(cid)
+        by_cluster.setdefault(case["cluster"], []).append(int(a is not None and a["choice"] == case["expected"]))
     print("\nby cluster:")
     for cl, vals in sorted(by_cluster.items()):
         print(f"  {cl:10s} {sum(vals)}/{len(vals)}")
-    return 0 if hits == total else 1
+    return 0 if hits == total and not infra else 1
 
 
 if __name__ == "__main__":
