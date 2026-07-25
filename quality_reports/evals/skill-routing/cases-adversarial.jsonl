@@ -1,0 +1,40 @@
+{"id": 1, "prompt": "prima di aprire la PR voglio sapere se regge o se mi conviene lavorarci ancora", "expected": "score", "cluster": "review", "note": "chiede readiness contro una soglia, non un elenco di findings"}
+{"id": 2, "prompt": "dai un'occhiata al diff prima che chiudo, non voglio sorprese banali", "expected": "gemini-review", "cluster": "review", "note": "pre-commit veloce"}
+{"id": 3, "prompt": "il modulo dei pagamenti va in produzione lunedi, non mi posso permettere buchi", "expected": "advanced-review", "cluster": "review", "note": "profondita' e evidenza, non velocita'"}
+{"id": 4, "prompt": "e' la terza diagnosi che sbaglio su questo bug, sono fermo", "expected": "second-opinion", "cluster": "review", "note": "2+ tentativi falliti di root cause"}
+{"id": 5, "prompt": "abbiamo quaranta test verdi e le regressioni passano lo stesso", "expected": "test-design-reviewer", "cluster": "review", "note": "qualita' dei test, non copertura"}
+{"id": 6, "prompt": "voglio una seconda opinione sul codice che ho appena scritto", "expected": "gemini-review", "cluster": "review", "note": "trappola: dice 'seconda opinione' ma e' una code review"}
+{"id": 7, "prompt": "guarda cosa ha combinato il collega nella 214 commit per commit", "expected": "pr-review", "cluster": "review"}
+{"id": 8, "prompt": "rifacciamo le notifiche, ma non ho ancora chiaro cosa deve fare", "expected": "refine-requirements", "cluster": "planning", "note": "ambiguita' a monte, prima del piano"}
+{"id": 9, "prompt": "ho l'analisi in testa, mi serve qualcosa che una sessione nuova possa eseguire domani senza di me", "expected": "plan-forge", "cluster": "planning"}
+{"id": 10, "prompt": "fra sei mesi nessuno si ricordera' perche' abbiamo scelto questa coda", "expected": "adr", "cluster": "planning", "note": "decisione gia' presa da fissare"}
+{"id": 11, "prompt": "il progetto e' chiuso, voglio fissare cosa e' andato storto prima di dimenticarlo", "expected": "learning-docs", "cluster": "knowledge", "note": "singolo progetto"}
+{"id": 12, "prompt": "ho la sensazione di rifare gli stessi errori su mirsad e su wasit", "expected": "learning-loop", "cluster": "knowledge", "note": "cross-repo"}
+{"id": 13, "prompt": "dove se ne vanno tutti i token di una sessione normale?", "expected": "harness-trace", "cluster": "knowledge", "note": "misura, non ottimizzazione"}
+{"id": 14, "prompt": "le regole che ho scritto non stanno funzionando, i reviewer non partono quasi mai", "expected": "harness-mechanic", "cluster": "knowledge", "note": "ottimizzazione guidata dai dati"}
+{"id": 15, "prompt": "nel vault ho un sacco di roba su questo tema, portala dentro le skill", "expected": "knowledge-sync", "cluster": "knowledge"}
+{"id": 16, "prompt": "questo pezzo suona finto, troppo lucidato", "expected": "humanizer", "cluster": "writing"}
+{"id": 17, "prompt": "voglio raccontare questa esperienza sul mio sito", "expected": "blog-writer", "cluster": "writing"}
+{"id": 18, "prompt": "devo rispondere al cliente che si lamenta del ritardo, sii diretto", "expected": "mail-writer", "cluster": "writing"}
+{"id": 19, "prompt": "l'articolo e' online, facciamolo girare sul social del lavoro", "expected": "linkedin-post", "cluster": "writing"}
+{"id": 20, "prompt": "ho venti articoli salvati da settimane, falli diventare qualcosa di utile", "expected": "process-clippings", "cluster": "vault"}
+{"id": 21, "prompt": "sono indietro di tre settimane con le iscrizioni via mail, recuperiamo", "expected": "newsletter-digest", "cluster": "vault", "note": "newsletter vs clippings"}
+{"id": 22, "prompt": "la versione e' pronta, mettiamola fuori", "expected": "releasing-software", "cluster": "ops"}
+{"id": 23, "prompt": "il branch e' pieno di commit sporchi, sistemiamolo prima di aprire la PR", "expected": "source-control", "cluster": "ops", "note": "workflow git, non un singolo commit"}
+{"id": 24, "prompt": "ho cambiato il colore del bottone, controlla che non abbia rotto il layout", "expected": "verify-frontend", "cluster": "ops"}
+{"id": 25, "prompt": "il worker resta appeso e il canale non si sblocca mai", "expected": "golang", "cluster": "lang", "note": "goroutine senza nominare Go"}
+{"id": 26, "prompt": "sto per aggiungere una skill nuova, come la imposto bene", "expected": "skill-forge", "cluster": "ops"}
+{"id": 27, "prompt": "spiegami cosa fa questa funzione", "expected": "none", "cluster": "negative"}
+{"id": 28, "prompt": "aggiorna la versione dentro package.json", "expected": "none", "cluster": "negative", "note": "SKIP_SET"}
+{"id": 29, "prompt": "trova dove viene generato il token JWT", "expected": "none", "cluster": "negative", "note": "ricerca codice"}
+{"id": 30, "prompt": "questa migration mi blocca la tabella in produzione, e' sicura?", "expected": "none", "cluster": "negative", "note": "distrattore: esiste database-reviewer ma e' un agent, non una skill"}
+{"id": 31, "prompt": "rinomina questa costante in tutto il modulo", "expected": "none", "cluster": "negative", "note": "SKIP_SET"}
+{"id": 32, "prompt": "aggiungi un campo al DTO e propagalo", "expected": "none", "cluster": "negative", "note": "lavoro diretto"}
+{"id": 33, "prompt": "sistema l'indentazione di questo file", "expected": "none", "cluster": "negative", "note": "SKIP_SET"}
+{"id": 34, "prompt": "leggi il changelog e dimmi cosa e' cambiato nella 2.3", "expected": "none", "cluster": "negative", "note": "lettura, non rilascio"}
+{"id": 35, "prompt": "installa la dipendenza e aggiorna il lockfile", "expected": "none", "cluster": "negative", "note": "distrattore verso dependency review"}
+{"id": 36, "prompt": "spiegami la differenza fra Serializable e Repeatable Read", "expected": "none", "cluster": "negative", "note": "domanda teorica"}
+{"id": 37, "prompt": "aggiorna la data nel README", "expected": "none", "cluster": "negative", "note": "SKIP_SET, distrattore verso doc skill"}
+{"id": 38, "prompt": "fammi vedere quanto e' grande il repo e quanti file ci sono", "expected": "none", "cluster": "negative", "note": "distrattore verso project-analyzer"}
+{"id": 39, "prompt": "sposta questa funzione in un altro file", "expected": "none", "cluster": "negative", "note": "refactor single-file"}
+{"id": 40, "prompt": "aggiungi un log dentro questo handler per capire cosa succede", "expected": "none", "cluster": "negative", "note": "debug diretto"}
