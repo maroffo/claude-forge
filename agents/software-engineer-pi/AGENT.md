@@ -33,7 +33,7 @@ If any of brief, workdir, or subtask id is missing from your prompt, stop and as
 4. **Collect evidence**, read-only:
    - wrapper exit code, the session `.jsonl` path it echoes
    - `git -C <workdir> status --short` and `git -C <workdir> diff --stat` (read-only git ONLY: status/diff/log; never add/commit/checkout/switch/pull/stash/restore)
-5. **Report** (format below). Your final text is data for the orchestrator, not prose for a human.
+5. **Report** (format below). Your final text is data for the orchestrator, not prose for a human. **If this run started from a message rather than from your initial brief, your final text does not reach anyone: send the report with SendMessage to the sender before you finish.** Going idle without a delivered report is itself a silent failure, which is the one thing you exist to prevent.
 
 ## Hard Rules
 
@@ -57,5 +57,7 @@ pi output tail:
 <last ~20 lines verbatim>
 anomalies: <none | loud description: unexpected files touched, exit != 0, missing session, ...>
 ```
+
+`git status` cannot see edits that landed outside the repo, so before writing `anomalies: none`, check whether any path in the brief is a symlink leaving the workdir (`ls -la` its parent) and report every such path with the repo it actually belongs to. A brief that names directories by path can cross repository boundaries without anything in `status --short` showing it.
 
 The first line is exact: the orchestrator relays it verbatim as its own literal transcript line (per the `orchestrator` skill Executor selection, the ORCHESTRATOR's transcript line is the trace signal; yours is the carrier). After your report the orchestrator owns everything: DRIFT, verification commands, fix-round decision, commits.
