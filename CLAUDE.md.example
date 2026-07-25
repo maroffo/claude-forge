@@ -41,62 +41,14 @@ Context window auto-compacts. Don't stop early. Save state before refresh if nee
 Non-code/paths/docs → grep/glob
 
 # Workflow
-Rules in `rules/` auto-load: orchestrator (contractor mode), plan-first, TDD verification, quality gates (80/90/95), response shape (answer length). Agents in `agents/` launched by orchestrator based on file patterns — use subagents for parallel/isolated workstreams, work directly for simple tasks.
+Rules in `rules/` are always in context. Skills and agents are discovered from their own descriptions: pick the one whose description fits the task, there is no catalog here to consult. Use subagents for parallel or isolated workstreams, work directly for simple tasks.
 Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes via `## Vault Context`.
 
-# Skills (`~/.claude/skills/`)
-
-| Domain | Skill |
-|--------|-------|
-| Requirements refinement | `refine-requirements` (auto-triggered for 🟡/🔴) |
-| Issue/analysis → plan + impl prompt + /goal | `plan-forge` |
-| Issue → PR autonomous loop | `issue-loop-hikma` (hikmaAI), `issue-loop-wishew` (Wishew) |
-| Issue auto-triage | `issue-triage-hikma` |
-| Git commit/workflow | `source-control` (`commit` redirects here) |
-| Go | `golang` |
-| Android/Kotlin | `android-kotlin` |
-| Swift/Apple | `apple-swift` |
-| Python | `python` |
-| Rails | `rails` |
-| Ruby gems | `ruby` |
-| React/Next.js | `react-nextjs` |
-| Terraform/IaC | `terraform` |
-| AWS/GCP | `cloud-infrastructure` |
-| Obsidian vault | `obsidian` |
-| Notion to vault sync | `notion-sync` |
-| ClickUp | `clickup` (English only) |
-| Cognitive load analysis | `cognitive-load-analyzer` |
-| Legacy/untested code | `legacy-code-expert` |
-| Code review (pre-commit) | `gemini-review` |
-| UI verification (browser) | `verify-frontend` |
-| PR review (commit-aware) | `pr-review` |
-| Deep multi-LLM review | `advanced-review` |
-| Quality gate scoring | `score` |
-| Second opinion (Claude+Gemini+DeepSeek) | `second-opinion` |
-| Test quality assessment | `test-design-reviewer` |
-| Makefile check scaffolding | `project-checks` |
-| Release/tag | `releasing-software` |
-| Project retrospective | `learning-docs` |
-| Knowledge sync | `knowledge-sync` |
-| Cover/hero images | `cover-image` |
-| Table/diagram images | `table-image` |
-| Humanize AI text | `humanizer` |
-| Architecture decisions | `adr` |
-| Blog writing | `blog-writer` |
-| Email writing | `mail-writer` |
-| Skill creation/review | `skill-forge` |
-| Execution traces/token baseline | `harness-trace` |
-| Harness optimization (trace-driven) | `harness-mechanic` |
-| Cross-repo learning loop (retrospective-driven) | `learning-loop` |
-
 # Knowledge Capture
-- **Quick corrections:** Append `[LEARN:category]` to `MEMORY.md`
-- **Deep retrospectives:** Run `learning-docs` to update LEARNING.md + vault copy (`<project> - Learnings`)
-- **Solved problems:** Capture in `docs/solutions/[category]/` + vault copy (`<project> - Solutions`)
-- **Plans:** Repo-first (`quality_reports/plans/active|completed/`), vault mirror (`Plans/YYYY-MM-DD - description`); living-plan format in `rules/plan-first-workflow.md`
-- **Session logs:** Vault-first (`<project> - Log`), fallback `quality_reports/session_logs/`
-- **Vault-to-skills sync:** `knowledge-sync` monthly (scheduled propose-only crontab run; APPLY stays manual)
-- **Cross-repo failure-modes:** Run `learning-loop` (monthly) to mine all LEARNING.md for recurring patterns and propose harness changes with change-contracts
+- **Quick corrections:** append `[LEARN:category]` to `MEMORY.md`
+- **Solved problems:** `docs/solutions/[category]/` + vault copy (`<project> - Solutions`)
+- **Session logs:** vault-first (`<project> - Log`), fallback `quality_reports/session_logs/`
+- Plans, retrospectives and knowledge sync are owned by `rules/plan-first-workflow.md` and the learning-docs / learning-loop / knowledge-sync skills
 
 # Writing
 - **NEVER use em dashes (—).** Use Italian punctuation: commas, colons, semicolons, or parentheses.
@@ -104,18 +56,8 @@ Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes 
 # Python
 - **Always invoke via `uv`.** Use `uv run python3 script.py` (or `uv run --script` with PEP 723 inline deps), never bare `python3`. Applies to Makefiles, hooks, one-offs; stdlib-only scripts included.
 
-# Enforcement Layer (hooks)
-Rules are prose; hooks make them deterministic. Installed at `~/.claude/hooks/` with registration in `~/.claude/settings.json`. Key hooks: pre-commit-gate runs `make check && make test-e2e` (docs-only diffs skip the e2e half); main-branch-guard refuses commits on main/master (honors `checkout -b X && commit` chains); commit-intent-guard Tier A blocks `--no-verify`-class flags, TODO/FIXME stubs, non-conventional messages; aboutme-enforcer requires 2-line ABOUTME on new source files; routing-advisor nudges the right reviewer based on touched files; verify-before-stop blocks ending a turn with unverified source edits (one nudge per turn); score-evidence-guard blocks SCORE reports lacking fresh computational evidence (two-confirmation gate); doom-loop-detector suggests re-planning at the 5th edit to the same file. Plus `permissions.deny` path protection for `.git/hooks`, `~/.ssh`, credentials.
-
-# Second Opinion (auto-trigger)
-
-Call `/second-opinion` automatically (no user prompt needed) when:
-- **Complexity = complex** (orchestrator step 0b): validate approach before planning
-- **Debugging, 2+ failed root cause attempts**: fresh perspective before trying again
-- **🔴 decisions** (rewrites, core logic, security): challenge assumptions before deciding
-- **Review loop stuck** (score < 80 after 2 fix rounds): break out of the cycle
-
-Do NOT auto-trigger for: 🟢 tasks, simple/moderate complexity, docs/config, code review (use `gemini-review`).
+# Enforcement
+Rules are prose; hooks make them deterministic. They live in `~/.claude/hooks/`, registered in `~/.claude/settings.json`, and each states its rule when it fires, so you do not need the inventory in advance. `permissions.deny` protects `.git/hooks`, `~/.ssh`, credentials.
 
 # Problem-Solving
 FIX root cause, don't workaround. No disabling functionality. No duplicate templates.

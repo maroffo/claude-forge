@@ -1,6 +1,6 @@
 ---
 name: second-opinion
-description: "Get three independent second opinions (isolated Claude + isolated Gemini + isolated DeepSeek) on a problem Claude is analyzing. Use when user says second opinion, another perspective, challenge this approach, or asks gemini/deepseek about a decision, approach, or diagnosis. Gathers context, writes a focused prompt, calls all reviewers in isolated Docker containers, and synthesizes all viewpoints. Not for reviewing code or changes, even phrased as 'ask gemini to review' (use gemini-review)."
+description: "Get three independent second opinions (isolated Claude + isolated Gemini + isolated DeepSeek) on a problem Claude is analyzing. Use when user says second opinion, another perspective, challenge this approach, or asks gemini/deepseek about a decision, approach, or diagnosis. Also invoke on your own initiative, without being asked: on a complex task before planning, after 2 failed root-cause attempts, on a 🔴 decision (rewrite, core logic, security), or when the review loop is stuck below 80 after 2 fix rounds. Gathers context, writes a focused prompt, calls all reviewers in isolated Docker containers, and synthesizes all viewpoints. Not for reviewing code or changes, even phrased as 'ask gemini to review' (use gemini-review)."
 compatibility: "Requires Docker running, claude-reviewer:latest, gemini-reviewer:latest and deepseek-reviewer:latest images built, OAuth volume for Claude, API key files for Gemini and DeepSeek."
 ---
 
@@ -163,9 +163,19 @@ stronger the signal to reconsider).
 - Want to validate an approach before implementing
 - Complex decisions with multiple valid paths
 
+### Auto-trigger (no user prompt needed)
+
+Call this skill on your own initiative when any of these holds:
+
+- **Complexity = complex** (orchestrator step 0b): validate the approach before planning
+- **Debugging with 2+ failed root-cause attempts**: get a fresh perspective before trying again
+- **🔴 decisions** (rewrites, core logic, security): challenge the assumptions before deciding
+- **Review loop stuck** (score < 80 after 2 fix rounds): break out of the cycle
+
 ## When NOT to Use
 
 - Code review before commit (use `gemini-review`)
+- 🟢 tasks, simple or moderate complexity, docs and config changes
 - Simple, well-understood problems
 - When you just need to read more code/docs first
 
