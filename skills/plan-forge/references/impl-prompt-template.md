@@ -63,5 +63,5 @@ key on the canonical SCORE line.
 | branch-guard in the SAME call as commit | guard in an earlier turn missed a mid-task branch switch |
 | SCORE canonical format | free-form scoring produced 0 extractable SCORE events across 6 traced sessions |
 | PR opened, never merged by the agent | merge stays a human (or explicitly delegated automerge) decision |
-| stop after 5 fix rounds | mirrors the orchestrator's global escalation ceiling |
+| stop after 5 fix rounds | mirrors the plan's fix-round budget (default 5), whose exhaustion triggers escalation |
 ```

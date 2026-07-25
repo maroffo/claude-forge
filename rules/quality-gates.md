@@ -50,6 +50,12 @@ Every review path scores in **Critical / Major / Minor**. Tools that emit other 
 | advanced-review | INFO | Minor |
 | advanced-review | DISPUTED (unresolved after cross-check) | Major |
 
+## Finding Contract
+
+Every review path emits findings in the same five fields: **severity** (table above), **location** (`file:line`), **claim** (what is wrong), **fix** (what to do), **evidence** (the observation that would settle it: a red-green test, a command plus expected output, a CWE id, a grep-able convention reference, a complexity derivation).
+
+Evidence is what makes a finding checkable instead of arguable: the fix loop verifies it, and the two-confirmation gate at SCORE has something to key on. A finding whose evidence you cannot name is not a finding, so drop it. Keeping it in the report by softening it to Minor is the exact failure mode this contract prevents.
+
 ## How to Score
 
 After review agents report findings:

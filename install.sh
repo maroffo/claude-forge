@@ -252,8 +252,19 @@ if is_selected 0; then
   installed_files+=("rules/*")
   cp -R "$SCRIPT_DIR"/agents/ "$TARGET_DIR/agents/"
   installed_files+=("agents/*")
-  cp "$SCRIPT_DIR/CLAUDE.md.example" "$TARGET_DIR/CLAUDE.md"
-  installed_files+=("CLAUDE.md")
+  # A symlinked CLAUDE.md means the user develops the harness itself: copying (or
+  # personalizing, below) would write straight into their working copy of the repo.
+  if [[ -L "$TARGET_DIR/CLAUDE.md" ]]; then
+    echo "  kept symlinked CLAUDE.md -> $(readlink "$TARGET_DIR/CLAUDE.md") (not overwritten, not personalized)"
+    installed_files+=("CLAUDE.md (symlink kept)")
+    if [[ ! -e "$TARGET_DIR/CLAUDE.md" ]]; then
+      echo "  WARNING: that symlink is dangling, so this install has no usable CLAUDE.md."
+      echo "           Repoint it at the repo copy, or delete it and re-run to install a plain file."
+    fi
+  else
+    cp "$SCRIPT_DIR/CLAUDE.md.example" "$TARGET_DIR/CLAUDE.md"
+    installed_files+=("CLAUDE.md")
+  fi
   # Portability: AGENTS.md is the emerging cross-tool convention; keep a relative
   # symlink so both Claude Code (CLAUDE.md) and tools reading AGENTS.md see the same content.
   ln -sf CLAUDE.md "$TARGET_DIR/AGENTS.md"
@@ -286,7 +297,12 @@ replace_in_installed() {
         fi
       fi
     done' _ "$old" "$new" {} +
-  if [[ -f "$TARGET_DIR/CLAUDE.md" ]] && grep -qF "$old" "$TARGET_DIR/CLAUDE.md" 2>/dev/null; then
+  # -f follows the link, so test -L first: personalizing a symlinked CLAUDE.md would
+  # edit the repo it points at, not the installation. Silent because this function is
+  # called once per placeholder; the copy step above already reported the symlink once.
+  if [[ -L "$TARGET_DIR/CLAUDE.md" ]]; then
+    :
+  elif [[ -f "$TARGET_DIR/CLAUDE.md" ]] && grep -qF "$old" "$TARGET_DIR/CLAUDE.md" 2>/dev/null; then
     sed_inplace "s|$old|$new|g" "$TARGET_DIR/CLAUDE.md"
   fi
 }

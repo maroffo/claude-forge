@@ -63,9 +63,9 @@ cp claude-forge/CLAUDE.md.example ~/.claude/CLAUDE.md
 │
 claude-forge repo
 ├── Makefile            → `make check` + `make test-e2e` (pre-commit gate)
-├── scripts/            → check_repo.py (ABOUTME, em-dashes, frontmatter, schema)
+├── scripts/            → check_repo.py (ABOUTME, em-dashes, frontmatter, schema), doc_gardening.py (stale cross-references, _INDEX drift), skill-routing-eval.py (does a description route the way it claims)
 ├── hooks/              → Source for the enforcement hooks (installed to ~/.claude/hooks/)
-├── quality_reports/    → traces/ (gitignored), token_baselines/ (gitignored), harness_changes/ (committed audit trail), knowledge_sync/ (committed monthly propose-only reports)
+├── quality_reports/    → traces/ (gitignored), token_baselines/ (gitignored), harness_changes/ (committed audit trail), evals/ (committed routing case sets), knowledge_sync/ (committed monthly propose-only reports)
 │
 Obsidian Vault (Documents/)
 ├── Projects/           → Per-project artifacts (overview, log, solutions)
@@ -77,14 +77,14 @@ Obsidian Vault (Documents/)
 **Agents** are launched by the orchestrator based on which files changed.
 **Skills** activate based on project context or user invocation.
 
-**Effort, not model downgrade, is the cost lever.** The main session runs at `xhigh` (`effortLevel` in `settings.example.json`, Anthropic's coding/agentic recommendation for Opus 4.8). Each subagent pins its own `effort:` in frontmatter: review agents and research at `medium`, harness-mechanic at `high`, project-analyzer at `low` (plus `model: haiku`), software-engineer omits `effort:` to inherit the session. Opus 4.8 recalibrated effort (`high` thinks less, `xhigh` more), so these are 4.8 baselines, not ported 4.7 values. Override any session or task with `/effort`. See `rules/orchestrator-protocol.md`.
+**Effort, not model downgrade, is the cost lever.** The main session runs at `xhigh` (`effortLevel` in `settings.example.json`, Anthropic's coding/agentic recommendation for Opus 4.8). Each subagent pins its own `effort:` in frontmatter: review agents and research at `medium`, harness-mechanic at `high`, project-analyzer at `low` (plus `model: haiku`), software-engineer omits `effort:` to inherit the session. Opus 4.8 recalibrated effort (`high` thinks less, `xhigh` more), so these are 4.8 baselines, not ported 4.7 values. Override any session or task with `/effort`. See the `orchestrator` skill.
 
 ## Rules (Always Active)
 
 | Rule | Purpose |
 |------|---------|
-| `orchestrator-protocol` | Contractor mode: research → localize → reproduce (bug-fix) → implement → verify → review → fix → score → loop (global 5-round ceiling, then escalate). Atomic skill metrics in traces for cascade analysis. |
-| `plan-first-workflow` | Requirements refinement, append-only decisions register, checkpoints, context preservation ("never summarize summaries") |
+| `orchestrator-protocol` | Spine of contractor mode: the loop steps, SKIP_SET, the literal report lines traces key on, and the safety invariants. The detail lives in the `orchestrator` skill, loaded at the first step actually run (step 0 when there is research or refinement, since the complexity verdict is produced there) |
+| `plan-first-workflow` | Requirements refinement, append-only decisions register, complexity budget, checkpoints, context preservation ("never summarize summaries") |
 | `verification-protocol` | TDD process, mandatory test/lint/build cycle, outcome verification tables |
 | `quality-gates` | Scoring: 80 commit, 90 PR, 95 excellence |
 
@@ -108,11 +108,11 @@ The matching settings fragment lives at [`hooks/settings.example.json`](hooks/se
 | `session-end-trace.py` | SessionEnd | No-op outside claude-forge cwd. Otherwise auto-runs `harness-trace extract` against the session's transcript and writes the result under `quality_reports/traces/<date>_<session_id>.jsonl`. Closes the loop for the `harness-mechanic` Evolution Agent (see [Telemetry](#telemetry)) |
 | Path protection | `permissions.deny` in settings.json | Blocks edits to `.git/hooks/`, `~/.ssh/`, `~/.aws/credentials`, gcloud/gemini keys, `id_rsa`/`id_ed25519` |
 
-The repo ships `Makefile` + `scripts/check_repo.py` implementing `make check` (ABOUTME, em-dashes scoped to `skills/`, frontmatter basics, frontmatter-first on SKILL.md, skill schema), `make test-e2e` (skill schema + the hook regression suite under `hooks/tests/`, 70+ cases, + the script suites under `scripts/tests/`), and `make doc-garden` (stale cross-reference scan of the governance docs, phase 1 of the learning-loop doc-gardening pass). All commit gates also match the `git -C <path> commit` form.
+The repo ships `Makefile` + `scripts/check_repo.py` implementing `make check` (ABOUTME, em-dashes scoped to `skills/`, frontmatter basics, frontmatter-first on SKILL.md, skill schema), `make test-e2e` (skill schema + the hook regression suite under `hooks/tests/`, 70+ cases, + the script suites under `scripts/tests/`), and `make doc-garden` (stale cross-reference scan of the governance docs, phase 1 of the learning-loop doc-gardening pass: dead backticked repo paths, plus drift between `skills/_INDEX.md` and the skill directories that actually exist). All commit gates also match the `git -C <path> commit` form.
 
 `scripts/metrics-weekly.sh` computes three signals to decide whether the enforcement is working: revert rate, fix-up rate, median time-to-next-touch. Run it as a baseline, apply enforcement, re-run after two weeks. If drift indicators don't drop, upgrade Tier A to Tier B (semantic check) or Tier C (full LLM agent).
 
-`scripts/pi-exec` routes cost-sensitive implementation or mechanical-analysis subtasks to the pi coding agent driving gemini flash (Google-billed): the orchestrator stays sole committer and review stays native, per the Executor selection subsection of `rules/orchestrator-protocol.md` and the change contract `quality_reports/harness_changes/2026-07-22_pi-flash-executor.md`.
+`scripts/pi-exec` routes cost-sensitive implementation or mechanical-analysis subtasks to the pi coding agent driving gemini flash (Google-billed): the orchestrator stays sole committer and review stays native, per the Executor selection subsection of the `orchestrator` skill and the change contract `quality_reports/harness_changes/2026-07-22_pi-flash-executor.md`.
 
 ## Telemetry
 
@@ -212,6 +212,7 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | `obsidian/` | Obsidian vault operations via CLI (CRUD, search, daily notes, graph, tasks) |
 | `refine-requirements/` | Structured requirements gathering before planning |
 | `plan-forge/` | Issue or in-session analysis to locked ExecPlan on disk + paste-ready implementation prompt + /goal line (deep code analysis, second opinion, REPRODUCE-first, exhaustive E2E, opus subagents in a worktree) |
+| `orchestrator/` | Full contractor-mode loop, loaded on demand before step 1: sub-protocols (LOCALIZE, BENCH-BASELINE, REPRODUCE, DRIFT), review routing, blast radius, UAT, parallelism and effort caps, escalation, goal-backed runs |
 | `clickup/` | Task management via MCP |
 | `gemini-review/` | Local code review with Gemini CLI |
 | `verify-frontend/` | End-to-end UI verification in a real browser (console gate, before/after screenshots, Lighthouse) |

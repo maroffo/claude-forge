@@ -137,7 +137,7 @@ Start at 100, subtract per finding:
 - **ABOUTME headers**: 2-line comment block after frontmatter (what + capabilities)
 - **Cross-references**: link to `_AST_GREP.md`, `_PATTERNS.md`, `source-control` where relevant
 - **_INDEX.md**: register new skills in the routing table
-- **CLAUDE.md.example**: add to skills table if user-invocable
+- **CLAUDE.md**: nothing to add. The harness injects every skill's name and description, so the file carries no skill catalog; discovery lives in your `description:` field, which is why it must state when to use the skill and when not to
 - **Token budget**: every word in SKILL.md costs context; be ruthless
 - **No em dashes**: use commas, colons, semicolons, or parentheses
 

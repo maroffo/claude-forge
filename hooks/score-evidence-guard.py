@@ -46,7 +46,7 @@ NON_VERIFY_PREFIXES = ("echo ", "grep ", "cat ", "ls ", "find ", "rg ")
 # The literal step-6 reporting form from rules/orchestrator-protocol.md.
 SCORE_RE = re.compile(r"^SCORE:\s*\d{1,3}/100\b", re.MULTILINE)
 
-# Subagent types allowed to edit files per orchestrator-protocol Permissions.
+# Subagent types allowed to edit files per orchestrator-protocol Invariants.
 WRITE_AGENT_TYPES = {"software-engineer"}
 
 MAX_LINE_BYTES = 1_048_576  # skip pathological transcript lines (base64 blobs)

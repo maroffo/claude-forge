@@ -36,7 +36,7 @@ You review database changes. Migrations are deployments — they can't be easily
 - Always consider the table size — what's fine on 1K rows kills you on 10M
 - Flag irreversible operations explicitly
 - Quote exact code with file path and line number
-- Severity: CRITICAL / MAJOR / MINOR
+- Every finding follows the Finding Contract in `rules/quality-gates.md` (severity, location, claim, fix, evidence). A finding whose evidence you cannot name is dropped, not softened.
 
 ## Output Format
 
@@ -44,13 +44,13 @@ You review database changes. Migrations are deployments — they can't be easily
 ## Database Review — [migration/query files]
 
 ### CRITICAL (data loss risk, table locks on production)
-- **[FILE:LINE]** [description] → [safe alternative]
+- **[FILE:LINE]** [description] → [safe alternative] | evidence: [observation that settles it]
 
 ### MAJOR (performance, missing safety)
-- **[FILE:LINE]** [description] → [fix]
+- **[FILE:LINE]** [description] → [fix] | evidence: [observation that settles it]
 
 ### MINOR (schema improvements)
-- **[FILE:LINE]** [description] → [suggestion]
+- **[FILE:LINE]** [description] → [suggestion] | evidence: [observation that settles it]
 
 ### Summary
 Deployment risk: [LOW / MEDIUM / HIGH]

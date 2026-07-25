@@ -1,0 +1,31 @@
+{"id": 1, "prompt": "rivedi le mie modifiche prima che committo", "expected": "gemini-review", "cluster": "review", "note": "pre-commit, non PR"}
+{"id": 3, "prompt": "guarda la PR 214 e dimmi cosa non va", "expected": "pr-review", "cluster": "review", "note": "PR-level"}
+{"id": 4, "prompt": "questo e' pronto per una PR?", "expected": "score", "cluster": "review", "note": "gate, non review"}
+{"id": 5, "prompt": "non sono convinto di questo approccio, sfidalo", "expected": "second-opinion", "cluster": "review", "note": "challenge, non code review"}
+{"id": 6, "prompt": "i miei test sono buoni o sono teatro?", "expected": "test-design-reviewer", "cluster": "review", "note": "test quality"}
+{"id": 7, "prompt": "chiedi a gemini di rivedere questo file", "expected": "gemini-review", "cluster": "review", "note": "trappola: 'ask gemini' ma e' review"}
+{"id": 8, "prompt": "prepara il piano per la issue 342", "expected": "plan-forge", "cluster": "planning"}
+{"id": 9, "prompt": "voglio aggiungere il rate limiting ma non ho ancora deciso i dettagli", "expected": "refine-requirements", "cluster": "planning", "note": "ambiguita' da chiarire prima del piano"}
+{"id": 10, "prompt": "documentiamo perche' abbiamo scelto postgres invece di dynamo", "expected": "adr", "cluster": "planning"}
+{"id": 11, "prompt": "cosa abbiamo imparato da questo progetto?", "expected": "learning-docs", "cluster": "knowledge"}
+{"id": 12, "prompt": "quali errori continuo a ripetere su tutti i repo?", "expected": "learning-loop", "cluster": "knowledge", "note": "cross-repo vs single project"}
+{"id": 13, "prompt": "porta nelle skill i pattern che ho accumulato nel vault", "expected": "knowledge-sync", "cluster": "knowledge"}
+{"id": 14, "prompt": "quanto costa in token la mia sessione tipo?", "expected": "harness-trace", "cluster": "knowledge", "note": "capture vs optimize"}
+{"id": 15, "prompt": "le mie regole funzionano? ottimizzale sulla base dei dati", "expected": "harness-mechanic", "cluster": "knowledge"}
+{"id": 16, "prompt": "scrivi un post sul blog su questa cosa", "expected": "blog-writer", "cluster": "writing"}
+{"id": 18, "prompt": "rispondi a questa mail del cliente", "expected": "mail-writer", "cluster": "writing"}
+{"id": 20, "prompt": "questo testo sa troppo di AI, sistemalo", "expected": "humanizer", "cluster": "writing"}
+{"id": 21, "prompt": "cerca nel vault le note su event sourcing", "expected": "obsidian", "cluster": "vault"}
+{"id": 22, "prompt": "processa gli articoli che ho salvato questa settimana", "expected": "process-clippings", "cluster": "vault", "note": "clippings vs newsletter"}
+{"id": 23, "prompt": "fammi il daily log di oggi", "expected": "bujo", "cluster": "vault"}
+{"id": 24, "prompt": "questa goroutine mi sembra che perda, guarda un po'", "expected": "golang", "cluster": "lang"}
+{"id": 25, "prompt": "come struttturo i servizi in questa app rails?", "expected": "rails", "cluster": "lang", "note": "rails vs ruby gem"}
+{"id": 26, "prompt": "aggiungi un modulo terraform per il bucket", "expected": "terraform", "cluster": "lang", "note": "HCL mechanics vs cloud architecture"}
+{"id": 27, "prompt": "il server component non fa il fetch giusto", "expected": "react-nextjs", "cluster": "lang"}
+{"id": 28, "prompt": "taggo la 2.4.0 e rilascio", "expected": "releasing-software", "cluster": "ops"}
+{"id": 29, "prompt": "committa quello che abbiamo fatto", "expected": "commit", "cluster": "ops", "note": "commit vs source-control"}
+{"id": 30, "prompt": "come gestiamo il rebase su questo branch incasinato?", "expected": "source-control", "cluster": "ops"}
+{"id": 31, "prompt": "verifica che la pagina si veda bene dopo la modifica", "expected": "verify-frontend", "cluster": "ops"}
+{"id": 32, "prompt": "che ore sono a Tokyo?", "expected": "none", "cluster": "negative", "note": "nessuna skill deve attivarsi"}
+{"id": 33, "prompt": "rinomina questa variabile in tutto il file", "expected": "none", "cluster": "negative", "note": "SKIP_SET, lavoro diretto"}
+{"id": 34, "prompt": "spiegami come funziona il nostro rate limiter", "expected": "none", "cluster": "negative", "note": "lettura codice, nessuna skill"}

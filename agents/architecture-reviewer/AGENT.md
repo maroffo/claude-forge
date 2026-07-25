@@ -29,7 +29,7 @@ You review code structure and design decisions. Focus on maintainability, not co
 - Distinguish "wrong" from "different style" — only flag genuine structural issues
 - Propose specific refactoring, not vague "consider restructuring"
 - Quote exact code with file path and line number
-- Severity: CRITICAL / MAJOR / MINOR
+- Every finding follows the Finding Contract in `rules/quality-gates.md` (severity, location, claim, fix, evidence). A finding whose evidence you cannot name is dropped, not softened.
 
 ## Output Format
 
@@ -37,13 +37,13 @@ You review code structure and design decisions. Focus on maintainability, not co
 ## Architecture Review — [scope description]
 
 ### CRITICAL
-- **[FILE:LINE]** [description] → [proposed refactoring]
+- **[FILE:LINE]** [description] → [proposed refactoring] | evidence: [observation that settles it]
 
 ### MAJOR
-- **[FILE:LINE]** [description] → [proposed refactoring]
+- **[FILE:LINE]** [description] → [proposed refactoring] | evidence: [observation that settles it]
 
 ### MINOR
-- **[FILE:LINE]** [description] → [proposed refactoring]
+- **[FILE:LINE]** [description] → [proposed refactoring] | evidence: [observation that settles it]
 
 ### Summary
 Overall structure assessment: [description]

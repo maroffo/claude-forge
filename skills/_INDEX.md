@@ -25,6 +25,7 @@
 |------|---------------|---------|
 | Refine requirements | `refine-requirements` | plan-first-workflow rule |
 | Issue/analysis to plan + impl prompt | `plan-forge` | `second-opinion`, plan-first-workflow rule |
+| Contractor-mode development loop | `orchestrator` | orchestrator-protocol rule, `plan-forge` |
 | Autonomous issue to PR loop (hikmaAI) | `issue-loop-hikma` | client repo (claude-hikma-skills), symlinked locally; `issue-triage-hikma`, `plan-forge` |
 | Auto-triage open issues (hikmaAI) | `issue-triage-hikma` | client repo (claude-hikma-skills), symlinked locally; `issue-loop-hikma` |
 | Autonomous issue to PR loop (Wishew) | `issue-loop-wishew` | private repo (claude-skills-wishew), symlinked locally; `plan-forge`, `work-next-wishew` |

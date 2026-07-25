@@ -1,6 +1,6 @@
 ---
 name: second-opinion
-description: "Get three independent second opinions (isolated Claude + isolated Gemini + isolated DeepSeek) on a problem Claude is analyzing. Use when user says second opinion, another perspective, challenge this approach, or asks gemini/deepseek about a decision, approach, or diagnosis. Gathers context, writes a focused prompt, calls all reviewers in isolated Docker containers, and synthesizes all viewpoints. Not for reviewing code or changes, even phrased as 'ask gemini to review' (use gemini-review)."
+description: "Get three independent second opinions (isolated Claude + isolated Gemini + isolated DeepSeek) on a problem Claude is analyzing. Use when user says second opinion, another perspective, challenge this approach, or asks gemini/deepseek about a decision, approach, or diagnosis. Also invoke on your own initiative, without being asked: on a complex task before planning, after 2 failed root-cause attempts, on a 🔴 decision (rewrite, core logic, security), or when the review loop is stuck below 80 after 2 fix rounds. Gathers context, writes a focused prompt, calls all reviewers in isolated Docker containers, and synthesizes all viewpoints. Not for reviewing code or changes, even phrased as 'ask gemini to review' (use gemini-review)."
 compatibility: "Requires Docker running, claude-reviewer:latest, gemini-reviewer:latest and deepseek-reviewer:latest images built, OAuth volume for Claude, API key files for Gemini and DeepSeek."
 ---
 
@@ -16,13 +16,7 @@ strong signal rather than shared-model bias.
 
 ## Prerequisites
 
-Images built and auth configured:
-- `claude-reviewer:latest` (built from `claude-forge/docker/isolated-reviewer/`)
-- `gemini-reviewer:latest` (built from `claude-forge/docker/isolated-gemini/`)
-- `deepseek-reviewer:latest` (built from `claude-forge/docker/isolated-deepseek/`)
-- Docker volume `claude-reviewer-auth` (populated via `docker run -it --rm -v claude-reviewer-auth:/home/node/.claude --entrypoint bash claude-reviewer:latest -c "claude login"`)
-- API key file at `~/.config/gemini-api-key`
-- API key file at `~/.config/deepseek-api-key`
+See `references/setup.md`.
 
 ## Execution Flow
 
@@ -163,23 +157,22 @@ stronger the signal to reconsider).
 - Want to validate an approach before implementing
 - Complex decisions with multiple valid paths
 
+### Auto-trigger (no user prompt needed)
+
+Call this skill on your own initiative when any of these holds:
+
+- **Complexity = complex** (orchestrator step 0b): validate the approach before planning
+- **Debugging with 2+ failed root-cause attempts**: get a fresh perspective before trying again
+- **🔴 decisions** (rewrites, core logic, security): challenge the assumptions before deciding
+- **Review loop stuck** (score < 80 after 2 fix rounds): break out of the cycle
+
 ## When NOT to Use
 
 - Code review before commit (use `gemini-review`)
+- 🟢 tasks, simple or moderate complexity, docs and config changes
 - Simple, well-understood problems
 - When you just need to read more code/docs first
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| "docker: command not found" | Docker Desktop must be running |
-| Image not found | Build images: see Prerequisites |
-| Claude auth fails | Re-login: `docker run -it --rm -v claude-reviewer-auth:/home/node/.claude --entrypoint bash claude-reviewer:latest -c "claude login"` |
-| Claude `401` recurs across runs | The OAuth token in the volume expires periodically. Optional preflight before a run: `docker run --rm -v claude-reviewer-auth:/home/node/.claude:ro claude-reviewer:latest --print "ping"`; a non-zero/`401` means re-login first. Skip it for speed; structured degradation (Step 4) handles a mid-run `401` anyway. |
-| Gemini API errors | Check `~/.config/gemini-api-key` exists and is valid |
-| Gemini "not running in a trusted directory" | Image predates the trust fix. Rebuild: `docker/isolated-gemini/isolated-gemini-review.sh --build` (the Dockerfile sets `GEMINI_CLI_TRUST_WORKSPACE=true`) |
-| DeepSeek "No API key found" | Check `~/.config/deepseek-api-key` exists and is valid; it is passed as `DEEPSEEK_API_KEY` |
-| DeepSeek image not found | Build it: `docker/isolated-deepseek/isolated-deepseek-review.sh --build` |
-| Timeout | Reduce context size; focus on the most relevant files |
-| Both reviewers agree you're wrong | You're probably wrong. Reconsider. |
+See `references/setup.md`.

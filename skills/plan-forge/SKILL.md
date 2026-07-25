@@ -69,4 +69,4 @@ The prompt must carry, verbatim from the template: worktree from updated origin/
 
 - `references/plan-template.md`: the ExecPlan skeleton (structure is mandatory, prose adapts)
 - `references/impl-prompt-template.md`: the implementation prompt + /goal templates with placeholders
-- Rules this operationalizes: `plan-first-workflow` (plan shape, living plans), `orchestrator-protocol` (SCORE format, BENCH-BASELINE, review routing), `verification-protocol` (REPRODUCE, outcome verification)
+- Rules this operationalizes: `plan-first-workflow` (plan shape, living plans), the `orchestrator` skill (SCORE format, BENCH-BASELINE, review routing), `verification-protocol` (REPRODUCE, outcome verification)

@@ -35,13 +35,26 @@ Can also be invoked explicitly via `/refine-requirements`.
 ## Process
 
 1. Requirements refinement (above) — only for ambiguous requests
-2. Plan mode → draft: files, approach, dependencies, verification, risks
+2. Plan mode → draft: files, approach, dependencies, verification, risks, budget (below)
 3. Save plan: `quality_reports/plans/active/YYYY-MM-DD_<slug>.md` in the working repo — a fresh session can only see what is in the repo. Mirror to vault (`obsidian create name="Plans/YYYY-MM-DD - description" content="..." silent`) for cross-project tracking; the repo copy is the source of truth
 4. Approve → orchestrator
 
+## Budget
+
+The plan declares what the run is allowed to spend, before implementation starts. It is the single place these limits live; the loop reads them from here.
+
+| Limit | Default |
+|-------|---------|
+| Fix rounds (REVIEW→FIX plus UAT→FIX) | 5, then escalate |
+| Concurrent write agents | 3 (5 only when file scopes are disjoint) |
+| Sub-agents for the whole run | state a number; needing more is a re-plan, not a wider fan-out |
+| Minimum evidence to finalize | test/lint/build green after the last source edit |
+
+Raise a default in the plan when the task justifies it, with the reason on the same line. When a limit is reached, stop and return the best current artifact, what is done, what is unresolved, and which limit stopped you. A fluent summary that hides a partial failure is itself the failure.
+
 ## Living Plans (ExecPlans)
 
-For complex tasks (research verdict = complex) or work expected to span sessions, the plan is a living document updated DURING execution, not a snapshot. Self-containment test: a fresh session must be able to resume from the plan file alone, without chat history.
+For complex tasks (research verdict = complex, defined in the `orchestrator` skill, Research + Complexity) or work expected to span sessions, the plan is a living document updated DURING execution, not a snapshot. Self-containment test: a fresh session must be able to resume from the plan file alone, without chat history.
 
 Mandatory sections, kept current:
 
@@ -58,7 +71,7 @@ Lifecycle (ALL plans, living or not): create in `quality_reports/plans/active/`,
 
 ## Annotation Cycle (complex only)
 
-Activates when research-analyst verdict = **complex** (see orchestrator-protocol).
+Activates when research-analyst verdict = **complex** (the verdict table lives in the `orchestrator` skill, Research + Complexity, loaded at step 0 where the verdict is produced).
 
 1. Save plan as usual
 2. Developer adds inline annotations in plan file (terse: "not optional", "use X instead", "remove this")
