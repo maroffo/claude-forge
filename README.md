@@ -38,6 +38,13 @@ mv ~/.claude/CLAUDE.md ~/.claude/CLAUDE.md.backup
 ln -s ~/Development/claude-forge/CLAUDE.md.example ~/.claude/CLAUDE.md
 ```
 
+`install.sh` recognises this layout and leaves every symlinked path alone
+rather than copying onto it: `cp` and `rsync` follow symlinks, so writing would
+overwrite the file in your working copy, uncommitted changes included. Whatever
+it skips is listed at the end of the run, so "left alone" is never mistaken for
+"updated". Edit those paths in the repo they point at; re-running the installer
+will not refresh them, which is the point of linking them in the first place.
+
 **Option 3: Manual copy**
 ```bash
 git clone https://github.com/maroffo/claude-forge.git
