@@ -1,6 +1,6 @@
 ---
 name: rails
-description: "Ruby on Rails with service-oriented architecture, Dry-validation, Sidekiq/Solid Queue, Hotwire. Use for Rails API, Rails services, Rails forms, RSpec, ActiveRecord, Rails migrations. Not for standalone Ruby gems (use ruby skill)."
+description: "Ruby on Rails with service-oriented architecture, Dry-validation, Sidekiq/Solid Queue, Hotwire. Use for Rails API, Rails services, Rails forms, RSpec, ActiveRecord, Rails migrations. Not for standalone Ruby gems (use ruby skill), and not for judging whether a migration is safe to run in production (that is the database-reviewer agent)."
 compatibility: "Requires Bundler and Rails. Optional: lefthook, RSpec."
 allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 ---

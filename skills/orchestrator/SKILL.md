@@ -1,6 +1,6 @@
 ---
 name: orchestrator
-description: "Full contractor-mode loop: sub-protocols (LOCALIZE, BENCH-BASELINE, REPRODUCE, DRIFT), review routing by file pattern, blast radius, UAT, parallelism and effort caps, escalation, just-do-it, goal-backed runs. Load before step 1 of any task that is not in SKIP_SET, and whenever a step of the loop needs its detail. The always-on spine lives in rules/orchestrator-protocol.md. Not for trace capture (harness-trace) or harness optimization (harness-mechanic)."
+description: "Full contractor-mode loop: sub-protocols (LOCALIZE, BENCH-BASELINE, REPRODUCE, DRIFT), review routing by file pattern, blast radius, UAT, parallelism and effort caps, escalation, just-do-it, goal-backed runs. Load it to RUN that loop, once you have an approved plan and are entering step 1, or when a step needs its detail. It is a protocol, not a way to do the work: it never replaces the language, review or planning skill the task itself calls for, and a task small enough to just edit (SKIP_SET) needs none of it. The always-on spine lives in rules/orchestrator-protocol.md. Not for trace capture (harness-trace) or harness optimization (harness-mechanic)."
 ---
 
 # ABOUTME: Detail of the autonomous development loop, loaded on demand at step 1 (spine stays in rules/orchestrator-protocol.md)

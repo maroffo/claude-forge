@@ -58,6 +58,66 @@ Return ONLY a JSON array, no prose, one object per request:
 """
 
 
+def one_case_prompt(catalog: str, prompt: str) -> str:
+    """One request, no siblings: the judge cannot infer how many negatives to expect."""
+    return f"""You are routing a user request to a skill. Below is the full skill catalog, exactly as an agent sees it: a name and a description each.
+
+CATALOG
+{catalog}
+
+REQUEST
+{prompt}
+
+Pick the ONE skill whose description best fits, or the literal string "none" if no skill applies and the agent should just do the work directly.
+
+Judge only from the descriptions above. Do not use outside knowledge about what these skills contain.
+
+Return ONLY a JSON object, no prose:
+{{"choice": "<skill name or none>", "runner_up": "<skill name or none>"}}
+"""
+
+
+def ask_gemini(prompt: str, model: str, key: str) -> dict:
+    import urllib.error
+    import urllib.request
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
+    body = json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode()
+    req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=90) as resp:
+            payload = json.load(resp)
+    except urllib.error.HTTPError as e:
+        return {"choice": f"HTTP_{e.code}", "runner_up": e.read()[:200].decode(errors="replace")}
+    text = payload["candidates"][0]["content"]["parts"][0]["text"]
+    m = re.search(r"\{.*\}", text, re.S)
+    if not m:
+        return {"choice": "UNPARSEABLE", "runner_up": text[:120]}
+    return json.loads(m.group(0))
+
+
+def run_per_case(cases_path: Path | None, model: str, out: Path) -> int:
+    """One judge call per case, in parallel. Removes the batch-composition bias."""
+    import os
+    from concurrent.futures import ThreadPoolExecutor
+
+    key = os.environ.get("GEMINI_API_KEY") or Path.home().joinpath(".config/gemini-api-key").read_text().strip()
+    descs = descriptions()
+    catalog = "\n".join(f"- {n}: {d}" for n, d in descs.items())
+    cases = load_cases(cases_path)
+
+    def work(case: dict) -> dict:
+        answer = ask_gemini(one_case_prompt(catalog, case["prompt"]), model, key)
+        return {"id": case["id"], "choice": answer.get("choice", "MISSING"), "runner_up": answer.get("runner_up", "")}
+
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        answers = sorted(pool.map(work, cases), key=lambda a: a["id"])
+
+    out.write_text(json.dumps(answers, indent=1))
+    print(f"wrote {len(answers)} answers to {out}")
+    return 0
+
+
 def score(answers_path: Path, cases_path: Path | None = None) -> int:
     cases = {c["id"]: c for c in load_cases(cases_path)}
     raw = answers_path.read_text()
@@ -97,13 +157,18 @@ def score(answers_path: Path, cases_path: Path | None = None) -> int:
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("mode", choices=["build", "score"])
-    ap.add_argument("--answers", type=Path, help="judge output file (score mode)")
+    ap.add_argument("mode", choices=["build", "run", "score"])
+    ap.add_argument("--answers", type=Path, help="judge output file (score mode) / output path (run mode)")
     ap.add_argument("--cases", type=Path, help="case file (default cases.jsonl)")
+    ap.add_argument("--model", default="gemini-3.6-flash", help="judge model for run mode")
     args = ap.parse_args()
 
     if args.mode == "build":
         print(build(args.cases))
+    elif args.mode == "run":
+        if not args.answers:
+            sys.exit("run mode needs --answers <output file>")
+        sys.exit(run_per_case(args.cases, args.model, args.answers))
     else:
         if not args.answers:
             sys.exit("score mode needs --answers <file>")

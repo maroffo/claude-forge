@@ -1,0 +1,8 @@
+{"id": 101, "prompt": "aggiungi un indice su questa colonna", "expected": "none", "cluster": "holdout", "note": "over-trigger risk: rails, database"}
+{"id": 102, "prompt": "sistema la formattazione di questo README", "expected": "none", "cluster": "holdout", "note": "over-trigger risk: writing skills"}
+{"id": 103, "prompt": "aggiungi una voce al menu di navigazione", "expected": "none", "cluster": "holdout", "note": "over-trigger risk: react-nextjs, verify-frontend"}
+{"id": 104, "prompt": "cambia il timeout del client HTTP a 30 secondi", "expected": "none", "cluster": "holdout", "note": "over-trigger risk: language skills"}
+{"id": 105, "prompt": "esporta questa lista in CSV", "expected": "none", "cluster": "holdout", "note": "over-trigger risk: python"}
+{"id": 106, "prompt": "aggiungi un campo opzionale alla struct e al costruttore", "expected": "none", "cluster": "holdout", "note": "over-trigger risk: golang, orchestrator"}
+{"id": 107, "prompt": "metti un valore di default a questo parametro", "expected": "none", "cluster": "holdout", "note": "over-trigger risk: language skills"}
+{"id": 108, "prompt": "togli questo import che non serve piu'", "expected": "none", "cluster": "holdout", "note": "SKIP_SET"}
