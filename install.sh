@@ -208,11 +208,37 @@ fi
 # --- Create target directories ---
 mkdir -p "$TARGET_DIR/skills" "$TARGET_DIR/rules" "$TARGET_DIR/agents"
 
+# --- Symlink guard ---
+# A symlinked install path means the developer works on the harness itself and
+# has linked ~/.claude back to their working copy. Writing onto it is not a
+# no-op: `cp` and `rsync` follow the link and overwrite the file in the repo,
+# destroying uncommitted work, while `cp -R` onto a symlinked entry fails
+# outright, which under `set -e` (line 4) aborts the install half-done. Either
+# way the deliberate link is the user's intent: leave it alone.
+SYMLINKS_KEPT=()
+
+keep_symlinked() {
+  local dst="$1" label="$2"
+  [[ -L "$dst" ]] || return 1
+  SYMLINKS_KEPT+=("$label")
+  return 0
+}
+
+# Checked once, not per skill: when the whole skills/ directory is a link, every
+# path under it resolves into the repo even though the entries themselves are
+# ordinary directories, so a per-entry -L test would never fire.
+SKILLS_DIR_SYMLINKED=0
+if keep_symlinked "$TARGET_DIR/skills" "skills/"; then
+  SKILLS_DIR_SYMLINKED=1
+fi
+
 # --- Copy functions ---
 copy_skill_dir() {
   local name="$1"
   local src="$SCRIPT_DIR/skills/$name"
   [[ -d "$src" ]] || return 0
+  (( SKILLS_DIR_SYMLINKED )) && return 0
+  keep_symlinked "$TARGET_DIR/skills/$name" "skills/$name" && return 0
   rsync -a --exclude='.venv' --exclude='.pytest_cache' --exclude='.ruff_cache' \
     --exclude='__pycache__' --exclude='*.egg-info' \
     "$src/" "$TARGET_DIR/skills/$name/"
@@ -222,6 +248,8 @@ copy_skill_file() {
   local name="$1"
   local src="$SCRIPT_DIR/skills/$name"
   [[ -f "$src" ]] || return 0
+  (( SKILLS_DIR_SYMLINKED )) && return 0
+  keep_symlinked "$TARGET_DIR/skills/$name" "skills/$name" && return 0
   cp "$src" "$TARGET_DIR/skills/$name"
 }
 
@@ -248,10 +276,29 @@ done
 # --- Copy rules (always, if CORE selected) ---
 # CORE=0
 if is_selected 0; then
-  cp "$SCRIPT_DIR"/rules/*.md "$TARGET_DIR/rules/"
-  installed_files+=("rules/*")
-  cp -R "$SCRIPT_DIR"/agents/ "$TARGET_DIR/agents/"
-  installed_files+=("agents/*")
+  if keep_symlinked "$TARGET_DIR/rules" "rules/"; then
+    installed_files+=("rules/* (symlink kept)")
+  else
+    for r in "$SCRIPT_DIR"/rules/*.md; do
+      [[ -f "$r" ]] || continue
+      keep_symlinked "$TARGET_DIR/rules/$(basename "$r")" "rules/$(basename "$r")" && continue
+      cp "$r" "$TARGET_DIR/rules/$(basename "$r")"
+    done
+    installed_files+=("rules/*")
+  fi
+  if keep_symlinked "$TARGET_DIR/agents" "agents/"; then
+    installed_files+=("agents/* (symlink kept)")
+  else
+    # Entry by entry, and replacing rather than merging: `cp -R` onto an
+    # existing symlinked entry fails with EACCES and would abort the install.
+    for a in "$SCRIPT_DIR"/agents/*; do
+      [[ -e "$a" ]] || continue
+      keep_symlinked "$TARGET_DIR/agents/$(basename "$a")" "agents/$(basename "$a")" && continue
+      rm -rf "${TARGET_DIR:?}/agents/$(basename "$a")"
+      cp -R "$a" "$TARGET_DIR/agents/$(basename "$a")"
+    done
+    installed_files+=("agents/*")
+  fi
   # A symlinked CLAUDE.md means the user develops the harness itself: copying (or
   # personalizing, below) would write straight into their working copy of the repo.
   if [[ -L "$TARGET_DIR/CLAUDE.md" ]]; then
@@ -274,6 +321,7 @@ if is_selected 0; then
     mkdir -p "$TARGET_DIR/hooks"
     for h in "$SCRIPT_DIR"/hooks/*.sh "$SCRIPT_DIR"/hooks/*.py; do
       [[ -f "$h" ]] || continue
+      keep_symlinked "$TARGET_DIR/hooks/$(basename "$h")" "hooks/$(basename "$h")" && continue
       cp "$h" "$TARGET_DIR/hooks/$(basename "$h")"
       chmod +x "$TARGET_DIR/hooks/$(basename "$h")"
     done
@@ -356,6 +404,12 @@ done
 echo ""
 echo "  Skills: ${installed_skills[*]}"
 [[ ${#installed_files[@]} -gt 0 ]] && echo "  Files:  ${installed_files[*]}"
+if [[ ${#SYMLINKS_KEPT[@]} -gt 0 ]]; then
+  echo ""
+  echo "  Left untouched: ${#SYMLINKS_KEPT[@]} symlinked path(s), you develop the harness itself."
+  echo "    ${SYMLINKS_KEPT[*]}"
+  echo "    Edit those in the repo they point at; re-running this installer will not update them."
+fi
 echo ""
 
 if [[ -n "${INSTALLED_HOOKS:-}" ]]; then
