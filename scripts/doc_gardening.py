@@ -9,9 +9,9 @@ Two deterministic checks, zero LLM:
 1. Dead paths: backtick-quoted repo paths (rules/..., skills/..., hooks/...,
    agents/..., scripts/..., docs/...) mentioned in governance docs that do not
    exist on disk.
-2. Skill-table drift: skill names referenced in backticks by CLAUDE.md.example
+2. Skill-index drift: skill names referenced in backticks by skills/_INDEX.md
    that have no matching skills/<name>/ directory, and skill directories never
-   mentioned anywhere in CLAUDE.md.example (invisible to routing).
+   mentioned anywhere in _INDEX.md (invisible to anyone reading the index).
 
 Output: one line per finding, `file:line  KIND  token`. Exit 1 if any findings,
 0 if clean, so it can gate CI later if it earns it. The agent pass (see the
@@ -23,6 +23,7 @@ Usage:
 """
 
 import argparse
+import fnmatch
 import re
 import sys
 from pathlib import Path
@@ -71,22 +72,51 @@ def check_dead_paths(root):
     return findings
 
 
+def external_skill_patterns(root):
+    """Gitignored skill entries: own repo, symlinked in on a developer machine.
+
+    They exist locally and not in a clean checkout, so they must never count as
+    drift, or the check would fail for everyone but their owner. Entries may be
+    globs (`skills/*-wishew`), so callers match with fnmatch, not equality.
+    """
+    gitignore = root / ".gitignore"
+    if not gitignore.is_file():
+        return []
+    patterns = []
+    for line in gitignore.read_text(encoding="utf-8").splitlines():
+        entry = line.strip().lstrip("/")
+        if entry.startswith("skills/") and entry.count("/") == 1:
+            patterns.append(entry.split("/", 1)[1])
+    return patterns
+
+
+def is_external(name, patterns):
+    return any(fnmatch.fnmatch(name, p) for p in patterns)
+
+
 def check_skill_drift(root):
     """Return (findings, info). Findings fail the run; info is advisory.
 
-    MISSING-SKILL (finding): a kebab-case token in a CLAUDE.md.example table row
-    with no skills/<name>/ directory: the routing table points at nothing.
-    UNLISTED-SKILL (info): a skill directory never mentioned in CLAUDE.md.example.
-    Not a defect (skills auto-trigger from their own description; the table is a
+    MISSING-SKILL (finding): a kebab-case token in a skills/_INDEX.md table row
+    with no skills/<name>/ directory: the navigation index points at nothing.
+    UNLISTED-SKILL (info): a skill directory never mentioned in _INDEX.md. Not a
+    defect (skills auto-trigger from their own description; the index is a
     curated map), but useful input for the agent pass.
+
+    _INDEX.md is the catalog since CLAUDE.md.example stopped carrying the skill
+    table. Two classes of token are exempt from MISSING-SKILL: names of rules
+    files (the index cites them alongside skills) and externally hosted skills.
     """
     findings, info = [], []
-    claude_md = root / "CLAUDE.md.example"
+    index = root / "skills" / "_INDEX.md"
     skills_dir = root / "skills"
-    if not claude_md.is_file() or not skills_dir.is_dir():
+    if not index.is_file() or not skills_dir.is_dir():
         return findings, info
-    text = claude_md.read_text(encoding="utf-8")
+    text = index.read_text(encoding="utf-8")
     skill_dirs = {p.name for p in skills_dir.iterdir() if p.is_dir()}
+    rules = {p.stem for p in (root / "rules").glob("*.md")}
+    exempt = skill_dirs | rules
+    external = external_skill_patterns(root)
 
     mentioned = set(BACKTICK_TOKEN_RE.findall(text))
     # Only kebab-case tokens inside table rows are treated as skill references:
@@ -95,12 +125,12 @@ def check_skill_drift(root):
         if not line.lstrip().startswith("|"):
             continue
         for token in BACKTICK_TOKEN_RE.findall(line):
-            if "-" in token and token not in skill_dirs:
+            if "-" in token and token not in exempt and not is_external(token, external):
                 findings.append(
-                    "CLAUDE.md.example:{}  MISSING-SKILL  {}".format(lineno, token)
+                    "skills/_INDEX.md:{}  MISSING-SKILL  {}".format(lineno, token)
                 )
     for name in sorted(skill_dirs - mentioned):
-        info.append("CLAUDE.md.example:-  UNLISTED-SKILL  {} (advisory)".format(name))
+        info.append("skills/_INDEX.md:-  UNLISTED-SKILL  {} (advisory)".format(name))
     return findings, info
 
 

@@ -73,9 +73,9 @@ Archive the report to the vault for trend tracking across runs, so the repeat-pa
 
 ## Doc-gardening pass
 
-The rot this loop fights in process shows up in the governance docs themselves: rules pointing at renamed files, CLAUDE.md tables routing to skills that no longer exist, SKILL.md claims contradicted by newer change contracts. OpenAI's harness-engineering team runs a recurring "doc-gardening" agent for exactly this. Run it on the same human cadence, or after a batch of harness changes lands.
+The rot this loop fights in process shows up in the governance docs themselves: rules pointing at renamed files, the skills index routing to skills that no longer exist, SKILL.md claims contradicted by newer change contracts. OpenAI's harness-engineering team runs a recurring "doc-gardening" agent for exactly this. Run it on the same human cadence, or after a batch of harness changes lands.
 
-1. **Deterministic scan.** `make doc-garden` (wraps `scripts/doc_gardening.py`): reports dead backticked repo paths across CLAUDE.md.example, README, rules/, agents/, skills/*/SKILL.md, plus skill-table drift. Exit 1 on findings. UNLISTED-SKILL lines are advisory input for step 2, not defects (the CLAUDE.md table is a curated map, not an index).
+1. **Deterministic scan.** `make doc-garden` (wraps `scripts/doc_gardening.py`): reports dead backticked repo paths across CLAUDE.md.example, README, rules/, agents/, skills/*/SKILL.md, plus skill-index drift. Exit 1 on findings. UNLISTED-SKILL lines are advisory input for step 2, not defects (`skills/_INDEX.md` is a curated map: a skill absent from it still auto-triggers from its own description).
 2. **Agent pass (judgment).** Give one agent the scan output plus the most recent change contracts (last 5, `ls -t quality_reports/harness_changes/`) and ask, per governance doc: does any claim contradict what the code, hooks, or a newer contract now says? Output fix-up proposals, one line each: file, stale claim, what changed, proposed edit.
 3. **Triage.** Trivial fixes (dead path, renamed file) apply directly. Anything touching a trigger surface (SKILL.md description, rules/) gets its own change contract per `rules/harness-changes.md`.
 
