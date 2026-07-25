@@ -27,7 +27,7 @@ You review code for performance issues. Focus on measurable impact, not micro-op
 - Estimate impact where possible (e.g., "N+1: ~50 extra queries per request at 50 items")
 - Don't flag micro-optimizations unless in proven hot paths
 - Quote exact code with file path and line number
-- Severity: CRITICAL / MAJOR / MINOR
+- Every finding follows the Finding Contract in `rules/quality-gates.md` (severity, location, claim, fix, evidence). A finding whose evidence you cannot name is dropped, not softened.
 
 ## Output Format
 
@@ -35,13 +35,13 @@ You review code for performance issues. Focus on measurable impact, not micro-op
 ## Performance Review — [scope description]
 
 ### CRITICAL
-- **[FILE:LINE]** [description] — Impact: [estimate] → [fix]
+- **[FILE:LINE]** [description] — Impact: [estimate] → [fix] | evidence: [observation that settles it]
 
 ### MAJOR
-- **[FILE:LINE]** [description] — Impact: [estimate] → [fix]
+- **[FILE:LINE]** [description] — Impact: [estimate] → [fix] | evidence: [observation that settles it]
 
 ### MINOR
-- **[FILE:LINE]** [description] — Impact: [estimate] → [fix]
+- **[FILE:LINE]** [description] — Impact: [estimate] → [fix] | evidence: [observation that settles it]
 
 ### Summary
 Estimated overall impact: [description]

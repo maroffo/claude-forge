@@ -26,7 +26,7 @@ You review test quality. "Has tests" ≠ "well tested." Find what's missing.
 - Suggest specific test cases, not "add more tests"
 - Distinguish unit/integration/e2e gaps
 - Quote exact code with file path and line number
-- Severity: CRITICAL / MAJOR / MINOR
+- Every finding follows the Finding Contract in `rules/quality-gates.md` (severity, location, claim, fix, evidence). A finding whose evidence you cannot name is dropped, not softened.
 
 ## Output Format
 
@@ -34,13 +34,13 @@ You review test quality. "Has tests" ≠ "well tested." Find what's missing.
 ## Test Review — [scope description]
 
 ### CRITICAL (missing tests for critical paths)
-- **[FILE:LINE]** [untested code] → [suggested test case]
+- **[FILE:LINE]** [untested code] → [suggested test case] | evidence: [observation that settles it]
 
 ### MAJOR (weak coverage)
-- **[FILE:LINE]** [description] → [suggested test case]
+- **[FILE:LINE]** [description] → [suggested test case] | evidence: [observation that settles it]
 
 ### MINOR (quality improvements)
-- **[FILE:LINE]** [description] → [suggestion]
+- **[FILE:LINE]** [description] → [suggestion] | evidence: [observation that settles it]
 
 ### Missing Test Cases
 1. [specific test case description]
