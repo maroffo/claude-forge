@@ -63,9 +63,9 @@ cp claude-forge/CLAUDE.md.example ~/.claude/CLAUDE.md
 │
 claude-forge repo
 ├── Makefile            → `make check` + `make test-e2e` (pre-commit gate)
-├── scripts/            → check_repo.py (ABOUTME, em-dashes, frontmatter, schema)
+├── scripts/            → check_repo.py (ABOUTME, em-dashes, frontmatter, schema), doc_gardening.py (stale cross-references, _INDEX drift), skill-routing-eval.py (does a description route the way it claims)
 ├── hooks/              → Source for the enforcement hooks (installed to ~/.claude/hooks/)
-├── quality_reports/    → traces/ (gitignored), token_baselines/ (gitignored), harness_changes/ (committed audit trail), knowledge_sync/ (committed monthly propose-only reports)
+├── quality_reports/    → traces/ (gitignored), token_baselines/ (gitignored), harness_changes/ (committed audit trail), evals/ (committed routing case sets), knowledge_sync/ (committed monthly propose-only reports)
 │
 Obsidian Vault (Documents/)
 ├── Projects/           → Per-project artifacts (overview, log, solutions)
@@ -83,7 +83,7 @@ Obsidian Vault (Documents/)
 
 | Rule | Purpose |
 |------|---------|
-| `orchestrator-protocol` | Spine of contractor mode: the loop steps, SKIP_SET, the literal report lines traces key on, and the safety invariants. The detail lives in the `orchestrator` skill, loaded before step 1 |
+| `orchestrator-protocol` | Spine of contractor mode: the loop steps, SKIP_SET, the literal report lines traces key on, and the safety invariants. The detail lives in the `orchestrator` skill, loaded at the first step actually run (step 0 when there is research or refinement, since the complexity verdict is produced there) |
 | `plan-first-workflow` | Requirements refinement, append-only decisions register, complexity budget, checkpoints, context preservation ("never summarize summaries") |
 | `verification-protocol` | TDD process, mandatory test/lint/build cycle, outcome verification tables |
 | `quality-gates` | Scoring: 80 commit, 90 PR, 95 excellence |
@@ -108,7 +108,7 @@ The matching settings fragment lives at [`hooks/settings.example.json`](hooks/se
 | `session-end-trace.py` | SessionEnd | No-op outside claude-forge cwd. Otherwise auto-runs `harness-trace extract` against the session's transcript and writes the result under `quality_reports/traces/<date>_<session_id>.jsonl`. Closes the loop for the `harness-mechanic` Evolution Agent (see [Telemetry](#telemetry)) |
 | Path protection | `permissions.deny` in settings.json | Blocks edits to `.git/hooks/`, `~/.ssh/`, `~/.aws/credentials`, gcloud/gemini keys, `id_rsa`/`id_ed25519` |
 
-The repo ships `Makefile` + `scripts/check_repo.py` implementing `make check` (ABOUTME, em-dashes scoped to `skills/`, frontmatter basics, frontmatter-first on SKILL.md, skill schema), `make test-e2e` (skill schema + the hook regression suite under `hooks/tests/`, 70+ cases, + the script suites under `scripts/tests/`), and `make doc-garden` (stale cross-reference scan of the governance docs, phase 1 of the learning-loop doc-gardening pass). All commit gates also match the `git -C <path> commit` form.
+The repo ships `Makefile` + `scripts/check_repo.py` implementing `make check` (ABOUTME, em-dashes scoped to `skills/`, frontmatter basics, frontmatter-first on SKILL.md, skill schema), `make test-e2e` (skill schema + the hook regression suite under `hooks/tests/`, 70+ cases, + the script suites under `scripts/tests/`), and `make doc-garden` (stale cross-reference scan of the governance docs, phase 1 of the learning-loop doc-gardening pass: dead backticked repo paths, plus drift between `skills/_INDEX.md` and the skill directories that actually exist). All commit gates also match the `git -C <path> commit` form.
 
 `scripts/metrics-weekly.sh` computes three signals to decide whether the enforcement is working: revert rate, fix-up rate, median time-to-next-touch. Run it as a baseline, apply enforcement, re-run after two weeks. If drift indicators don't drop, upgrade Tier A to Tier B (semantic check) or Tier C (full LLM agent).
 
