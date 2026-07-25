@@ -110,4 +110,27 @@ Always-on context: **5059 -> 3055 words (-40%)**, and CLAUDE.md alone -50%.
 
 ## Outcomes & Retrospective
 
-_(filled at close)_
+**Shipped** (branch `feat/context-engineering-claude5`, 5 commits, not pushed):
+
+| Change | Result |
+|---|---|
+| A, CLAUDE.md dedup | 944 -> 475 words; installed copy and `CLAUDE.md.example` byte-identical again |
+| B, orchestrator progressive disclosure | `rules/orchestrator-protocol.md` 2264 -> 465 words, detail in the new `orchestrator` skill |
+| C, Finding Contract | `quality-gates.md` owns it; 7 reviewers point at it and carry an `evidence:` field |
+| D, complexity budget | `## Budget` in plan-first-workflow; the 5-round ceiling is now one of its defaults |
+| Always-on total | **5059 -> 3055 words (-40%)** |
+
+Four change contracts, each with a counted falsification. `make check` and `make test-e2e` green; BLAST-RADIUS found and fixed 2 Major (skill-forge told authors to register skills in a table that no longer exists; the plan-forge template still called the ceiling "the orchestrator's global ceiling").
+
+**What this run taught**
+
+1. **The installed CLAUDE.md was a copy, not a symlink, and had already drifted.** Any earlier "harness change" that edited only the repo copy never reached the running agent. Still a copy today: worth a decision.
+2. **A rule that a hook already enforces is paid twice.** 73.2% of CLAUDE.md was duplication, most of it describing hooks that announce themselves at fire time. The measurement (pi, mechanical, citation-backed) was what made the cut safe; cutting by intuition would have been a coin flip.
+3. **Deleting a catalog is not enough: something writes to it.** `skill-forge` instructed authors to add new skills to the CLAUDE.md table. Without that fix, the table would have grown back one skill at a time. When removing a structure, find its writers, not just its readers.
+4. **Telemetry cannot depend on progressive disclosure.** The literal report lines and SKIP_SET stayed always-on deliberately: if the loop's trace format lived in a skill, a session that never loads the skill would be invisible rather than merely unguided.
+
+**Open items**
+
+- `~/.claude/CLAUDE.md` is still a copy of `CLAUDE.md.example`; symlinking it was out of scope for this plan.
+- The independent review fleet did not run (session constraint); the REVIEW step was self-review. `/pr-review` at PR time would close that gap.
+- Change-contract Result rows: fill after 10-20 sessions, per `rules/harness-changes.md`.
