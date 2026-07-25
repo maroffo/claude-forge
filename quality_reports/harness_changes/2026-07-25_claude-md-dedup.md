@@ -5,7 +5,7 @@
 
 ## Component
 
-`~/.claude/CLAUDE.md` and its repo copy `CLAUDE.md.example` (both edited, and their pre-existing drift resolved in passing), plus `skills/second-opinion/SKILL.md` (receives the auto-trigger rules that were living in CLAUDE.md).
+`~/.claude/CLAUDE.md` and its repo copy `CLAUDE.md.example` (both edited, and their pre-existing drift resolved in passing), plus `skills/second-opinion/SKILL.md` (receives the auto-trigger rules that were living in CLAUDE.md) and `skills/skill-forge/SKILL.md` (its checklist item for registering a new skill in the deleted table becomes "nothing to add").
 
 Removed from CLAUDE.md: the 40-row skill catalog table, the `# Enforcement Layer (hooks)` inventory of 11 hooks, the `# Second Opinion (auto-trigger)` block, and the redundant half of `# Knowledge Capture`. The Workflow paragraph now says skills and agents are found through their own descriptions.
 

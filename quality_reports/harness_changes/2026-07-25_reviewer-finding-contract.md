@@ -21,7 +21,7 @@ Over the next 10 traced sessions that run the REVIEW step: at least 80% of repor
 
 - Review agents stay read-only.
 - The severity vocabulary stays defined once, in `quality-gates.md`; no agent re-inlines it.
-- Net word count of the seven agent definitions does not grow (the pointer replaces the severity line; the evidence field extends existing template lines).
+- The seven agent definitions grow only by the evidence field and the pointer: +36 words each, +252 total (2195 to 2447), and no agent gains a section. Growth beyond that budget means the contract is being used to smuggle in unrelated instruction.
 - Precision over recall is unchanged: a reproducible, reachable bug is never dropped for being "obvious". The contract drops findings with no nameable evidence, not findings that are inconvenient.
 
 ## Falsification

@@ -54,7 +54,7 @@ Raise a default in the plan when the task justifies it, with the reason on the s
 
 ## Living Plans (ExecPlans)
 
-For complex tasks (research verdict = complex) or work expected to span sessions, the plan is a living document updated DURING execution, not a snapshot. Self-containment test: a fresh session must be able to resume from the plan file alone, without chat history.
+For complex tasks (research verdict = complex, defined in the `orchestrator` skill, Research + Complexity) or work expected to span sessions, the plan is a living document updated DURING execution, not a snapshot. Self-containment test: a fresh session must be able to resume from the plan file alone, without chat history.
 
 Mandatory sections, kept current:
 
@@ -71,7 +71,7 @@ Lifecycle (ALL plans, living or not): create in `quality_reports/plans/active/`,
 
 ## Annotation Cycle (complex only)
 
-Activates when research-analyst verdict = **complex** (see orchestrator-protocol).
+Activates when research-analyst verdict = **complex** (the verdict table lives in the `orchestrator` skill, Research + Complexity, loaded at step 0 where the verdict is produced).
 
 1. Save plan as usual
 2. Developer adds inline annotations in plan file (terse: "not optional", "use X instead", "remove this")

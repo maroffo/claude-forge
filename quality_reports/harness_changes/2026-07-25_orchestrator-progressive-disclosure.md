@@ -7,7 +7,9 @@
 
 `rules/orchestrator-protocol.md` (2264 -> 465 words) and the new `skills/orchestrator/SKILL.md`, which receives the moved sections verbatim: Research + Complexity, Implementation and Executor selection, the sub-protocol table, VERIFY, Review Routing, Blast Radius, UAT, Parallelism, Effort assignment, Escalation, Just-do-it, Goal-Backed Runs, Trace Capture.
 
-The spine keeps what must survive without a skill load: the 10 loop steps, SKIP_SET, the literal report lines the trace extractor keys on, the read-only/committer/pi invariants, and an explicit instruction to load the skill before step 1.
+The spine keeps what must survive without a skill load: the 10 loop steps, SKIP_SET, the literal report lines the trace extractor keys on, the read-only/committer/pi invariants, and an explicit instruction to load the skill at the first step actually run.
+
+That load point was written as "before step 1" in the first draft of this change and corrected during PR review: the skill also owns the step 0 complexity verdict and the `/goal` proposal made at plan approval, so "before step 1" left two always-on gates in `plan-first-workflow` (Living Plans, Annotation Cycle) keyed on a term whose definition was not yet loaded.
 
 ## Failure mode targeted
 

@@ -1,11 +1,11 @@
 # ABOUTME: Spine of the autonomous development loop: steps, SKIP_SET, literal report lines, invariants
-# ABOUTME: The full protocol lives in the `orchestrator` skill, loaded on demand before step 1
+# ABOUTME: The full protocol lives in the `orchestrator` skill, loaded on demand at the first step run
 
 # Orchestrator Protocol (Contractor Mode)
 
 The autonomous loop: implement, verify, review, fix, score. Enter after the goal is confirmed. Exit at the quality gate, at escalation, at a plan checkpoint, or on abandonment.
 
-**Load the `orchestrator` skill before step 1.** It carries the detail: sub-protocols, review routing, blast radius, UAT, parallelism, effort, escalation, goal-backed runs. This file is only the spine.
+**Load the `orchestrator` skill at the first step you actually run**, which is step 0 whenever research or refinement happens, not step 1: it owns the complexity verdict step 0 produces and the `/goal` proposal made at plan approval, both of which fire before implementation. It carries the rest of the detail too: sub-protocols, review routing, blast radius, UAT, parallelism, effort, escalation, goal-backed runs. This file is only the spine.
 
 ## SKIP_SET
 
@@ -26,7 +26,7 @@ Typos, one-liners, single-function fixes with passing tests; config-only changes
 5.  RE-VERIFY    → rebuild, retest
 5b. BLAST-RADIUS → (conditional) check related files for contradictions/staleness
 6.  SCORE        → quality-gates thresholds
-7.  LOOP         → repeat 3-7 until the plan's fix-round budget is spent → escalate
+7.  LOOP         → repeat 3-7 until the plan's fix-round budget is spent (default 5 when no plan declares one) → escalate
 8.  PRESENT      → summary: files changed, issues found/fixed, score, open items
 9.  UAT          → goal-backward verification with human (skip for SKIP_SET)
 10. STORE        → save session log + close the plan: fill Outcomes & Retrospective, move active/ → completed/ (unconditional: also on escalation/abandonment, marking outcome)
