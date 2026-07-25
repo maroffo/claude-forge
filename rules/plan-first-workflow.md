@@ -35,9 +35,22 @@ Can also be invoked explicitly via `/refine-requirements`.
 ## Process
 
 1. Requirements refinement (above) — only for ambiguous requests
-2. Plan mode → draft: files, approach, dependencies, verification, risks
+2. Plan mode → draft: files, approach, dependencies, verification, risks, budget (below)
 3. Save plan: `quality_reports/plans/active/YYYY-MM-DD_<slug>.md` in the working repo — a fresh session can only see what is in the repo. Mirror to vault (`obsidian create name="Plans/YYYY-MM-DD - description" content="..." silent`) for cross-project tracking; the repo copy is the source of truth
 4. Approve → orchestrator
+
+## Budget
+
+The plan declares what the run is allowed to spend, before implementation starts. It is the single place these limits live; the loop reads them from here.
+
+| Limit | Default |
+|-------|---------|
+| Fix rounds (REVIEW→FIX plus UAT→FIX) | 5, then escalate |
+| Concurrent write agents | 3 (5 only when file scopes are disjoint) |
+| Sub-agents for the whole run | state a number; needing more is a re-plan, not a wider fan-out |
+| Minimum evidence to finalize | test/lint/build green after the last source edit |
+
+Raise a default in the plan when the task justifies it, with the reason on the same line. When a limit is reached, stop and return the best current artifact, what is done, what is unresolved, and which limit stopped you. A fluent summary that hides a partial failure is itself the failure.
 
 ## Living Plans (ExecPlans)
 
