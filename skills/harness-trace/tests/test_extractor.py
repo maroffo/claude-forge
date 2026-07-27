@@ -728,6 +728,50 @@ class TestBlastRadiusReportExtraction:
         assert [e for e in entries if e.step == "BLAST_RADIUS"] == []
 
 
+class TestReviewArtifactReportExtraction:
+    """REVIEW_ARTIFACT is keyed on the literal step-8 report line."""
+
+    def test_report_emits_review_artifact(self, tmp_path: Path):
+        f = _write_text_session(
+            tmp_path,
+            "REVIEW-ARTIFACT: round=5 path=quality_reports/reviews/2026-07-27_demo/ "
+            "findings=0/1/0 converged=no",
+        )
+        entries = extract_traces(f, session_slug="s")
+        artifact = next(e for e in entries if e.step == "REVIEW_ARTIFACT")
+        assert artifact.data.get("round") == 5
+        assert artifact.data.get("path") == "quality_reports/reviews/2026-07-27_demo/"
+        assert artifact.data.get("findings") == {"CRITICAL": 0, "MAJOR": 1, "MINOR": 0}
+        assert artifact.data.get("converged") is False
+
+    def test_converged_report_captures_yes(self, tmp_path: Path):
+        f = _write_text_session(
+            tmp_path,
+            "REVIEW-ARTIFACT: round=2 path=quality_reports/reviews/2026-07-27_demo/ "
+            "findings=0/0/0 converged=yes",
+        )
+        entries = extract_traces(f, session_slug="s")
+        artifact = next(e for e in entries if e.step == "REVIEW_ARTIFACT")
+        assert artifact.data.get("converged") is True
+
+    def test_partial_report_line_does_not_emit(self, tmp_path: Path):
+        """A line missing the mandated fields must not create an empty event."""
+        f = _write_text_session(
+            tmp_path,
+            "REVIEW-ARTIFACT: round=1 path=quality_reports/reviews/2026-07-27_demo/",
+        )
+        entries = extract_traces(f, session_slug="s")
+        assert [e for e in entries if e.step == "REVIEW_ARTIFACT"] == []
+
+    def test_prose_review_artifact_mention_does_not_emit(self, tmp_path: Path):
+        f = _write_text_session(
+            tmp_path,
+            "I wrote the review artifact for round 1 and the loop converged.",
+        )
+        entries = extract_traces(f, session_slug="s")
+        assert [e for e in entries if e.step == "REVIEW_ARTIFACT"] == []
+
+
 class TestReviewFixes:
     """Regression tests from the 2026-07-15 architecture + security review round."""
 
@@ -780,3 +824,11 @@ class TestReviewFixes:
         )
         entries = extract_traces(f, session_slug="s")
         assert [e for e in entries if e.step == "EXECUTOR"] == []
+
+    def test_oversized_review_artifact_path_does_not_emit(self, tmp_path: Path):
+        f = _write_text_session(
+            tmp_path,
+            "REVIEW-ARTIFACT: round=1 path=" + "p" * 500 + " findings=0/0/0 converged=yes",
+        )
+        entries = extract_traces(f, session_slug="s")
+        assert [e for e in entries if e.step == "REVIEW_ARTIFACT"] == []

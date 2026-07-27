@@ -32,6 +32,7 @@ One JSONL line per orchestrator step. `v2` adds `rejected_alternatives` (top-lev
 | **PERMISSION_EVENT** (v2) | tool, action, outcome (granted/denied/denied_by_settings/auto_approved/error/timeout/bypassed), reason. Callers must redact secrets in `action`. |
 | **ROUTE** (v2) | router, target, alternatives_considered, decision_basis |
 | **EXECUTOR** (v2) | executor, model, subtask_id |
+| **REVIEW_ARTIFACT** (v2) | round, path, findings (CRITICAL/MAJOR/MINOR counts), converged |
 
 ### v2 cross-cutting fields
 

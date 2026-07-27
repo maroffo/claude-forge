@@ -95,7 +95,7 @@ Findings that live only in session context die at the next auto-compact: fix rou
 
 ### Per-round findings (local, gitignored)
 
-Each REVIEW round writes one file: `quality_reports/reviews/<YYYY-MM-DD_slug>/NNN-findings.md`, numbered from `001` in round order. Contents:
+Each REVIEW round writes one file: `quality_reports/reviews/<YYYY-MM-DD_slug>/NNN-findings.md`, numbered from `001` in round order. The slug is the plan file's own slug (`quality_reports/plans/active/YYYY-MM-DD_<slug>.md`); with no plan on disk, derive it from the branch name; either way reuse it verbatim for `approval.md`, so the two paths always pair. Contents:
 
 | Field | Content |
 |-------|---------|
@@ -126,7 +126,7 @@ Written at convergence and committed with the change, at `quality_reports/approv
 
 **Prohibited in `approval.md`:** no exploit text, no reproducing command, no vulnerable-code excerpt. The findings files carry the recipe locally; `approval.md` carries only the redacted record. A CWE id and a count are the level of detail it may reach.
 
-**Absence of `approval.md` means the loop did not converge.** That is a signal only if something reads it, so PRESENT (step 8) surfaces it on the literal `REVIEW-ARTIFACT:` line with `converged=no`. It is never left for a human to notice.
+**Absence of `approval.md` means the loop did not converge.** That is a signal only if something reads it, so PRESENT (step 8) surfaces it on the literal `REVIEW-ARTIFACT:` line with `converged=no` (on that line, `findings=<c/m/n>` carries the Critical/Major/Minor counts, in that order, over the consolidated list). It is never left for a human to notice.
 
 ## Blast Radius (Step 5b, conditional)
 

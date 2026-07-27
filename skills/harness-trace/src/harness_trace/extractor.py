@@ -47,7 +47,7 @@ COMPLEXITY_PATTERN = re.compile(
     r"complexity\s*[:\-]?\s*(simple|moderate|complex)", re.IGNORECASE
 )
 
-# Literal sub-step report lines (orchestrator-protocol steps 1a/1b/1c/5b).
+# Literal sub-step report lines (orchestrator-protocol steps 1a/1b/1c/5b/8).
 # The normative format lives in rules/orchestrator-protocol.md; these compiled
 # patterns are the single source for BOTH detection and extraction (see
 # LITERAL_REPORT_STEPS), so a detected line always yields data. Digits bounded
@@ -69,6 +69,15 @@ DRIFT_REPORT_PATTERN = re.compile(
 )
 EXECUTOR_REPORT_PATTERN = re.compile(
     r"\bEXECUTOR:\s*(\S{1,64})\s+model=(\S{1,128})\s+subtask=(\S{1,64})",
+    re.IGNORECASE,
+)
+# Step 8 (PRESENT): where the round's findings file landed and whether the loop
+# converged. `findings=<c/m/n>` is Critical/Major/Minor, in that order, over the
+# consolidated list; all three counts are mandatory, so a partial line yields
+# nothing rather than a half-filled event.
+REVIEW_ARTIFACT_REPORT_PATTERN = re.compile(
+    r"\bREVIEW-ARTIFACT:\s*round=(\d{1,6})\s+path=(\S{1,256})"
+    r"\s+findings=(\d{1,6})/(\d{1,6})/(\d{1,6})\s+converged=(yes|no)",
     re.IGNORECASE,
 )
 
@@ -398,6 +407,17 @@ def _extract_text_step_data(step: str, text: str) -> dict[str, Any]:
                 files_m = BLAST_FILES_CHECKED_PATTERN.search(line)
                 if files_m:
                     data["files_scanned"] = int(files_m.group(1))
+    elif step == "REVIEW_ARTIFACT":
+        m = REVIEW_ARTIFACT_REPORT_PATTERN.search(text)
+        if m:
+            data["round"] = int(m.group(1))
+            data["path"] = m.group(2)
+            data["findings"] = {
+                "CRITICAL": int(m.group(3)),
+                "MAJOR": int(m.group(4)),
+                "MINOR": int(m.group(5)),
+            }
+            data["converged"] = m.group(6).lower() == "yes"
     elif step == "SCORE":
         m = SCORE_PATTERN.search(text)
         if m:
@@ -691,6 +711,7 @@ def extract_traces(session_path: Path, session_slug: str | None = None) -> list[
         ("DRIFT_CHECK", DRIFT_REPORT_PATTERN),
         ("BLAST_RADIUS", BLAST_REPORT_LINE_PATTERN),
         ("EXECUTOR", EXECUTOR_REPORT_PATTERN),
+        ("REVIEW_ARTIFACT", REVIEW_ARTIFACT_REPORT_PATTERN),
     ]
 
     for ts, text in text_candidates:

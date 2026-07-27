@@ -31,6 +31,7 @@ StepName = Literal[
     "PERMISSION_EVENT",
     "ROUTE",
     "EXECUTOR",
+    "REVIEW_ARTIFACT",
 ]
 
 
@@ -145,6 +146,15 @@ class BlastRadiusData(BaseModel):
     contradictions: dict[str, int] = Field(default_factory=dict)  # MAJOR/MINOR -> count
 
 
+class ReviewArtifactData(BaseModel):
+    """Where the round's findings file landed, printed at PRESENT (step 8)."""
+
+    round: int = 0
+    path: str = ""
+    findings: dict[str, int] = Field(default_factory=dict)  # CRITICAL/MAJOR/MINOR -> count
+    converged: bool = False  # False when approval.md was not written
+
+
 class ScoreData(BaseModel):
     score: int = 0
     threshold: int = 80
@@ -244,6 +254,7 @@ STEP_DATA_MODELS: dict[StepName, type[BaseModel]] = {
     "PERMISSION_EVENT": PermissionEventData,
     "ROUTE": RouteData,
     "EXECUTOR": ExecutorData,
+    "REVIEW_ARTIFACT": ReviewArtifactData,
 }
 
 
