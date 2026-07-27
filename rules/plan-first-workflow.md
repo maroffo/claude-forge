@@ -22,6 +22,7 @@ Multi-file changes, new features, integrations, anything 🟡 or 🔴 in decisio
 - Include "You decide" when Claude's discretion is reasonable
 
 **3. Scope discipline** — clarify HOW, never expand WHAT
+- Scope mode chosen explicitly first (Hold default; expansions only ever individually opted in); see refine-requirements
 - New scope suggested during refinement → capture as "deferred idea", redirect
 
 **4. Capture decisions** — feed into the plan
