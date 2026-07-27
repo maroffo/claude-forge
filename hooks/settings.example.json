@@ -28,7 +28,20 @@
       {
         "matcher": "Write",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/aboutme-enforcer.sh", "timeout": 10 }
+          { "type": "command", "command": "{{HOOKS_DIR}}/aboutme-enforcer.sh", "timeout": 10 },
+          { "type": "command", "command": "{{HOOKS_DIR}}/freeze-guard.sh", "timeout": 10 }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          { "type": "command", "command": "{{HOOKS_DIR}}/freeze-guard.sh", "timeout": 10 }
+        ]
+      },
+      {
+        "matcher": "NotebookEdit",
+        "hooks": [
+          { "type": "command", "command": "{{HOOKS_DIR}}/freeze-guard.sh", "timeout": 10 }
         ]
       }
     ],
