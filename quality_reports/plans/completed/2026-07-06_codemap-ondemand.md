@@ -108,4 +108,8 @@ content) before writing code.
 
 ## Outcomes & Retrospective
 
-- (open)
+(closed 2026-07-27, retroactively during the issue #103 contract-result pass; work had landed on 2026-07-06)
+
+- **Shipped:** `codemap` CLI (no cache, no file, --print), `structural_summary`, nudge-only codemap-session hook; all tests green, live-verified on wasit, obsolete out-of-tree maps removed. Contract 2026-07-06_codemap-ondemand supersedes the ephemeral one.
+- **Gaps:** adoption is invisible in telemetry (traces record no Bash commands), so the contract's Result row reads insufficient data; the deferred ideas (focused slices, cache-backed counts) remain unfiled.
+- **Lessons:** the second opinion moved the design from skill+cache to a plain CLI before implementation, cheaper than pivoting after; measuring adoption needs an extractor step or an invocation counter, not hope.

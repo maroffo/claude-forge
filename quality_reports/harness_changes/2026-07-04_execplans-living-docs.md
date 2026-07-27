@@ -40,3 +40,4 @@ Over the next 10 planned tasks: if in 3 or more the Progress section is never up
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 9 plans over 3 weeks (6 completed with retrospectives, 3 stale in active/) | falsification limb 2 fired exactly at threshold: 3 plans with landed work sat in active/ with Outcomes "(open)", the oldest for 3 weeks; limb 1 never fired (Progress maintained in all 3) and 3 plans closed correctly in the last 5 days, so the failure is the close step being skipped, not the format. Max reviewed on 2026-07-27 and chose kept: the 3 stale plans were closed with retrospectives in the same pass. Re-check: if plans go stale again within the next 10, the close step needs enforcement (hook or STORE-step gate), not another reminder | kept |
