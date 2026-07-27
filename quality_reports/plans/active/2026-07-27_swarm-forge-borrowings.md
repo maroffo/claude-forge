@@ -129,7 +129,7 @@ The matrix is the union of three dimensions: consolidation outcomes (merge, no-m
 ## Progress
 
 - [x] Analysis + 2-lab second opinion + plan (2026-07-27, planning session)
-- [ ] W1 finding dedup (3 harness files + contract)
+- [x] W1 finding dedup (3 harness files + contract) (2026-07-27, impl session; W1.1-W1.4 done, `make check` green, DRIFT: aligned)
 - [ ] W2 review artifacts (3 harness files + contract)
 - [ ] W3 Go metrics as evidence (4 files + contract)
 - [ ] W4 docs + follow-ups drafted

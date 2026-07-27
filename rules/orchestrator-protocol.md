@@ -21,7 +21,7 @@ Typos, one-liners, single-function fixes with passing tests; config-only changes
     1b. REPRODUCE → (bug-fix only) write script proving the bug exists
     1c. DRIFT    → verify alignment after each subtask
 2.  VERIFY       → tests, lint, build, reproduction_confirmed
-3.  REVIEW       → review agents by file pattern
+3.  REVIEW       → review agents by file pattern; findings reach FIX consolidated (see orchestrator skill, Finding Consolidation)
 4.  FIX          → software-engineer addresses Critical/Major findings
 5.  RE-VERIFY    → rebuild, retest
 5b. BLAST-RADIUS → (conditional) check related files for contradictions/staleness

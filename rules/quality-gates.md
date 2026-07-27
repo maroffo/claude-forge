@@ -58,8 +58,10 @@ Evidence is what makes a finding checkable instead of arguable: the fix loop ver
 
 ## How to Score
 
-After review agents report findings:
+Scoring runs over the **consolidated** finding list, never the raw agent reports: one defect counts once, however many agents reported it (consolidation procedure in the `orchestrator` skill, Finding Consolidation).
+
+After review agents report findings and the reports are consolidated:
 1. Count Critical → if any, score = 0, must fix
-2. Start at 100, subtract Major (-10) and Minor (-3)
+2. Start at 100, subtract Major (-10) and Minor (-3), once per consolidated finding
 3. Compare against threshold for intended action (commit/PR)
 4. If below threshold, fix and re-score

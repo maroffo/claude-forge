@@ -75,6 +75,20 @@ If a `.bench/baseline.txt` exists for the task (BENCH-BASELINE ran), also run `m
 
 Findings come back in the Finding Contract shape (`rules/quality-gates.md`): severity, location, claim, fix, evidence.
 
+### Finding Consolidation (step 3 → 4)
+
+Reviewers overlap by design: the routing table above maps file patterns to agents, never defect classes to owners. Consolidate the reports before FIX runs:
+
+1. Collect every agent report.
+2. Group findings by `(file, line)`.
+3. Within a group, merge the findings whose claims describe the same defect; the dedup key is `(file, line, normalized claim)`.
+4. On merge, keep the **highest** severity of the group and record `reported_by: <agent>[,<agent>]`, listing every agent that reported it.
+5. The consolidated list is what FIX (step 4) and SCORE (step 6) consume.
+
+**Duplicates are expected and harmless.** Never instruct an agent to skip a concern because another agent owns it: a duplicate is caught here, a concern that every agent assumes someone else owns is caught nowhere. The two existing inline deferrals (security-reviewer defers deep CVE analysis to dependency-reviewer, database-reviewer defers complex N+1 to performance-reviewer) are depth gradients, not partitions, and stay as they are.
+
+**Invariant:** consolidation may lower the finding *count*, never the highest *severity* in a group. Grouping by line is not merging by line: an N+1 and a god-object both filed at `y.go:10` are distinct claims, so both survive as separate findings.
+
 ## Blast Radius (Step 5b, conditional)
 
 After RE-VERIFY, before SCORE. Detects entropy: docs, tests, imports still referencing pre-change behavior.
