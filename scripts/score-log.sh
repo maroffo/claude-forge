@@ -19,13 +19,17 @@ HISTORY_REL="quality_reports/score-history.jsonl"
 
 usage() {
   cat <<'EOF'
-usage: score-log.sh --score <n> --gate <commit|pr|excellence> --check <pass|fail> \
-                    --e2e <pass|fail> --major <n> --minor <n>
+usage: score-log.sh --score <n> --threshold <n> --gate <commit|pr|excellence> \
+                    --check <pass|fail> --e2e <pass|fail> --major <n> --minor <n>
        score-log.sh --trend
 
-  Append mode (all six flags required) writes ONE JSONL line to
+  Append mode (all seven flags required) writes ONE JSONL line to
   <git-root>/quality_reports/score-history.jsonl, creating the directory and
   ensuring the target repo's .gitignore carries the history path exactly once.
+
+  --threshold and --gate are the pair the canonical SCORE line prints
+  (`SCORE: <n>/100 (threshold: <t>, gate: commit|pr|excellence)`): the INTENDED
+  action and the number it is judged against, not the highest bar cleared.
 
   --trend prints the last 10 entries plus the delta vs the previous one.
   No history yet: --trend says so and exits 0.
@@ -41,13 +45,22 @@ die() {
   exit "$code"
 }
 
+# Leading zeros are rejected rather than accepted and normalised: bash reads `08` as
+# octal, so a value that slipped through here would blow up in the arithmetic
+# comparison or in printf %d, after the file had already been touched.
 is_uint() {
-  [[ "$1" =~ ^[0-9]+$ ]]
+  [[ "$1" =~ ^(0|[1-9][0-9]*)$ ]]
 }
 
 # Appends the history path to the target repo's .gitignore if it is not already an
 # exact line. Append-only and idempotent: the .gitignore belongs to the target repo,
 # so it is never rewritten or reordered.
+#
+# Single writer assumed: /score is interactive and one run appends one row. Racing
+# copies can each see no ignore line and each append one, leaving duplicates. They
+# are harmless (git ignores the path either way) and stable: the next run's
+# `grep -qxF` matches the first duplicate and appends nothing, so the count never
+# grows again, but nothing removes the extra lines either.
 ensure_gitignored() {
   local gi="$1/.gitignore"
   if [[ -f "$gi" ]] && grep -qxF "$HISTORY_REL" "$gi"; then
@@ -84,12 +97,18 @@ with open(path, encoding="utf-8") as fh:
         except json.JSONDecodeError:
             unparseable += 1
 
+# Loud, and before the empty-history exit: a history whose every line is corrupt
+# reads exactly like a fresh one, and "corrupt history" is the falsification
+# condition of this change.
+if unparseable:
+    print("warning: skipped %d unparseable line(s) in %s" % (unparseable, path))
+
 if not rows:
     print("no history yet (%s)" % path)
     sys.exit(0)
 
 tail = rows[-10:]
-cols = ("ts", "branch", "score", "gate")
+cols = ("ts", "branch", "score", "threshold", "gate")
 widths = [max(len(c), *(len(str(r.get(c, "?"))) for r in tail)) for c in cols]
 
 print("score history: %s (%d entries, showing last %d)" % (path, len(rows), len(tail)))
@@ -106,15 +125,12 @@ else:
         print("delta vs previous: %+d (%d -> %d)" % (delta, prev, cur))
     else:
         print("delta vs previous: n/a (score field unreadable)")
-
-# Loud, because a corrupt history is the falsification condition of this change.
-if unparseable:
-    print("warning: skipped %d unparseable line(s) in %s" % (unparseable, path))
 PY
 }
 
 mode="append"
 score=""
+threshold=""
 gate=""
 check=""
 e2e=""
@@ -127,10 +143,11 @@ while [[ $# -gt 0 ]]; do
       mode="trend"
       shift
       ;;
-    --score|--gate|--check|--e2e|--major|--minor)
+    --score|--threshold|--gate|--check|--e2e|--major|--minor)
       [[ $# -ge 2 ]] || die 2 "$1 requires a value"
       case "$1" in
         --score) score="$2" ;;
+        --threshold) threshold="$2" ;;
         --gate) gate="$2" ;;
         --check) check="$2" ;;
         --e2e) e2e="$2" ;;
@@ -164,9 +181,11 @@ if [[ "$mode" == "trend" ]]; then
   exit 0
 fi
 
-[[ -n "$score" && -n "$gate" && -n "$check" && -n "$e2e" && -n "$major" && -n "$minor" ]] ||
-  die 2 "append mode requires --score --gate --check --e2e --major --minor"
+[[ -n "$score" && -n "$threshold" && -n "$gate" && -n "$check" && -n "$e2e" && -n "$major" && -n "$minor" ]] ||
+  die 2 "append mode requires --score --threshold --gate --check --e2e --major --minor"
 is_uint "$score" && [[ "$score" -le 100 ]] || die 2 "--score must be an integer 0-100: $score"
+is_uint "$threshold" && [[ "$threshold" -le 100 ]] ||
+  die 2 "--threshold must be an integer 0-100: $threshold"
 case "$gate" in
   commit|pr|excellence) ;;
   *) die 2 "--gate must be commit, pr or excellence: $gate" ;;
@@ -192,7 +211,7 @@ branch="$(git branch --show-current)"
 # branch name cannot forge extra JSONL rows.
 branch="$(printf '%s' "$branch" | tr -d '[:cntrl:]' | sed 's/\\/\\\\/g; s/"/\\"/g')"
 
-printf '{"ts":"%s","branch":"%s","score":%d,"gate":"%s","check":"%s","e2e":"%s","major":%d,"minor":%d}\n' \
-  "$ts" "$branch" "$score" "$gate" "$check" "$e2e" "$major" "$minor" >> "$history"
+printf '{"ts":"%s","branch":"%s","score":%d,"threshold":%d,"gate":"%s","check":"%s","e2e":"%s","major":%d,"minor":%d}\n' \
+  "$ts" "$branch" "$score" "$threshold" "$gate" "$check" "$e2e" "$major" "$minor" >> "$history"
 
 printf 'appended: %s\n' "$history"

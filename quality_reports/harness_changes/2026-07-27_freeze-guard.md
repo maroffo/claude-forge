@@ -47,8 +47,8 @@ of those sessions ends with `/freeze off` used as an escape from a boundary that
 Either of these reverts the change:
 
 1. A session where a boundary is active and a **legitimate in-boundary edit is denied** (a false
-   block). The fail-open design leaves this as the only unrecoverable outcome, so one occurrence is
-   enough.
+   block). The fail-open design leaves this as the only outcome that blocks every edit in the repo
+   until someone notices and lifts the boundary, so one occurrence is enough.
 2. A traced session with a boundary set in which **more than zero out-of-boundary edits pass**
    through Edit/Write/NotebookEdit. That means the resolution logic does not hold and the hook is
    costing a PreToolUse slot for a guarantee it does not provide.

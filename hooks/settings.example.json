@@ -43,6 +43,12 @@
         "hooks": [
           { "type": "command", "command": "{{HOOKS_DIR}}/freeze-guard.sh", "timeout": 10 }
         ]
+      },
+      {
+        "matcher": "MultiEdit",
+        "hooks": [
+          { "type": "command", "command": "{{HOOKS_DIR}}/freeze-guard.sh", "timeout": 10 }
+        ]
       }
     ],
     "PostToolUse": [

@@ -153,8 +153,8 @@ The matrix is the union of: freeze-guard decision states (boundary × parse × r
 - [x] W4 score history (2026-07-27, wave 1; DRIFT aligned; matrix rows 8-9 green in make test-e2e)
 - [x] W5 drift check (2026-07-27, wave 2; DRIFT aligned; matrix rows 10-16 green, "PASS forge-drift-check (10 cases)")
 - [x] W6 docs + cleanup (2026-07-27; README rows for /freeze + both hooks + score-history, tech-debt 3 entries. W6.3 EXCEPTION: deleting the untracked snapshot in the MAIN checkout was denied by the session permission classifier (worktree sandbox); verified stale by diff (153-line unticked snapshot vs 188-line authoritative completed/ copy), listed as a manual step in the PR body instead. W6.4: no follow-up issues surfaced)
-- [ ] E2E matrix walked, observed output per row
-- [ ] Review round + fixes
+- [x] E2E matrix walked, observed output per row (2026-07-27): rows 1-6 = `PASS freeze-guard (matrix rows 1-6)` and rows 10-16 = `PASS forge-drift-check (10 cases)` in make test-e2e; rows 8-9 = test_score_log.py `Ran 11 tests OK`; row 7 = manual walk in a scratch repo (boundary written with physical path + trailing slash, gitignore line appended exactly once across two guard runs, deny JSON outside / silent allow inside, status printed, off removed the file); row 17 = prose evidence at refine-requirements SKILL.md:19,22,24 (bugfix/unsure: no question, Hold silently); row 18 = grep hits at plan-template.md:52 (Depth column), :61 (COVERAGE footer), :81 (DoD slot)
+- [ ] Review round + fixes (round 1 done 2026-07-27: security+architecture+test reviewers on 8035d78, consolidated 1 Critical / 11 Major / 11 Minor, all 23 addressed in fix round 1 of 5; findings: quality_reports/reviews/2026-07-27_gstack-borrowings/001-findings.md; reviewer verification round pending)
 - [ ] PR + SCORE
 - [ ] Close-out (plan → completed/, retrospective filled)
 
@@ -180,6 +180,9 @@ The matrix is the union of: freeze-guard decision states (boundary × parse × r
 | 21 | (W2) `[GAP]` paths are matrix rows excluded from the COVERAGE numerator | Admitting a gap lowers the ratio | A knowingly-untested path must cost something visible, or the footer inflates | - |
 | 22 | (W5) Forge-origin test uses `-ef` (device+inode through the link), not per-entry realpath | Shell builtin, fork-free clean scan | Says the entry IS the checkout's file, and keeps the common clean case at a handful of forks | - |
 | 23 | (W5) Degenerate installs exit silently: forge root resolving into ~/.claude itself (script installed as a copy), and whole-category symlinks (rules/, skills/) checked only for dangling | Silent, not guessing | A copy-installed check comparing ~/.claude against itself would emit nonsense; a copy-installed skills/ tree is install.sh's supported default, not drift | - |
+| 24 | (fix round 1) score-log gains `--threshold` (required) and `--gate` is the INTENDED gate, extending locked decision 9's arg list | Row mirrors the canonical `SCORE: <n>/100 (threshold: <t>, gate: ...)` line | Review finding F6: without threshold the "denormalized view of harness-trace SCORE events" claim was false at write time | harness-trace SCORE event schema changes |
+| 25 | (fix round 1) freeze-guard also registered on MultiEdit; hook reads `file_path // notebook_path` | Covers all four mutating tools in settings.example.json's own inventory | Review findings F1/F8: NotebookEdit payloads carry notebook_path; MultiEdit was the one mutating tool left ungated | MultiEdit removed from the tool inventory |
+| 26 | (fix round 1) A boundary resolving outside the frozen repo still DENIES edits in that repo | Pinned by test + comment | Review finding F23: an explicit freeze is an explicit freeze; silent un-freeze on a foreign path would be the surprising branch | - |
 
 ## Outcomes & Retrospective
 (fill at close: shipped, gaps, lessons)

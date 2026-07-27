@@ -50,3 +50,6 @@ skills/advanced-review
 /skills/process-email-bookmarks
 /skills/linkedin-post
 quality_reports/reviews/
+
+# /freeze boundary (local: holds an absolute path from this machine's layout)
+/.freeze-boundary

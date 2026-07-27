@@ -46,14 +46,14 @@ Excellence:       <yes|no>
 After the report, append the run and show where it sits against the previous ones:
 
 ```bash
-SCORE_LOG="$HOME/Development/private/claude-forge/scripts/score-log.sh"   # adjust if the forge checkout lives elsewhere
-"$SCORE_LOG" --score <n> --gate <commit|pr|excellence> --check <pass|fail> --e2e <pass|fail> --major <n> --minor <n>
+SCORE_LOG="${CLAUDE_FORGE_ROOT:-$HOME/Development/private/claude-forge}/scripts/score-log.sh"
+"$SCORE_LOG" --score <n> --threshold <t> --gate <commit|pr|excellence> --check <pass|fail> --e2e <pass|fail> --major <n> --minor <n>
 "$SCORE_LOG" --trend
 ```
 
-Paste the `--trend` output verbatim under the report. Values come from the breakdown just computed; `--gate` is the highest threshold reached (`commit` below 90, `pr` below 95, `excellence` at 95+), and BLOCKED scores log as `commit`.
+Paste the `--trend` output verbatim under the report. Values come from the breakdown just computed; `--threshold` and `--gate` are the pair the canonical trace line prints, `SCORE: <n>/100 (threshold: <t>, gate: commit|pr|excellence)` (`rules/orchestrator-protocol.md`): the action this run was aiming at and the number it is judged against, not the highest bar the score happened to clear. Log the same pair you print, or the row cannot be reconciled with its SCORE event.
 
-- The script does the append and the arithmetic. The model supplies the six measured values and nothing else: a hand-written row or a hand-computed delta is exactly the failure this indirection removes.
+- The script does the append and the arithmetic. The model supplies the seven measured values and nothing else: a hand-written row or a hand-computed delta is exactly the failure this indirection removes.
 - The history file (`quality_reports/score-history.jsonl` at the target repo's git root) is a **denormalized view of harness-trace SCORE events; change one, change the other.**
 - The script gitignores the file in the target repo on first write. It stays local: a branch name next to a low score corroborates gitignored review findings.
 - Script missing or the run fails: report the score anyway and say the history was not written. A logging failure never blocks the gate.

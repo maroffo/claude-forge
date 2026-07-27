@@ -56,8 +56,15 @@ single file, `.freeze-boundary`, at the git root, holding one absolute physical 
    check first, append if absent, never rewrite the file):
 
    ```bash
-   grep -qxF '/.freeze-boundary' "$root/.gitignore" 2>/dev/null \
-     || printf '/.freeze-boundary\n' >> "$root/.gitignore"
+   gi="$root/.gitignore"
+   if ! grep -qxF '/.freeze-boundary' "$gi" 2>/dev/null; then
+     nl=""
+     # Command substitution strips trailing newlines, so a non-empty result means the
+     # file does not end in one and the append would glue onto the last line, silently
+     # corrupting an existing ignore rule in someone else's repo.
+     [ -s "$gi" ] && [ -n "$(tail -c 1 "$gi")" ] && nl=$'\n'
+     printf '%s/.freeze-boundary\n' "$nl" >> "$gi"
+   fi
    ```
 
    The entry is anchored (`/.freeze-boundary`) because the file only ever lives at the root.
@@ -93,11 +100,12 @@ Read `hooks/freeze-guard.sh` before changing anything here; the two must stay in
 | Edit inside the boundary | allows |
 | Edit outside the boundary, same repo | denies, message names the boundary and `/freeze off` |
 | Edit in a different repo | allows (the boundary is repo-local) |
-| `tool_input.file_path` missing, empty or newline-bearing | allows, one-line stderr warning |
+| Edited path (`file_path`, or `notebook_path` for NotebookEdit) missing, empty or newline-bearing | allows, one-line stderr warning |
+| Boundary file empty or whitespace-only | allows, one-line stderr warning |
 | `jq` not installed | allows, one-line stderr warning |
 
-Every failure path allows. A false deny would be unrecoverable from inside the session, since the
-model could not edit its way out of a boundary it cannot escape; a false allow shows up in the diff.
+Every failure path allows. A false deny would block every edit in the repo until someone notices
+and lifts the boundary; a false allow shows up in the diff.
 
 ## When to use
 

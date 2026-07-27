@@ -17,15 +17,17 @@ fi
 warn() { printf 'freeze-guard: %s\n' "$1" >&2; }
 
 # Fail OPEN, unlike main-branch-guard.sh, and deliberately so: that one gates an
-# irreversible action, this one is a focus aid. A false DENY here is unrecoverable
-# from inside the session (the model cannot even edit the boundary file away),
-# while a false ALLOW is visible in the diff and undoable.
+# irreversible action, this one is a focus aid. A false DENY blocks every edit in
+# the repo until someone notices and lifts the boundary, while a false ALLOW is
+# visible in the diff and undoable.
 if ! command -v jq >/dev/null 2>&1; then
   warn "jq not found, boundary not enforced (brew install jq)"
   exit 0
 fi
 
-file_path=$(printf '%s' "$payload" | jq -r '.tool_input.file_path // empty' 2>/dev/null || true)
+# NotebookEdit carries its target as notebook_path, every other guarded tool as
+# file_path (same pair score-evidence-guard.py and verify-before-stop.py read).
+file_path=$(printf '%s' "$payload" | jq -r '.tool_input.file_path // .tool_input.notebook_path // empty' 2>/dev/null || true)
 # A path carrying newlines is not something we can reason about (nor report on one
 # line): treat it as unparseable rather than guessing which repo it belongs to.
 case "$file_path" in
@@ -50,7 +52,11 @@ if [ -z "$file_path" ]; then
   exit 0
 fi
 
-boundary=$(head -n 1 "$boundary_file" 2>/dev/null | tr -d '\r\n')
+# Leading/trailing horizontal whitespace is editing debris, not path: a file holding
+# only blanks is unusable data (allow + warning, same class as an empty one), and a
+# stray trailing space must not turn every in-boundary edit into a deny. Interior
+# spaces are left alone, a directory may legally have them in its name.
+boundary=$(head -n 1 "$boundary_file" 2>/dev/null | tr -d '\r\n' | sed 's/^[[:blank:]]*//; s/[[:blank:]]*$//')
 if [ -n "$boundary" ]; then
   boundary=$(freeze_physical_path "$boundary")
 fi

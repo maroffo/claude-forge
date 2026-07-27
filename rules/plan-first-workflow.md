@@ -11,6 +11,8 @@ Multi-file changes, new features, integrations, anything 🟡 or 🔴 in decisio
 
 **MANDATORY** for any 🟡/🔴 task. Identify gray areas and clarify with `AskUserQuestion` BEFORE entering plan mode. Skip ONLY for: single-file changes, fully specific instructions, or explicit user skip.
 
+**0. Pick the scope mode** — before any other question (Hold Scope default; expansions only ever individually opted in); see refine-requirements
+
 **1. Analyze gray areas** — what decisions would change the implementation?
 - Visual feature → layout, density, interactions, empty states
 - API/CLI → response format, error handling, auth flow
@@ -21,9 +23,8 @@ Multi-file changes, new features, integrations, anything 🟡 or 🔴 in decisio
 - Options must be specific ("JWT sessions" not "Option A")
 - Include "You decide" when Claude's discretion is reasonable
 
-**3. Scope discipline** — clarify HOW, never expand WHAT
-- Scope mode chosen explicitly first (Hold default; expansions only ever individually opted in); see refine-requirements
-- New scope suggested during refinement → capture as "deferred idea", redirect
+**3. Scope discipline** — in Hold Scope (and outside the chosen mode's radius): clarify HOW, never expand WHAT
+- New scope suggested during refinement → capture as "deferred idea", redirect (Hold Scope; declined proposals in every mode)
 
 **4. Capture decisions** — feed into the plan
 - Add a `## Decisions` section to the plan file (append-only across sessions)

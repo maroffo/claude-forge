@@ -21,10 +21,10 @@ class ScoreLogTest(unittest.TestCase):
             [str(SCORE_LOG), *args], cwd=str(cwd), capture_output=True, text=True, timeout=60
         )
 
-    def _append(self, cwd, score, gate="pr", major=0, minor=0):
+    def _append(self, cwd, score, gate="pr", threshold=90, major=0, minor=0):
         r = self._run(
-            ["--score", str(score), "--gate", gate, "--check", "pass",
-             "--e2e", "pass", "--major", str(major), "--minor", str(minor)],
+            ["--score", str(score), "--threshold", str(threshold), "--gate", gate,
+             "--check", "pass", "--e2e", "pass", "--major", str(major), "--minor", str(minor)],
             cwd,
         )
         self.assertEqual(r.returncode, 0, r.stderr)
@@ -42,19 +42,23 @@ class ScoreLogTest(unittest.TestCase):
             repo = Path(d).resolve()
             subprocess.run(["git", "init", "-b", "feat/demo", str(repo)],
                            capture_output=True, check=True)
-            self._append(repo, 88, gate="commit", major=1, minor=2)
-            self._append(repo, 92, gate="pr", major=0, minor=1)
+            self._append(repo, 88, gate="commit", threshold=80, major=1, minor=2)
+            self._append(repo, 92, gate="pr", threshold=90, major=0, minor=1)
 
             rows = self._rows(repo)
             self.assertEqual(len(rows), 2, rows)
             self.assertEqual([r["score"] for r in rows], [88, 92])
             self.assertEqual([r["gate"] for r in rows], ["commit", "pr"])
+            # threshold+gate travel together: the pair is what the SCORE trace line
+            # prints, and without it a row cannot be matched back to its event.
+            self.assertEqual([r["threshold"] for r in rows], [80, 90])
             self.assertEqual([r["major"] for r in rows], [1, 0])
             self.assertEqual([r["minor"] for r in rows], [2, 1])
             for row in rows:
                 # Types matter: score/major/minor are JSON numbers, not strings, or the
                 # trend arithmetic silently degrades to "score field unreadable".
                 self.assertIsInstance(row["score"], int)
+                self.assertIsInstance(row["threshold"], int)
                 self.assertIsInstance(row["major"], int)
                 self.assertIsInstance(row["minor"], int)
                 self.assertEqual(row["branch"], "feat/demo")
@@ -67,7 +71,7 @@ class ScoreLogTest(unittest.TestCase):
             repo = Path(d).resolve()
             subprocess.run(["git", "init", "-b", "feat/demo", str(repo)],
                            capture_output=True, check=True)
-            self._append(repo, 88, gate="commit")
+            self._append(repo, 88, gate="commit", threshold=80)
             self._append(repo, 92)
 
             r = self._run(["--trend"], repo)
@@ -76,7 +80,7 @@ class ScoreLogTest(unittest.TestCase):
             self.assertIn("2 entries, showing last 2", r.stdout)
             header = [ln for ln in r.stdout.splitlines() if ln.startswith("ts ")]
             self.assertEqual(len(header), 1, r.stdout)
-            for column in ("branch", "score", "gate"):
+            for column in ("branch", "score", "threshold", "gate"):
                 self.assertIn(column, header[0])
             self.assertIn("feat/demo", r.stdout)
 
@@ -86,8 +90,8 @@ class ScoreLogTest(unittest.TestCase):
             repo = Path(d).resolve()
             subprocess.run(["git", "init", "-b", "feat/demo", str(repo)],
                            capture_output=True, check=True)
-            self._append(repo, 95, gate="excellence")
-            self._append(repo, 71, gate="commit")
+            self._append(repo, 95, gate="excellence", threshold=95)
+            self._append(repo, 71, gate="commit", threshold=80)
             r = self._run(["--trend"], repo)
             self.assertEqual(r.returncode, 0, r.stderr)
             self.assertIn("delta vs previous: -24 (95 -> 71)", r.stdout)
@@ -148,6 +152,35 @@ class ScoreLogTest(unittest.TestCase):
             self.assertTrue((repo / HISTORY_REL).is_file())
             self.assertFalse((sub / HISTORY_REL).exists())
 
+    def test_branch_name_with_a_quote_round_trips(self):
+        # A double quote is legal in a ref name and would otherwise close the JSON
+        # string early, letting a branch name forge fields of its own.
+        with tempfile.TemporaryDirectory() as d:
+            repo = Path(d).resolve()
+            subprocess.run(["git", "init", "-b", 'feat/we"ird', str(repo)],
+                           capture_output=True, check=True)
+            self._append(repo, 88)
+
+            rows = self._rows(repo)
+            self.assertEqual(len(rows), 1, rows)
+            self.assertEqual(rows[0]["branch"], 'feat/we"ird')
+            self.assertEqual(rows[0]["score"], 88)
+
+    def test_detached_head_is_recorded_as_detached(self):
+        # git branch --show-current prints nothing on a detached HEAD; without the
+        # fallback the field goes empty and the row loses its only context.
+        with tempfile.TemporaryDirectory() as d:
+            repo = Path(d).resolve()
+            subprocess.run(["git", "init", "-b", "feat/demo", str(repo)],
+                           capture_output=True, check=True)
+            git = ["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t"]
+            subprocess.run([*git, "commit", "--allow-empty", "-m", "seed"],
+                           capture_output=True, check=True)
+            subprocess.run([*git, "checkout", "--detach"], capture_output=True, check=True)
+            self._append(repo, 88)
+
+            self.assertEqual(self._rows(repo)[0]["branch"], "detached")
+
     def test_corrupt_line_is_skipped_and_reported(self):
         # Falsification condition of the contract is "history file corrupt": the trend
         # must survive it and say so, not crash and not silently drop it.
@@ -164,23 +197,47 @@ class ScoreLogTest(unittest.TestCase):
             self.assertIn("skipped 1 unparseable line(s)", r.stdout)
             self.assertIn("1 entries", r.stdout)
 
+    def test_fully_corrupt_history_is_not_reported_as_empty(self):
+        # The dangerous shape: every line unreadable looks exactly like a fresh repo,
+        # so "no history yet" would hide the falsification condition instead of naming it.
+        with tempfile.TemporaryDirectory() as d:
+            repo = Path(d).resolve()
+            subprocess.run(["git", "init", "-b", "feat/demo", str(repo)],
+                           capture_output=True, check=True)
+            history = repo / HISTORY_REL
+            history.parent.mkdir(parents=True)
+            history.write_text("{not json\ntruncated {\"ts\":\n", encoding="utf-8")
+
+            r = self._run(["--trend"], repo)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertIn("skipped 2 unparseable line(s)", r.stdout)
+
     # Row 8 error arm: bad input never reaches the history file.
 
     def test_invalid_arguments_are_rejected(self):
+        def full(**overrides):
+            args = {"--score": "90", "--threshold": "90", "--gate": "pr",
+                    "--check": "pass", "--e2e": "pass", "--major": "0", "--minor": "0"}
+            args.update(overrides)
+            return [x for pair in args.items() for x in pair]
+
         cases = [
-            (["--score", "101", "--gate", "pr", "--check", "pass",
-              "--e2e", "pass", "--major", "0", "--minor", "0"], "--score"),
-            (["--score", "ninety", "--gate", "pr", "--check", "pass",
-              "--e2e", "pass", "--major", "0", "--minor", "0"], "--score"),
-            (["--score", "90", "--gate", "shipit", "--check", "pass",
-              "--e2e", "pass", "--major", "0", "--minor", "0"], "--gate"),
-            (["--score", "90", "--gate", "pr", "--check", "maybe",
-              "--e2e", "pass", "--major", "0", "--minor", "0"], "--check"),
-            (["--score", "90", "--gate", "pr", "--check", "pass",
-              "--e2e", "maybe", "--major", "0", "--minor", "0"], "--e2e"),
-            (["--score", "90", "--gate", "pr", "--check", "pass",
-              "--e2e", "pass", "--major", "-1", "--minor", "0"], "--major"),
+            (full(**{"--score": "101"}), "--score"),
+            (full(**{"--score": "ninety"}), "--score"),
+            # Leading zeros: bash reads them as octal, so `09` used to leak a raw
+            # `value too great for base` diagnostic and `08` reached printf %d,
+            # writing a row with the wrong number in it.
+            (full(**{"--score": "09"}), "--score"),
+            (full(**{"--minor": "08"}), "--minor"),
+            (full(**{"--threshold": "090"}), "--threshold"),
+            (full(**{"--threshold": "101"}), "--threshold"),
+            (full(**{"--gate": "shipit"}), "--gate"),
+            (full(**{"--check": "maybe"}), "--check"),
+            (full(**{"--e2e": "maybe"}), "--e2e"),
+            (full(**{"--major": "-1"}), "--major"),
             (["--score", "90", "--gate", "pr"], "requires"),
+            (["--score", "90", "--gate", "pr", "--check", "pass",
+              "--e2e", "pass", "--major", "0", "--minor", "0"], "--threshold"),
             (["--score"], "requires a value"),
             (["--bogus"], "unknown argument"),
         ]
@@ -193,7 +250,15 @@ class ScoreLogTest(unittest.TestCase):
                     r = self._run(args, repo)
                     self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
                     self.assertIn(expected, r.stderr)
+                    # One diagnostic, ours: a bash arithmetic error alongside it means
+                    # the value reached an expansion it should never have reached.
+                    stderr_lines = [ln for ln in r.stderr.splitlines() if ln.strip()]
+                    self.assertEqual(len(stderr_lines), 1, r.stderr)
+                    self.assertTrue(stderr_lines[0].startswith("score-log: "), r.stderr)
+            # Nothing at all: not the row, not the directory, not the ignore line.
             self.assertFalse((repo / HISTORY_REL).exists(), "a rejected run must write nothing")
+            self.assertFalse((repo / "quality_reports").exists())
+            self.assertFalse((repo / ".gitignore").exists())
 
     def test_outside_a_git_repo_is_an_error(self):
         with tempfile.TemporaryDirectory() as d:
