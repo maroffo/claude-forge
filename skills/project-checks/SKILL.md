@@ -66,6 +66,18 @@ Each template defines the standard tooling for that language. Templates are
 in `templates/<lang>.mk` and use Make variables for tool paths so users can
 override them.
 
+### Advisory targets (Go)
+
+`templates/go.mk` also ships two targets that are deliberately **outside**
+`check`, run by hand when a review needs a number instead of an argument:
+
+| Target | Tool | Purpose |
+|--------|------|---------|
+| `crap` | crap4go | CC, coverage and CRAP per function, from the standard coverage profile. Evidence for a finding, not a gate: no threshold (see `rules/quality-gates.md`, Finding Contract) |
+| `mutation` | gremlins | `make mutation PKG=./internal/foo`. Surviving mutants are evidence of tautological tests. Slow (recompiles and reruns the suite per mutant), so never in `check` or the inner loop |
+
+Both install their tool on demand via `go install` when it is missing.
+
 ## When to Use
 
 - New project that needs a standardized check target

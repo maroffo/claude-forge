@@ -52,14 +52,18 @@ Every review path scores in **Critical / Major / Minor**. Tools that emit other 
 
 ## Finding Contract
 
-Every review path emits findings in the same five fields: **severity** (table above), **location** (`file:line`), **claim** (what is wrong), **fix** (what to do), **evidence** (the observation that would settle it: a red-green test, a command plus expected output, a CWE id, a grep-able convention reference, a complexity derivation).
+Every review path emits findings in the same five fields: **severity** (table above), **location** (`file:line`), **claim** (what is wrong), **fix** (what to do), **evidence** (the observation that would settle it: a red-green test, a command plus expected output, a CWE id, a grep-able convention reference, a complexity derivation, a crap4go line (CC, coverage, CRAP) for the touched function, a mutant that survives gremlins on newly written tests).
+
+None of these evidence forms is a threshold, and CRAP in particular never becomes one: CRAP = CC^2*(1-cov)^3 + CC, so full coverage zeroes the first term and CRAP >= CC always, which makes any fixed CRAP limit a cyclomatic-complexity gate wearing a coverage costume.
 
 Evidence is what makes a finding checkable instead of arguable: the fix loop verifies it, and the two-confirmation gate at SCORE has something to key on. A finding whose evidence you cannot name is not a finding, so drop it. Keeping it in the report by softening it to Minor is the exact failure mode this contract prevents.
 
 ## How to Score
 
-After review agents report findings:
+Scoring runs over the **consolidated** finding list, never the raw agent reports: one defect counts once, however many agents reported it (consolidation procedure in the `orchestrator` skill, Finding Consolidation).
+
+After review agents report findings and the reports are consolidated:
 1. Count Critical → if any, score = 0, must fix
-2. Start at 100, subtract Major (-10) and Minor (-3)
+2. Start at 100, subtract Major (-10) and Minor (-3), once per consolidated finding
 3. Compare against threshold for intended action (commit/PR)
 4. If below threshold, fix and re-score

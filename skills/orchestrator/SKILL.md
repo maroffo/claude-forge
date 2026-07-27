@@ -75,6 +75,59 @@ If a `.bench/baseline.txt` exists for the task (BENCH-BASELINE ran), also run `m
 
 Findings come back in the Finding Contract shape (`rules/quality-gates.md`): severity, location, claim, fix, evidence.
 
+### Finding Consolidation (step 3 → 4)
+
+Reviewers overlap by design: the routing table above maps file patterns to agents, never defect classes to owners. Consolidate the reports before FIX runs:
+
+1. Collect every agent report.
+2. Group findings by `(file, line)`.
+3. Within a group, merge the findings whose claims describe the same defect; the dedup key is `(file, line, normalized claim)`.
+4. On merge, keep the **highest** severity of the group and record `reported_by: <agent>[,<agent>]`, listing every agent that reported it.
+5. The consolidated list is what FIX (step 4) and SCORE (step 6) consume.
+
+**Duplicates are expected and harmless.** Never instruct an agent to skip a concern because another agent owns it: a duplicate is caught here, a concern that every agent assumes someone else owns is caught nowhere. The two existing inline deferrals (security-reviewer defers deep CVE analysis to dependency-reviewer, database-reviewer defers complex N+1 to performance-reviewer) are depth gradients, not partitions, and stay as they are.
+
+**Invariant:** consolidation may lower the finding *count*, never the highest *severity* in a group. Grouping by line is not merging by line: an N+1 and a god-object both filed at `y.go:10` are distinct claims, so both survive as separate findings.
+
+## Review Artifacts
+
+Findings that live only in session context die at the next auto-compact: fix round 3 cannot cite round 1, and the fix-round budget ends up asserted in the final summary instead of auditable. Persist them, split in two, because a finding carries the exploit recipe by construction (the Finding Contract demands evidence such as a reproducing command). The recipe stays local; only a redacted record is committed.
+
+### Per-round findings (local, gitignored)
+
+Each REVIEW round writes one file: `quality_reports/reviews/<YYYY-MM-DD_slug>/NNN-findings.md`, numbered from `001` in round order. The slug is the plan file's own slug (`quality_reports/plans/active/YYYY-MM-DD_<slug>.md`); with no plan on disk, derive it from the branch name; either way reuse it verbatim for `approval.md`, so the two paths always pair. Contents:
+
+| Field | Content |
+|-------|---------|
+| Reviewed branch and commit | Branch name plus the exact commit SHA the round reviewed |
+| Round | Round number, matching `NNN` |
+| Findings | The **consolidated** list (see Finding Consolidation) in Finding Contract shape: severity, location, claim, fix, evidence |
+| Status | Per finding, one of `open` / `fixed-in-round-<n>` / `accepted` |
+| `supersedes: NNN` | Present when this round restates findings first recorded in an earlier file |
+| Verification gaps | What this round could not check, and why |
+
+**Immutable once written.** A later round never edits an earlier file: it writes the next `NNN`, carries `supersedes: NNN`, and restates fresh per-finding statuses for everything it inherits. A mutable shared list would be a second amnesia source: if round 2 fixed 2 of 3 findings and did not update the file, round 3 reads three open findings and re-fixes two.
+
+**Gitignore guard, before the FIRST write.** These artifacts land in the user's project repos, not in claude-forge. Check the target repo's `.gitignore` for a `quality_reports/reviews/` entry; append the line if absent, never rewrite the existing file. Exploit detail must not enter git history: committing it publishes the vulnerable state permanently, with no coordinated-disclosure discipline.
+
+### approval.md (committed)
+
+Written at convergence and committed with the change, at `quality_reports/approvals/<YYYY-MM-DD_slug>.md` (outside the ignored tree, so the record reaches the PR and the human reviewer):
+
+| Field | Content |
+|-------|---------|
+| Branch, commit | What was approved |
+| Rounds run | Count, matching the highest `NNN` written |
+| Counts by severity | Critical / Major / Minor, over the consolidated list |
+| CWE ids | Where applicable, id only |
+| Final SCORE | In the canonical `SCORE:` form |
+| Residual risks | What was accepted and why, in one line each |
+| Findings path | Path of the local, gitignored findings directory |
+
+**Prohibited in `approval.md`:** no exploit text, no reproducing command, no vulnerable-code excerpt. The findings files carry the recipe locally; `approval.md` carries only the redacted record. A CWE id and a count are the level of detail it may reach.
+
+**Absence of `approval.md` means the loop did not converge.** That is a signal only if something reads it, so PRESENT (step 8) surfaces it on the literal `REVIEW-ARTIFACT:` line with `converged=no` (on that line, `findings=<c/m/n>` carries the Critical/Major/Minor counts, in that order, over the consolidated list). It is never left for a human to notice.
+
 ## Blast Radius (Step 5b, conditional)
 
 After RE-VERIFY, before SCORE. Detects entropy: docs, tests, imports still referencing pre-change behavior.

@@ -21,13 +21,13 @@ Typos, one-liners, single-function fixes with passing tests; config-only changes
     1b. REPRODUCE → (bug-fix only) write script proving the bug exists
     1c. DRIFT    → verify alignment after each subtask
 2.  VERIFY       → tests, lint, build, reproduction_confirmed
-3.  REVIEW       → review agents by file pattern
+3.  REVIEW       → review agents by file pattern; findings reach FIX consolidated, then persisted per round (see orchestrator skill, Finding Consolidation + Review Artifacts)
 4.  FIX          → software-engineer addresses Critical/Major findings
 5.  RE-VERIFY    → rebuild, retest
 5b. BLAST-RADIUS → (conditional) check related files for contradictions/staleness
 6.  SCORE        → quality-gates thresholds
 7.  LOOP         → repeat 3-7 until the plan's fix-round budget is spent (default 5 when no plan declares one) → escalate
-8.  PRESENT      → summary: files changed, issues found/fixed, score, open items
+8.  PRESENT      → summary: files changed, issues found/fixed, score, open items; print REVIEW-ARTIFACT
 9.  UAT          → goal-backward verification with human (skip for SKIP_SET)
 10. STORE        → save session log + close the plan: fill Outcomes & Retrospective, move active/ → completed/ (unconditional: also on escalation/abandonment, marking outcome)
 ```
@@ -42,6 +42,7 @@ REPRODUCE: script=<path> fails_before_fix=true|false
 DRIFT: subtask=<id> verdict=aligned|minor_drift|significant_drift
 EXECUTOR: pi-exec model=<id> subtask=<id>
 BLAST-RADIUS: clean (files_checked=<k>) | MAJOR=<n> MINOR=<m> (files_checked=<k>) | skipped (<reason>)
+REVIEW-ARTIFACT: round=<n> path=<path> findings=<c/m/n> converged=<yes/no>
 SCORE: <n>/100 (threshold: <t>, gate: commit|pr|excellence)
 ```
 

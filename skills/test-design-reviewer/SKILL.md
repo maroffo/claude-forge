@@ -91,6 +91,8 @@ Also scan for **mock interaction anti-patterns** (affect Maintainable score):
 
 For each tautology or anti-pattern found: report the file, line, pattern type, and why it's problematic.
 
+In Go, a mutant that survives `gremlins unleash` on the package under test answers the critical question computationally: the production code changed and the tests still passed. Cite the surviving mutant (file, line, mutation type) as the evidence for the tautology claim instead of arguing it in prose.
+
 ### Step 4: Report
 
 ```markdown
