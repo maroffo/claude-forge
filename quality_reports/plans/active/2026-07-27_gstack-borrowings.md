@@ -148,11 +148,11 @@ The matrix is the union of: freeze-guard decision states (boundary × parse × r
 ## Progress
 - [x] Analysis + scope selection + 2-lab second opinion + plan (2026-07-27, planning session)
 - [x] W1 freeze guard (2026-07-27, wave 1; DRIFT aligned; matrix rows 1-6 green in make test-e2e)
-- [ ] W2 plan depth
+- [x] W2 plan depth (2026-07-27, wave 2; DRIFT aligned; row 18 grep-verified: Depth column, COVERAGE footer, DoD slot present)
 - [x] W3 scope modes (2026-07-27, wave 1; DRIFT aligned; frontmatter description byte-identical)
 - [x] W4 score history (2026-07-27, wave 1; DRIFT aligned; matrix rows 8-9 green in make test-e2e)
-- [ ] W5 drift check
-- [ ] W6 docs + cleanup
+- [x] W5 drift check (2026-07-27, wave 2; DRIFT aligned; matrix rows 10-16 green, "PASS forge-drift-check (10 cases)")
+- [x] W6 docs + cleanup (2026-07-27; README rows for /freeze + both hooks + score-history, tech-debt 3 entries. W6.3 EXCEPTION: deleting the untracked snapshot in the MAIN checkout was denied by the session permission classifier (worktree sandbox); verified stale by diff (153-line unticked snapshot vs 188-line authoritative completed/ copy), listed as a manual step in the PR body instead. W6.4: no follow-up issues surfaced)
 - [ ] E2E matrix walked, observed output per row
 - [ ] Review round + fixes
 - [ ] PR + SCORE
@@ -177,6 +177,9 @@ The matrix is the union of: freeze-guard decision states (boundary × parse × r
 | 18 | (W1) Gitignore line for the boundary is anchored (`/.freeze-boundary`) | Anchored, not bare | The file only ever lives at the repo root; `gitignore-anchor-lint.py` warns on bare names | - |
 | 19 | (W1) Empty or whitespace-only boundary file = unusable data: allow + warning | Same class as a missing path | Otherwise it would deny every edit in the repo (the false-block failure) | - |
 | 20 | (W1) Tests invoke bash by absolute path in the jq-absent case | Shrunken PATH constrains the hook, not the test harness | Row 6 must starve the hook's lookups without breaking subprocess launch | - |
+| 21 | (W2) `[GAP]` paths are matrix rows excluded from the COVERAGE numerator | Admitting a gap lowers the ratio | A knowingly-untested path must cost something visible, or the footer inflates | - |
+| 22 | (W5) Forge-origin test uses `-ef` (device+inode through the link), not per-entry realpath | Shell builtin, fork-free clean scan | Says the entry IS the checkout's file, and keeps the common clean case at a handful of forks | - |
+| 23 | (W5) Degenerate installs exit silently: forge root resolving into ~/.claude itself (script installed as a copy), and whole-category symlinks (rules/, skills/) checked only for dangling | Silent, not guessing | A copy-installed check comparing ~/.claude against itself would emit nonsense; a copy-installed skills/ tree is install.sh's supported default, not drift | - |
 
 ## Outcomes & Retrospective
 (fill at close: shipped, gaps, lessons)
