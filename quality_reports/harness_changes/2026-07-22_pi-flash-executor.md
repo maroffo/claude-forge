@@ -40,3 +40,4 @@ Stop invoking `scripts/pi-exec`; `git revert <commit>`. Affects: scripts/pi-exec
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 5 pi driver runs known from prose (1 on 2026-07-22, 4 on 2026-07-25), 0 of them traced | insufficient data: the 40 to 60 percent Anthropic spend drop was never measured because it was to be counted from EXECUTOR lines and there are 0 in the corpus; neither falsifier arm is established, mean fix rounds were never computed and only one subtask was implemented natively (wishew #3027) which was a routing failure rather than pi output rejected as unusable, one short of the 2-subtask bar; the rule subsection has since moved into skills/orchestrator/SKILL.md line 33 while scripts/pi-exec itself is unchanged | kept |

@@ -48,5 +48,6 @@ Affects: `rules/harness-changes.md`. No code changes, no skill changes.
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 5 contracts written after the trim, 1 token baseline | rules/harness-changes.md went 735 to 435 tokens, a 300-token drop that falls short of the 350 promised; the behavioral falsifications held, with 5 of 5 following contracts carrying all six required fields | kept |
 
 Verdict: pending.

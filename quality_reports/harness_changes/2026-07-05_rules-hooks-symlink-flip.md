@@ -38,3 +38,4 @@ A live session breaks or behaves inconsistently because a forge branch checkout 
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 22 days live (2026-07-05 to 2026-07-27) | ~/.claude/rules is a directory symlink into the forge and every forge-derived hook is a per-file symlink, so rules and hooks drift is impossible by construction, backups preserved at rules.backup and hooks.backup, and no session breakage from a branch checkout swapping rules mid-run was recorded | kept |

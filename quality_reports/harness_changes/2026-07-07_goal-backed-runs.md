@@ -36,3 +36,4 @@ If over 10 sessions the proposed conditions are consistently wrong-grained (eval
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 20 traced sessions (13 with more than 3 events), 2026-06-08 to 2026-07-27 | component relocated by 2026-07-25_orchestrator-progressive-disclosure.md: rules/orchestrator-protocol.md now carries only the spine and Goal-Backed Runs lives at skills/orchestrator/SKILL.md:148, so the contract no longer points at where the text is enforced, and /goal proposals are captured by no trace step | modified |

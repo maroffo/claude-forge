@@ -46,5 +46,6 @@ Affects: `skills/harness-trace/src/harness_trace/extractor.py`, `skills/harness-
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 20 traces, all carrying active_min | active_min present in 20 of 20 traces and never exceeds duration_min; the two multi-day spans land inside the predicted band (1303 min span to 175 active, 1148 to 225) and short single-sitting sessions match exactly (23/23, 21/21, 1/1) | kept |
 
 Verdict: pending.

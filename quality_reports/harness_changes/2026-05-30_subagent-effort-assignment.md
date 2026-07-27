@@ -38,3 +38,4 @@ If review quality drops (same class of MAJOR/CRITICAL findings missed by `medium
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 13 agents, 2 token baselines both post-change | the frontmatter half survives and grew with the fleet (12 of 13 agents pin effort: 9 medium, 2 low, 1 high, with software-engineer omitting it by design), but the "Effort assignment" section named in the component no longer exists in rules/orchestrator-protocol.md: it moved into skills/orchestrator/SKILL.md under 2026-07-25_orchestrator-progressive-disclosure.md | modified |

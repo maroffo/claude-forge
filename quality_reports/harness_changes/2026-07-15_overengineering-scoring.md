@@ -36,3 +36,4 @@ If over the next 10 sessions the bullet penalizes plan-mandated structure at lea
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 14 SCORE events and 26 REVIEW events across 20 traced sessions | insufficient data: the precondition is a reviewer emitting an over-engineering finding, and no finding of any kind is observable, since REVIEW events carry "findings":{} and SCORE events carry only the total with no Major or Minor breakdown; re-check by reading the finding list of the next scored session rather than the trace | kept |

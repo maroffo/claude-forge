@@ -37,3 +37,4 @@ Any of, over the next 10 runs: (a) a finding discarded or downgraded as unproven
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 1 pr-review run of the 10-run window (three PRs, 2026-07-25) | the evidence taxonomy did the work the gate was built for: references/evidence.md caught a fake red-green whose red was an ImportError, and every Major was re-verified by executing on both sides of the merge base; falsifier (a) came close without firing, a security Critical on install.sh was nearly reported as unproven and turned out real, then was confirmed by reproducing at the same fidelity, so it was never discarded; no evidence test leaked out of the review directory | kept |

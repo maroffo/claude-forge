@@ -37,3 +37,4 @@ Within the first 10 auto-readied issues: 3 or more vetoed by Max or ending `agen
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 94 labelled issues across 4 hikmaAI repos (21 agent:ready, 66 agent:human, 7 agent:needs-spec) and 33 downstream merged PRs | the hard rail shows no breach: agent:blocked is 0 in every repo and every downstream agent PR merged, which is inconsistent with a rubric too loose; the label distribution is conservative, agent:human outnumbering agent:ready 3 to 1; the "Max reverses at most 4 of the first 20 verdicts" half stays unmeasured because label-removal history was not queried and an agent:human label cannot be distinguished from a human-set one without it | kept |

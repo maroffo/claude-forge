@@ -56,3 +56,4 @@ Counted form: over the next 10 sessions, more than one observed miss of this kin
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 2 traced sessions since merge, of a 10-session window; the 40-case eval not re-run | insufficient data: all three boundaries are live in the descriptions and no genuine miss has been observed, but the real-session half is not measurable at all because a skill that did NOT fire leaves no trace, all 40 ROUTE events carry decision_basis "explicit subagent_type" with alternatives_considered empty; the eval half is worse than unmeasured, the pr-review round of the same day found the instrument was scoring the author's machine (3 of 40 cases expected gitignored symlink skills, unreachable on a clean checkout) and it was changed to fail loudly, so the 37.7 baseline is no longer comparable to a re-run | kept |

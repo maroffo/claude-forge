@@ -36,3 +36,4 @@ If over 10 UI sessions the protocol produces zero findings beyond what tests cau
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 20 traced sessions (13 with more than 3 events), 2026-06-08 to 2026-07-27 | insufficient data: no session touched rendered UI (the traced work is markdown, Python and shell in claude-forge), so the browser protocol neither caught a defect nor misfired on backend-only work; re-check after 10 sessions in a frontend repo | kept |

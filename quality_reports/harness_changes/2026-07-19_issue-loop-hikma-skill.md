@@ -41,3 +41,4 @@ Any of the following within the first 10 loop-produced PRs means the change made
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 33 agent-branch PRs across 4 hikmaAI repos, 2026-07-19 to 07-26, against a 10-PR prediction window | prediction beaten: the first 10 by date all merged against a bar of 7 of 10 reaching an open PR at DoD, and all 33 are merged with 0 closed unmerged; agent:blocked is 0 across all four repos against a falsifier of more than 4 of 10; no push outside agent/* observed, though one branch (hikma-mirsad #757 agent/topical-ml-control) departs from the mandated agent/issue-N-slug form while staying inside the agent/ rail | kept |

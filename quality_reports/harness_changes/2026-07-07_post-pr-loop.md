@@ -36,3 +36,4 @@ If a loop pushes outside its PR branch even once, revert the push-authorization 
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 20 traced sessions (13 with more than 3 events), 2026-06-08 to 2026-07-27 | insufficient data: no PR-babysitting loop session occurred in the corpus so the CI-failure-to-fix latency was never exercised; the push-scope invariant is intact in text (source-control SKILL.md:129 keeps NEVER-push with the loop as sole carve-out) and no push outside a PR branch was observed; re-check after the first /loop run on an open PR | kept |

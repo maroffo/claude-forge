@@ -37,3 +37,4 @@ Reminder fires in a repo with no pending contracts or before 5 post-contract ses
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 12 traced sessions since 2026-07-05 | hook observed firing at SessionStart on 2026-07-27 and the Result-row pass it nudges for (issue #103) is running at session 12 of the contracted 15, against a 0-of-19 historical base rate; the falsification needs 20+ post-contract traced sessions and only 12 exist | kept |

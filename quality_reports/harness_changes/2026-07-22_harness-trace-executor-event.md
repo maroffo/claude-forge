@@ -35,3 +35,4 @@ Any previously-parsing session trace fails to parse after this change, or an EXE
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 20 traced sessions, 0 of them using pi-exec | insufficient data: the precondition never occurred, no traced session invoked pi-exec so no EXECUTOR line was ever available to extract and the event count is 0; both falsifiers stayed negative, all 20 pre-existing traces still parse and no event was forged from quoted or fenced text; re-check after the next session that actually routes a subtask through pi-exec | kept |

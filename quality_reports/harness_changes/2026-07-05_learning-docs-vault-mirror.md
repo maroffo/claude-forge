@@ -36,3 +36,4 @@ Vault notes drift from repo LEARNING.md in ways that mislead (stale/edited copie
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 3 vault notes, 16 mirrored lessons, 2026-07-07 to 2026-07-16 | Biauto (5 entries), claude-advanced-review (4) and HikmaAI (7) all have a "<project> - Learnings" note created after the contract, meeting the notes-exist-over-5-runs bar; gap worth noting is that claude-forge itself has an active LEARNING.md but no vault mirror | kept |

@@ -40,3 +40,4 @@ Second falsifier: if a real CRITICAL is observed being suppressed with the ratio
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 4 REVIEW events in the 1 traced session since merge, of a 10-session window | insufficient data: the 80 percent non-placeholder evidence rate is not computable from telemetry because every REVIEW event in the corpus carries "findings":{}, including all 4 in the only post-change session, so neither the evidence field nor the fix-round side effect can be counted; the secondary non-numeric prediction did land, the severity vocabulary now exists once in quality-gates.md and all 7 reviewer definitions point at it while carrying the evidence field; re-check by reading one review report by hand | kept |

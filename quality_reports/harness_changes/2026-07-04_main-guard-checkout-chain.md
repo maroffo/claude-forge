@@ -38,3 +38,4 @@ If a denied-should-allow or allowed-should-deny case appears (e.g. a chain form 
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 3 weeks of commits plus a 16-case suite in every test-e2e | no denied-should-allow or allowed-should-deny case has surfaced: the chain resolution is intact, the regression suite runs green on every commit, and in the live 2026-07-27 session the only gate that blocked a commit was pre-commit-gate over a Makefile lookup, not the branch guard | kept |

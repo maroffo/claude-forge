@@ -51,5 +51,6 @@ $EDITOR ~/.claude/settings.json   # remove "SessionEnd" entry
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 20 traced sessions (2026-06-08 to 2026-07-27) | trace files went from 0 to 20 under quality_reports/traces/, roughly one per orchestrator session; every file is a claude-forge session, so the cwd filter held and no non-claude-forge leakage occurred | kept |
 
 Verdict: pending.

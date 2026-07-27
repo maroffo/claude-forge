@@ -35,3 +35,4 @@ If a Write tool call to any of the protected paths is ever permitted (not denied
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | both settings files inspected 2026-07-27, 8 days after merge | 0 Write( deny rules remain in hooks/settings.example.json or in the live ~/.claude/settings.json, and every protected path kept its Edit twin (6 in the example file, 7 live, the extra being gemini-api-key which the contract declares live-only); no deny-rule startup warning has been reported since; the falsifier (a Write to a protected path being permitted) was never exercised, so the Edit-covers-Write assumption stays untested rather than confirmed | kept |

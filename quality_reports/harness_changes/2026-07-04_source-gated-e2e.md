@@ -38,3 +38,4 @@ If a regression ships through a docs-only-gated commit that `make test-e2e` woul
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 113 commits since 2026-07-04 | 102 of 113 commits were docs or assets only under the hook's exact allowlist and therefore skipped make test-e2e while make check still ran, .json and .py stages still run the full suite so the settings-template guard stayed gated, no regression traced to a docs-only commit | kept |

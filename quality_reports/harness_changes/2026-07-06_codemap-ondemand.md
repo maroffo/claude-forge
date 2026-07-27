@@ -65,3 +65,4 @@ codemap/tests/test_cli.py, hooks/settings.example.json.
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 20 traced sessions (13 with more than 3 events), 2026-06-08 to 2026-07-27 | insufficient data: the contract assumed codemap invocations would be visible in traces, but the extractor emits only step events (VERIFY, ROUTE, REVIEW, UAT, SCORE, BLAST_RADIUS, SUMMARY, RESEARCH) and no Bash commands, so zero codemap hits across all 20 files measure the extractor rather than adoption; re-check needs an invocation counter or an extractor step | kept |

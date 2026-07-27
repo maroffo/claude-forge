@@ -37,3 +37,4 @@ Same as the boundary contract: a dangling `skills/*` symlink on a fresh machine 
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 23 days live (2026-07-04 to 2026-07-27), 6 skills | grep for maroffo@gmail across skills/ returns nothing tracked in the repo, all six skills plus _GMAIL.md resolve through symlinks into claude-private-skills and stay registered with their descriptions, _INDEX.md rows annotated | kept |

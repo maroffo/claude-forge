@@ -38,3 +38,4 @@ If any of the six skills starts auto-triggering on unrelated requests in the nex
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 6 skills, verified in the live session registry | all six skills now publish their authored keyword-rich descriptions rather than an ABOUTME line or nothing: harness-trace, harness-mechanic, legacy-code-expert, cognitive-load-analyzer, autoresearch-prompt and linkedin-post all appear in this session's skill listing with their trigger phrases intact, and none has been observed auto-triggering on unrelated requests | kept |

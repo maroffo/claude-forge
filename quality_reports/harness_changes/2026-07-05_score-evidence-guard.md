@@ -73,3 +73,4 @@ hooks/settings.example.json, rules/orchestrator-protocol.md.
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 14 SCORE events across 20 traced sessions, 2026-07-04 to 2026-07-25 | all 14 SCORE events are preceded in-session by a VERIFY reporting tests_pass or lint_clean true (14 of 14), consistent with the gate holding; the residuals the contract asked to measure stay unmeasurable because traces record no hook blocks and no edit ordering, so freshness after the last source edit and the under-one-block-per-session rate remain unverified | kept |

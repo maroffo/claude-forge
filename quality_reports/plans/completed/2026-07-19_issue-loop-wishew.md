@@ -98,4 +98,8 @@ Board: claim = In progress, PR aperto = In review, escalation = Backlog + `agent
 
 ## Outcomes & Retrospective
 
-(compilare alla chiusura)
+(chiuso 2026-07-27, retroattivamente durante il pass issue #103; il closeout del pilot era in 373eb53)
+
+- **Shipped:** pilot #3485 mergiato a SCORE 97/100, 3 bug reali di harness trovati e fixati in-flight (paginazione skip_done, SSH identity in sessione remota, label via REST per il permesso read:org mancante).
+- **Gaps:** il componente non è raggiungibile su questa macchina (nessun repo claude-skills-wishew, nessun symlink issue-loop-wishew) mentre `skills/_INDEX.md` lo pubblicizza ancora; i 4 PR agent/* successivi nel monorepo usano naming agent/fix-* e non sono attribuibili al loop. Un solo datapoint dei 10 della finestra del contratto.
+- **Lessons:** un pilot che merge al primo colpo non chiude la finestra di osservazione del contratto; l'indice delle skill va tenuto allineato alla realtà della macchina (riga _INDEX da sistemare o componente da ricollegare).

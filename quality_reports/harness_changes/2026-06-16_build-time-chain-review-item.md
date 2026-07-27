@@ -38,3 +38,4 @@ If reviewers cannot enumerate the chain from the diff alone (because it spans re
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 20 traced sessions, 26 REVIEW events | insufficient data: the checklist item only applies when a build-time env var, build-arg or Dockerfile ARG is touched, and no reviewed change in the corpus touched one, so the item never had an occasion to fire or to produce the "cannot verify" non-finding its falsification watches for. Re-check against wasit or mirsad reviews, where the original three occurrences came from | kept |

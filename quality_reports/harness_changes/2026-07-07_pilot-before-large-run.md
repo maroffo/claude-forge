@@ -35,3 +35,4 @@ If over 5 large-fan-out sessions the pilot never changes the prompt or approach 
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 20 traced sessions (13 with more than 3 events), 2026-06-08 to 2026-07-27 | component relocated by 2026-07-25_orchestrator-progressive-disclosure.md, the paragraph now lives at skills/orchestrator/SKILL.md:117 rather than in rules/orchestrator-protocol.md, and separately no fan-out over 10 items appears in the corpus so the pilot behaviour has had no occasion to fire | modified |

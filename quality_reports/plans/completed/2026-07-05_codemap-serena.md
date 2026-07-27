@@ -76,4 +76,8 @@ Files (new dir `codemap/`):
 
 ## Outcomes & Retrospective
 
-- (open)
+(closed 2026-07-27, retroactively during the issue #103 contract-result pass; work had landed weeks earlier)
+
+- **Shipped:** the codemap toolkit (generate.py, 4 ast-grep rules, tests) survives; its delivery mechanism did not: committed CODEMAP.md was rejected by a unanimous 3-reviewer second opinion, the ephemeral SessionStart replacement was itself superseded the next day by the on-demand CLI (plan 2026-07-06_codemap-ondemand). Serena was closed NOT adopted on 2026-07-07: native first-party LSP plugins covered the need at zero MCP cost (contract 2026-07-05_serena-adoption, verdict reverted).
+- **Gaps:** none open; both workstreams have terminal states recorded in their contracts.
+- **Lessons:** the committed-artifact rejection is the origin of the "validate design against own philosophy, fresh by construction" memory; delivery mechanisms deserve the same review as the artifact they deliver. This plan stayed in active/ for 3 weeks after its last real event, which is what fired the execplans-living-docs falsification at threshold: the close step needs to be part of ending a workstream, not a separate chore.

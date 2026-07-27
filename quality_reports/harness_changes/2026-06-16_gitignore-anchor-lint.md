@@ -39,3 +39,4 @@ Unregister the `gitignore-anchor-lint.sh` line from `~/.claude/settings.json` (a
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 20 traced sessions, 0 recorded firings | insufficient data: the hook is installed and registered but emits additionalContext rather than a trace event, and no firing appears in any trace or in the live-session hook observations, so the 15-session false-positive-rate falsification has no data to key on. Re-check by transcript review or by adding a trace event for advisory hook fires | kept |

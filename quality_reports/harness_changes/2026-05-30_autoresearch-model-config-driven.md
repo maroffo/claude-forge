@@ -39,3 +39,4 @@ If a future contributor reports the model/pricing is STILL hard to change (e.g. 
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 1 checkable grep, 2 months since landing | no model ID remains in Python source: the only claude- strings under skills/autoresearch-prompt/src are the three data rows in models.toml, so a model or price change is a one-line data edit as predicted | kept |

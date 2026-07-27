@@ -57,3 +57,4 @@ judge intent), the tightening under-catches: extend the stub-word alternation or
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 16 days and roughly 60 commits since 2026-07-11 | the tightened stub-intent alternation is live and no further false-positive deny on a descriptive placeholder comment was recorded, down from the 1 observed on 2026-07-11, while the guard did produce two false positives of other shapes in the window (heredoc-parsed commit message, doom-loop on batch edits) so the class is alive but not on this pattern | kept |

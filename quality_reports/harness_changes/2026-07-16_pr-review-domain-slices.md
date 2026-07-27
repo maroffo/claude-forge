@@ -36,3 +36,4 @@ A reviewer misses a cross-domain defect that the full diff would have surfaced (
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 1 pr-review run of the 10-run window (three PRs, 2026-07-25) | insufficient data: reviewers were routed by domain as designed but no per-reviewer brief size was recorded, so the "40 percent smaller briefs" prediction has no before or after number; the falsifier did not fire, the one defect no reviewer caught (check_skill_drift made structurally unable to fail) was invisible in the full diff too by the retrospective's own account, so it is not attributable to slicing; re-check by capturing brief token counts on the next PR above 1000 lines | kept |

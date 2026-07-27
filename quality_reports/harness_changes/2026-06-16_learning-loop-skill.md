@@ -40,3 +40,4 @@ If two consecutive runs propose the same patterns and none get implemented, the 
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 2 recorded runs over 6 weeks | the loop converted cross-product patterns into landed harness changes as predicted: the first run produced four contracts on the same day (silent-success, build-time-chain, gitignore-anchor-lint, concurrency-cancellation) and the second added the doc-gardening pass, so the "two consecutive runs propose the same patterns and none get implemented" falsification did not fire | kept |

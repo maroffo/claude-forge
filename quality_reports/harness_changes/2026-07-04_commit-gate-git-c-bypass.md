@@ -37,3 +37,4 @@ If the widened regex fires on non-commit commands (false-positive gate runs on e
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 4 gate hooks, 3 weeks of commits | all four gates now match the git -C form and the regression suite pinning the negative cases runs in every test-e2e; no false-positive gate run on a non-commit git command has been observed, including in the live 2026-07-27 session where the gate fired only on real commits | kept |

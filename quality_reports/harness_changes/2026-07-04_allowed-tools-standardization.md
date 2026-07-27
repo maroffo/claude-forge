@@ -37,3 +37,4 @@ If a skill starts failing because its declared set was always wrong and only wor
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 55 skills, 3 weeks | the primary claim holds, with zero skills still using the ignored tools: key and 23 declaring allowed-tools, so every declared restriction is now effective; the secondary acp claim did not hold, since 8 language skills still carry mcp__acp__ tool names dating from the first commit and were outside the contract's named scope | kept |

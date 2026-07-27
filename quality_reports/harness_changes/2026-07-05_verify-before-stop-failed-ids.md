@@ -51,3 +51,4 @@ hooks/tests/test_verify_before_stop.py.
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 20 traced sessions (13 with more than 3 events), 2026-06-08 to 2026-07-27 | insufficient data: hook blocks are recorded nowhere (traces carry only step events, zero PERMISSION_EVENT across the corpus), so neither the false-positive rate nor zero-turns-ending-red is observable; failed verifies do occur (40 VERIFY events with all three axes false) but cannot be tied to turn ends; re-check needs a hook-fire log | kept |

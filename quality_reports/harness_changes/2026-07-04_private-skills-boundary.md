@@ -37,3 +37,4 @@ Re-add the directory from the private repo and drop the gitignore line: `git rev
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 23 days live (2026-07-04 to 2026-07-27) | git ls-files matching mauro is empty on main, skills/mauro-blogger resolves to the private repo, the skill is still registered with its original description | kept |

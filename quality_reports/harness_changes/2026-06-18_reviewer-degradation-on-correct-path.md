@@ -38,3 +38,4 @@ If a run still aborts entirely because one reviewer failed, or omits the `Review
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 3 second-opinion runs recorded in plans, none with a reviewer failure | insufficient data: the structural pieces are in place and the one fully recorded three-reviewer run completed with a synthesis, but no run since has had a reviewer fail or time out, so the degradation path, the exit-124 catch and the 600s DeepSeek timeout never fired. Re-check after the next run where a reviewer 401s or hangs | kept |

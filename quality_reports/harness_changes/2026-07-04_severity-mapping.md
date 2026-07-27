@@ -37,3 +37,4 @@ If advanced-review's vocabulary changes and the table silently mismatches (doc-g
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 20 traced sessions (13 with more than 3 events), 14 SCORE events | insufficient data: no advanced-review run appears anywhere in the corpus, so no SCORE ever had to map CRITICAL/WARNING/INFO onto the rubric; the table survived three later edits to quality-gates.md without drift and is now cited by the Finding Contract; re-check after the first session that scores immediately after an advanced-review run | kept |

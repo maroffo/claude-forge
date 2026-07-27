@@ -38,3 +38,4 @@ If the resume prompt appears on manual compacts or /clear (boundary confusion), 
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 19 days live, 20 traced sessions | insufficient data: the pair is registered as designed (PreCompact matcher auto writes, SessionStart matcher compact prints) and no stale marker is left in ~/.claude/tmp, but markers are consumed on use so their absence cannot distinguish fired-and-consumed from never-fired, and no trace step records post-compact behaviour; re-check needs the hook to log its fires | kept |
