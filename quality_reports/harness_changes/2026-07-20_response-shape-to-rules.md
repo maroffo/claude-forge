@@ -39,5 +39,6 @@ Editing this instruction becomes a single tracked write instead of two, and roll
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | verified live in this session, 7 days after merge | the primary falsifier is refuted directly: rules/response-shape.md (148 words) appears in this session's system prompt sourced from the repo path through the ~/.claude/rules symlink, and the block exists in exactly one tracked file with no copy left in CLAUDE.md.example, so editing it is now a single write; one declared invariant has since eroded, the "# Workflow rules index names the new rule" discoverability clause was removed when 2026-07-25_claude-md-dedup.md rewrote that paragraph, which is harmless because every file in rules/ loads unconditionally | kept |
 
 Verdict: **kept** / **reverted** / **modified** (link to follow-up contract). If reverted, write one line on why the prediction missed.

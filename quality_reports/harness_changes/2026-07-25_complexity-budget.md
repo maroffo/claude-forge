@@ -38,3 +38,4 @@ Second falsifier: if a plan's budget is used to justify stopping short of a deli
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 1 plan written since merge, of a 10-plan window | insufficient data on the falsifier, but the first half of the prediction is already missing: of the plans on disk only the two authored in this contract's own session carry a ## Budget block, and the single plan written since (2026-07-27_swarm-forge-borrowings.md) has none, giving 0 of 1 compliance; the cause is nameable and fixable, skills/plan-forge/references/plan-template.md is what actually generates plans and its 9 headings include no Budget section, so the rule and the generator disagree | kept |

@@ -38,3 +38,4 @@ If in the next 5 PR reviews a defect ships that the removed duplicate fleet pass
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 3 PR reviews (2026-07-25 round over PRs #100, #11, #1) | one reviewer fleet per PR (four domain reviewers, no duplicate pass), second-opinion gated to conflicts only, routing and threshold tables still references not copies, no shipped defect attributed to the removed duplicate pass | kept |

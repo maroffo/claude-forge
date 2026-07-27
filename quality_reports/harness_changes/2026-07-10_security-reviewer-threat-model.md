@@ -37,3 +37,4 @@ If, over the next 10 security-reviewer runs, a genuine reachable vulnerability i
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 2 security-reviewer runs post-contract against a 15-session target | insufficient data: only 2026-07-15 (1 Major, 2 Minor) and 2026-07-25 (no counts recorded) invoked security-reviewer after the change, and traces store finding counts but never whether a threat model was stated, so the precision claim is unmeasured; the recall falsification did not fire, no later review path flagged a reachable bug that security-reviewer had dropped | kept |

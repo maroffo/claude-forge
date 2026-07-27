@@ -35,3 +35,4 @@ Re-add the 7 removed lines to `permissions.deny` in `~/.claude/settings.json`: `
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 1 recurrence observed 4 days after merge | superseded by 2026-07-19_drop-dead-write-deny-rules.md: this change edited only the live ~/.claude/settings.json, whose tracked source still carried the rules, so the same 7 startup warnings were observed again on 2026-07-19; the effective fix landed at the source in hooks/settings.example.json and workstation_setup | modified |

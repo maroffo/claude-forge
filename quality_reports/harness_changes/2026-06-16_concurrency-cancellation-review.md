@@ -38,3 +38,4 @@ If reviewers begin flagging idiomatic, provably-safe `range chan` (channels with
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 20 traced sessions, all in a Python and shell harness repo | insufficient data: the guidance applies to Go channel or async-Python concurrency changes and no such change was reviewed in the corpus, so neither the "catches a cancellation trap" prediction nor the "flags idiomatic range chan" falsification could occur. Re-check after the next golem or mirsad concurrency work | kept |

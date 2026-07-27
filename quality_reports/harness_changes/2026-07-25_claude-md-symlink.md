@@ -44,3 +44,4 @@ Second falsifier: if `install.sh` is re-run and `git status` in claude-forge sho
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | verified live in this session, 2 days after merge | the primary falsifier is refuted directly, this session's context does include the CLAUDE.md content and ~/.claude/CLAUDE.md is a symlink to claude-forge/CLAUDE.md.example with ~/.claude/AGENTS.md still resolving through it; the second falsifier stayed negative, the main checkout shows no modification to CLAUDE.md.example, so no installer run has written through the link | kept |

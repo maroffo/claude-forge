@@ -37,3 +37,4 @@ If within the next 10 sessions an engineer deletes pre-existing dead code citing
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 26 REVIEW events across 20 traced sessions, all with empty findings | insufficient data: per-finding data never reached telemetry, every REVIEW event carries "findings":{} and the 14 SCORE events carry only {score} with no deduction breakdown, so neither "0 diffs land with orphans" nor a Minor attributable to this bullet is computable; the falsifier (an engineer deleting pre-existing dead code citing orphan cleanup) has no reported occurrence; re-check once review-findings capture populates or by reading one review report by hand | kept |

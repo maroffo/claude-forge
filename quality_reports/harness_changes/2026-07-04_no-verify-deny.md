@@ -37,3 +37,4 @@ If the deny fires on a commit whose message merely MENTIONS the flag in quoted t
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 3 weeks of commits, 0 bypass attempts | insufficient data: no commit in the corpus attempted a bypass flag and no commit message quoted one, so neither the deny nor its false-positive falsification had an occasion to fire; the three regression cases do run green in every test-e2e. Re-check the first time a session hits a red gate under pressure, which is the scenario the check exists for | kept |

@@ -42,3 +42,4 @@ Any of the following within the first 10 loop-produced PRs means the change made
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 1 attributable PR of the 10-PR window (pilot #3485, 2026-07-19) | insufficient data: the pilot PR wishew-monorepo#3485 merged at SCORE 97/100 and 0 PRs closed unmerged, but only 1 of 10 datapoints exists and the 4 later agent/* PRs in that repo (#3646 open, #3653, #3661, #3673, all 2026-07-24) use agent/fix-* naming rather than the loop's agent/issue-N-slug so they cannot be attributed; separately the component is currently unreachable on this machine, no claude-skills-wishew repo exists anywhere under /Users/maroffo and no issue-loop-wishew symlink exists in ~/.claude/skills or skills/, while skills/_INDEX.md line 31 still advertises it | kept |

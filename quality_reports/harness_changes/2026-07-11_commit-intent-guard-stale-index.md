@@ -68,3 +68,4 @@ cannot expand may leave an untracked stub unscanned; tracked files remain covere
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 20 traced sessions (13 with orchestrator events) plus 33 merged agent PRs, 2026-07-11 to 2026-07-27 | no stale-index false deny and no stub-landing report since merge; hook unmodified since its own commit a76cdb6, 6 index-mutating regression cases still present in hooks/tests/test_commit_gates.py; the deny channel is not in telemetry (PERMISSION_EVENT = 0 across the corpus) so this is absence-of-complaint, not a counted zero | kept |

@@ -37,3 +37,4 @@ Revert if a 1M session reaches auto-compact with NO prior nudge (bands set too h
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 15 session markers, 2026-07-10 to 2026-07-27 | every post-change marker carries 45, 52 or 57, which is the compact threshold of 60 minus the contracted offsets 15/8/3, replacing the pre-change 60/75/85 values, and the top band sits 3 points below the threshold so nudges still precede compaction | kept |

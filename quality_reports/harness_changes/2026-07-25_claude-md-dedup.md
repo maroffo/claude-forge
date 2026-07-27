@@ -40,3 +40,4 @@ Second falsifier: if `/second-opinion` stops firing on its own on complex tasks 
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | word counts verified 2026-07-27; 2 traced sessions since merge against a 10-session behavioural window | the size prediction landed exactly: CLAUDE.md.example is 475 words as predicted (from 944) and total always-on context is 3134 words (475 plus 2659 across 6 rules) against a predicted about 3055, the small excess being rules added since; this session's own system prompt confirms the deduped content, no skill catalog, no hook inventory, no second-opinion block; both behavioural falsifiers need 10 sessions and only 2 have been traced, with no observed case of a formerly-catalogued skill failing to be invoked | kept |

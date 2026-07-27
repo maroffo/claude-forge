@@ -36,3 +36,4 @@ If the new guard `test_settings_example.py` flags a false positive on a template
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | template parsed 2026-07-27, 20 days after the fix | the template now parses to four distinct SessionStart matchers (startup-or-resume to codemap-session, empty to checkpoint-reminder, compact-or-clear to retrospective-nudge, compact to compact-resume) with zero duplicate keys so codemap-session survives a clean apply, and the drift guard runs inside make test-e2e with no false positive | kept |

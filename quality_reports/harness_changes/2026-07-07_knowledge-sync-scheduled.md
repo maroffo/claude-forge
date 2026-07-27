@@ -35,3 +35,4 @@ If a scheduled run ever edits a skill file (APPLY leak), delete the crontab entr
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 0 scheduled runs due since 2026-07-07 | insufficient data: the crontab entry is installed and correct but fires on the 1st of the month so the first eligible run is 2026-08-01 and none has come due; blocker to fix before then is that ~/.claude/logs does not exist and the skill's own note says cron fails silently on a missing redirect target, so the 08-01 run would produce nothing; re-check after 2026-09-01 | kept |

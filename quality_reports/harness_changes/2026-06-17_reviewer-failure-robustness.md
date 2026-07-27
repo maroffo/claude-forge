@@ -38,3 +38,4 @@ If a `/second-opinion` run aborts entirely (no synthesis) because one reviewer f
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | superseded after 1 day | explicitly superseded by 2026-06-18_reviewer-degradation-on-correct-path.md, which found that this contract hardened the wrong code path: the skill inlines docker run and never calls the .sh scripts the timeout guard was added to, so in the orchestrated flow the guard never executed | modified |

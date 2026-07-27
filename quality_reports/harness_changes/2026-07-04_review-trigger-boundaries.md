@@ -37,3 +37,4 @@ If Max says "second opinion on this diff" style phrases and lands on gemini-revi
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 20 traced sessions (13 with more than 3 events), 2026-06-08 to 2026-07-27 | routing-table half of the component deleted by 2026-07-25_claude-md-dedup.md (CLAUDE.md.example is now 64 lines with no skill or routing table), the description half survives and was generalized by 2026-07-25_description-negative-boundaries.md, wrong-skill loads stay unobservable since all 40 ROUTE events carry decision_basis "explicit subagent_type" | modified |

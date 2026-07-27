@@ -36,3 +36,4 @@ Delete the export block from `workstation_setup/zsh/.zshrc` and restore `"50"` i
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 19 days live, 0 compacts with recorded occupancy | insufficient data: the export is in place in both workstation_setup/zsh/.zshrc:191 and ~/.zshrc:191 with settings.json aligned to 60, and subprocesses do read it since context-watcher derives its bands from 60, but nothing on disk records the ctx percentage at the moment a compact fires so whether the app itself honours the export is still unobserved; re-check needs the compact-resume hook to log occupancy | kept |

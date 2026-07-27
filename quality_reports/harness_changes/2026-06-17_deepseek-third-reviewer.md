@@ -38,3 +38,4 @@ If across the next 10 `/second-opinion` runs DeepSeek never produces a substanti
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 3 second-opinion runs recorded in plans, short of the 10 the contract asked for | DeepSeek produced a substantive load-bearing position rather than an echo: in the 2026-07-06 three-reviewer run its objection that a skill adds two-turn indirection helped move the codemap design off skill-plus-cache onto a plain CLI command, recorded as the Condorcet winner across the three reviewers | kept |

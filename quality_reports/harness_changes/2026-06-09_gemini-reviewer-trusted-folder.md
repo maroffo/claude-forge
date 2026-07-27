@@ -38,3 +38,4 @@ If a rebuilt `gemini-reviewer:latest` still emits `not running in a trusted dire
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 3 second-opinion runs recorded in plans over 7 weeks | the ENV survives in the image definition and no trusted-directory abort has recurred: the three-reviewer run of 2026-07-06 completed with Gemini contributing substantive positions to two design decisions, and the read-only workspace mount is unchanged | kept |

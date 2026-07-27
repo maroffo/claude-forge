@@ -38,3 +38,4 @@ Repo: `git revert <commit>`. Runtime: `rm ~/.claude/skills && mv ~/.claude/skill
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | superseded same day in part, symlink live for 3 weeks | the symlink half held and is still in force, with ~/.claude/skills pointing at the repo checkout so repo and runtime cannot diverge, but the mauro-blogger half was superseded the same day by 2026-07-04_private-skills-boundary.md, which moved that skill out of the public repo into a private repo symlinked in per machine | modified |

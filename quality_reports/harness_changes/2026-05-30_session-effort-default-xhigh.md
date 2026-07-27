@@ -38,3 +38,4 @@ If `xhigh` produces no measurable reduction in fix rounds over 10 sessions AND c
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 20 traced sessions (13 with orchestrator events) | insufficient data: the contract's metric is average total_fix_rounds over 10 moderate or complex sessions, and no FIX or fix-round event exists in any of the 20 traces, so neither the improvement nor the falsification could be measured; the setting is still shipped, and the 14 SCORE events (median 95, last five 100/84/94/100/100) are the only adjacent signal. Re-check once the extractor counts REVIEW to FIX rounds | kept |

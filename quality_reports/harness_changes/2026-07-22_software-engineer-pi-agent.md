@@ -37,3 +37,4 @@ In datapoints 3-5: a session with this agent available still implements a pi-des
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 4 driver runs in a single session (2026-07-25), against a datapoints 3-5 window | the component was amended 3 days after merge by 2026-07-25_pi-driver-silent-completion.md, which added the step 5 report-delivery rule and the symlink anomaly check to the same AGENT.md, and its rule bullet moved into skills/orchestrator/SKILL.md; on the original prediction the registry route did work, the driver was launched as an agent rather than searched for as prose and no undeclared native implementation recurred, but 3 of the 4 runs delivered no report at all, which is the failure the superseding contract targets | modified |

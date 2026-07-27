@@ -39,3 +39,4 @@ Revert or rewrite if, over the next 10 uses, ANY of:
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 33 plan-derived runs (agent/issue-* PRs merged across 4 hikmaAI repos 2026-07-19 to 07-26, each driven through plan-forge by issue-loop-hikma) plus 3 plans on disk in claude-forge | the skill is in active use and its template is followed structurally: the newest plan 2026-07-27_swarm-forge-borrowings.md reproduces all 9 headings of references/plan-template.md in order; the "unused for 10 consecutive eligible tasks" falsifier is clearly not fired; the "at most 3 of 10 emitted plans need structural rework" half was never counted and stays unmeasured | kept |

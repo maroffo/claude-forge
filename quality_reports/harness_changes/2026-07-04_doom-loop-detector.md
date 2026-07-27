@@ -40,3 +40,4 @@ Unregister the three `doom-loop-detector.sh` lines from `~/.claude/settings.json
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 1 session with firing evidence, against the 15 the contract requires | insufficient data with an adverse early signal: the only session where firings were observed is 2026-07-27, where the hook fired 3 times and all 3 were legitimate incremental bookkeeping edits to a single plan file absorbed by the hook's own carry-on clause; that is 3 of 3 false positives but on a sample of one session, far short of the 15-session 80-percent threshold the falsification specifies. Re-check by transcript review across 15 sessions before deciding | kept |

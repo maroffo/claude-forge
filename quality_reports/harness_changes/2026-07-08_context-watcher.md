@@ -39,3 +39,4 @@ If in the next 10 sessions the nudge fires repeatedly within the same band (mark
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 24 session markers, 2026-07-08 to 2026-07-27 | band scheme superseded by 2026-07-10_context-watcher-window-aware.md, with the cutover visible on disk as values 60/75/85 through 2026-07-09 and 45/52/57 from 2026-07-10 on; the one-marker-per-session and one-nudge-per-band structure held throughout and no band-spam was observed | modified |

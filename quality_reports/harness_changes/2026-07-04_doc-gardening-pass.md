@@ -38,3 +38,4 @@ If over 3 runs the scan reports only advisory noise and zero true dead reference
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 3 weeks, 1 real catch, scan re-run today | the scan caught real churn-introduced staleness as predicted: deleting the CLAUDE.md skill table left 4 stale references measured on main at exit 1, and the same commit repaired a silent-success inside the check itself where MISSING-SKILL had become structurally unreachable; make doc-garden passes clean today, so the zero-findings baseline holds | kept |

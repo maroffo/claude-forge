@@ -40,3 +40,4 @@ If any trace shows a git-commit VERIFY with `tests_pass=True`, the change is wro
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 41 commit-shaped VERIFY events across 9 sessions, 2026-07-10 to 2026-07-27 | commits now emit VERIFY with lint_clean true and tests_pass left unknown, the exact fail-closed signature the contract specified, and every substantive post-contract session carries at least one (07-15 twice, 07-16, 07-25 twice, 07-27); the only post-contract session with oracles_count 0 is 2026-07-23, a single-event non-orchestrator session with no commits | kept |

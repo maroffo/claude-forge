@@ -41,3 +41,4 @@ Counted form: over the next 10 runs, more than one report whose claimed session 
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 0 driver runs since merge, of a 10-run window | insufficient data: the precondition never occurred, no pi driver run has happened since the change, the 2026-07-27 session did not use pi-exec and EXECUTOR events remain 0 across the corpus; both edits are live and inspectable; re-check after 10 driver runs against the 1-of-4 delivery baseline, and specifically whether any report claims a session file that does not exist under ~/.pi/agent/sessions | kept |

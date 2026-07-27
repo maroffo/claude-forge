@@ -39,3 +39,4 @@ If a real source file that should carry ABOUTME starts being silently exempted b
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 6 weeks, multiple install.sh runs since | the exemption now lives in repo source rather than only in the installed copy, so it survives reinstalls, and no front-matter markdown write has been blocked since; the exclusion set keeps SKILL.md and AGENT.md enforced, and every skill and agent file in the tree still carries its ABOUTME pair | kept |

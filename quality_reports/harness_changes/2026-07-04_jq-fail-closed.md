@@ -37,3 +37,4 @@ If the deny ever fires on a machine that HAS jq (PATH quirk in the hook environm
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 1 machine, all of it with jq installed | insufficient data: the precondition is a jq-less machine and that never occurred in the corpus, so neither the predicted actionable deny nor the false-lockout falsification could fire; the guard is in place and costs nothing on machines with jq. Re-check on the next fresh install or CI runner | kept |

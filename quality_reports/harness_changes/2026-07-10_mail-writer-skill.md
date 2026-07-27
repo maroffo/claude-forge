@@ -36,3 +36,4 @@ Revert or fix if, over the first 10 invocations: (a) the skill emits an em dash 
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 17 days live, 0 recorded invocations | insufficient data: drafts are conversation text so no invocation leaves an artifact in traces or on disk and the em-dash and opener predictions cannot be checked post hoc; the hard invariant is structurally safe since allowed-tools is Read and AskUserQuestion only with no Gmail or Bash path, making create-or-send impossible; re-check needs Max's own count over the first 10 drafts | kept |

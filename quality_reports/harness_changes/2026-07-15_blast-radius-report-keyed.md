@@ -37,3 +37,4 @@ Shared commit with 2026-07-15_substep-report-formats.md; selective rollback: res
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 5 post-fix traces (2026-07-15 to 07-27) against 1 pre-fix session as baseline | the precision half held completely: the ast-grep tool signal is gone from the extractor and post-fix traces show 0 spurious events, against 14 ast-grep-driven events in the single pre-fix session 6ca2d622; the recall half is unconfirmed, 0 BLAST_RADIUS events across 4 post-fix sessions with more than 3 changed files (18, 14, 48 and 55 files) and the one extracted event carried the unfilled template placeholder trigger_reason "<reason>" | kept |

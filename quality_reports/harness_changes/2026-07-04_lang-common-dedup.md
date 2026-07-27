@@ -38,3 +38,4 @@ If a language skill consumer misses the version-check behavior because the point
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 7 language skills, 3 weeks | the dedup holds structurally, with skills/_LANG_COMMON.md present and all 7 language skills pointing at it instead of carrying their own copy of the version and pre-commit boilerplate, and no stale-version answer recorded since; the corpus is thin on the falsification, since none of the 20 traced sessions is a language-skill-heavy session that would test whether the pointer is actually followed | kept |

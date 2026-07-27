@@ -38,3 +38,4 @@ If a commit lands in a repo whose `make check` FAILS (i.e. the gate let a red ch
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | superseded after 19 days | repo resolution was generalized out of this hook into the shared helper hooks/_commit_target.sh by 2026-06-17_commit-hooks-repo-resolution.md, which pre-commit-gate.sh now sources; the trigger regex was widened again by 2026-07-04_commit-gate-git-c-bypass.md | modified |

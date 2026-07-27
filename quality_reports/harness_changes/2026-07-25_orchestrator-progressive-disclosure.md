@@ -43,3 +43,4 @@ Second falsifier: any session that reaches step 4 (FIX) having invented its own 
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 2 traced sessions since merge, of a 10-session window | the size half landed: rules/orchestrator-protocol.md is 516 words (contract measured 465, the difference being work added since) and always-on total is 3134 words against 5059 before; the load-bearing invariant held and is verifiable, the literal report lines and SKIP_SET are still in the spine at lines 40-46, which is exactly what kept the blast-radius and sub-step telemetry contracts intact through the move; the "skill loaded in at least 8 of 10 sessions" falsifier is not yet decidable on 2 sessions, and the second falsifier already fired once before merge (the load point read "before step 1" while the complexity verdict is produced at step 0) and was fixed in 6001da1 | kept |

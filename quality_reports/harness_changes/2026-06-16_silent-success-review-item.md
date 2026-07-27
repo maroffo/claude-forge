@@ -38,3 +38,4 @@ If over ~15 sessions reviewers rubber-stamp the new question without analysis (i
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 26 REVIEW events across 20 traces | insufficient data: the bullets are in place in both reviewer agents, but trace REVIEW payloads carry only agent names and severity counts (15 of 26 with an empty findings object, the rest CRITICAL 0 or MAJOR 2 to 3) with no per-checklist-item attribution, so the "1 silent-success defect per 5 feature PRs" rate cannot be computed either way. Re-check once findings capture records the finding text | kept |

@@ -36,3 +36,4 @@ Nudge fires at an auto-compact or repeats within one session (gating broken), OR
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 22 days live, 3 vault Learnings notes plus repo LEARNING.md entries | nudge observed firing once at SessionStart after /clear on 2026-07-27 with no repeat and no auto-compact fire, and retrospectives did happen in the window (16 mirrored lessons plus the 2026-07-25 three-PR entry), so the ten-nudges-zero-runs falsification did not fire | kept |

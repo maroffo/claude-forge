@@ -37,3 +37,4 @@ If a reviewer nudge is lost because GC or the sanitization collides two distinct
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 31 live state files, 23 days of accumulation | state files land under ~/.claude/tmp with sanitized names, oldest surviving file is dated exactly 7 days back (2026-07-20) so the sweep bounds growth at the contracted window, against 45 unbounded stale files before the change | kept |

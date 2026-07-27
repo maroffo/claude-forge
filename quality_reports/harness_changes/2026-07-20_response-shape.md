@@ -39,5 +39,6 @@ Either of these means the change made things worse, revert:
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | superseded same day by the follow-up contract | superseded by 2026-07-20_response-shape-to-rules.md, which states the supersession in its own header; the Response Shape block no longer exists in CLAUDE.md.example or in the installed CLAUDE.md, its text now living in rules/response-shape.md, and the failure mode plus both falsification conditions carry over to that contract unchanged | modified |
 
 Verdict: **kept** / **reverted** / **modified** (link to follow-up contract). If reverted, write one line on why the prediction missed.

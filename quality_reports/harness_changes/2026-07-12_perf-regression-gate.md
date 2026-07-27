@@ -54,3 +54,4 @@ Revert if, over the next 10 hot-path sessions, ANY of:
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 20 traced sessions, none hot-path (all claude-forge, no mirsad internal/ work) | both rule hunks relocated out of the always-on layer into skills/orchestrator/SKILL.md by 2026-07-25_orchestrator-progressive-disclosure.md (BENCH-BASELINE row at line 50, bench-compare paragraph at line 62); rules/verification-protocol.md now carries only a pointer to the skill; the 10-hot-path-session window has not started | modified |

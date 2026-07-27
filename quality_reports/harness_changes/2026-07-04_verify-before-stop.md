@@ -44,3 +44,4 @@ Unregister the Stop entry from `~/.claude/settings.json` (and `hooks/settings.ex
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 20 traced sessions (13 with more than 3 events), 2026-06-08 to 2026-07-27 | evidence semantics in scan() and main() rewritten by 2026-07-05_verify-before-stop-failed-ids.md so a failed check no longer satisfies the gate, the hook remains registered on Stop alongside score-evidence-guard, and block counts are captured by no telemetry so the original near-zero-unverified-turns prediction stays unmeasured | modified |

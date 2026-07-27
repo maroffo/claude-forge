@@ -39,3 +39,4 @@ If `main-branch-guard` ever ALLOWS a commit that lands on `main` (resolution poi
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 4 gate hooks, 6 weeks of commits | the shared resolver landed and is still sourced by the gates, and no cross-repo temp-branch workaround has been needed since; the honest caveat is that the git -C half of the resolution was dead for 17 days because the gates' trigger regex did not match that form until 2026-07-04_commit-gate-git-c-bypass.md fixed it, so only the cd-and-commit half was actually working in that window | kept |

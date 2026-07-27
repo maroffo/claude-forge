@@ -37,3 +37,4 @@ Shared commit with 2026-07-15_blast-radius-report-keyed.md; selective rollback: 
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 20 traced sessions, of which 4 post-fix with more than 3 changed files | insufficient data: LOCALIZE, REPRODUCE and DRIFT_CHECK are all 0 across the whole corpus, and the falsifier cannot be evaluated because it needs a transcript that visibly contains a mandated line, which the extracted traces do not include; the false-positive arm did not fire (0 events means 0 spurious events); re-check by extracting the 2026-07-27 swarm-forge session, which emitted 3 DRIFT lines live, and confirming 3 DRIFT_CHECK events appear | kept |

@@ -35,3 +35,4 @@ Over the next 10 sessions: exclusion lists grow longer than the included scope (
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 20 traced sessions with 0 LOCALIZE and 0 DRIFT_CHECK events | the paragraph moved out of the always-on layer into skills/orchestrator/SKILL.md line 31 by 2026-07-25_orchestrator-progressive-disclosure.md, so it now reaches a brief only when the skill is loaded; the predicted effect (fewer DRIFT and LOCALIZE mismatches from missing context) has no counter either way, both event types being 0 corpus-wide | modified |

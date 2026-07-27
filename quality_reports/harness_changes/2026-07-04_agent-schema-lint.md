@@ -37,3 +37,4 @@ If the lint fails on a legitimately structured agent the registry DOES accept (s
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 13 agents, every commit for 3 weeks | the lint runs on every commit through the pre-commit gate and the agent fleet grew from 12 to 13 without a registration failure: software-engineer-pi was added on 2026-07-22 and registers correctly, so the falsification of a lint rejecting a registry-valid agent has not fired | kept |

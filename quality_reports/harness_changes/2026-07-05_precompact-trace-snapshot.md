@@ -36,3 +36,4 @@ Two trace files appear for the same session slug with different date prefixes (n
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 20 trace files, 2026-06-08 to 2026-07-27 | 20 files carry 20 distinct session slugs so the naming-regression falsification never fired, and 5 files were written a day after their filename date (four 2026-07-04 traces written 07-05, one 07-25 trace written 07-26) which is the session-start-date keying holding across a day boundary | kept |

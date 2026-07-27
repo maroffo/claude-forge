@@ -50,3 +50,4 @@ Note for future scoping: `advanced-review` and `issue-loop-hikma` are symlinks i
 
 | Date | Sample size | Observed metric | Verdict |
 |------|-------------|-----------------|---------|
+| 2026-07-27 | 2 traced sessions since merge, of a 10-use window across 5 skills | insufficient data: the split is in place across all three repos and no run has reported having to open a references/ file on its normal path, but with only 2 traced sessions the 10-use window has barely started and neither falsifier has had a chance to fire; the per-activation word savings were measured at authoring time and are not re-derived here | kept |
