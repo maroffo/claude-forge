@@ -131,7 +131,7 @@ The matrix is the union of three dimensions: consolidation outcomes (merge, no-m
 - [x] Analysis + 2-lab second opinion + plan (2026-07-27, planning session)
 - [x] W1 finding dedup (3 harness files + contract) (2026-07-27, impl session; W1.1-W1.4 done, `make check` green, DRIFT: aligned)
 - [x] W2 review artifacts (3 harness files + contract) (2026-07-27, impl session; W2.1-W2.5 done, `make check` + `make test-e2e` green, DRIFT: aligned; approval.md placed per decision 12)
-- [ ] W3 Go metrics as evidence (4 files + contract)
+- [x] W3 Go metrics as evidence (4 files + contract) (2026-07-27, impl session; W3.1-W3.5 done, `check` target byte-identical (od -c vs HEAD), `make check` + `make test-e2e` green, DRIFT: aligned)
 - [ ] W4 docs + follow-ups drafted
 - [ ] Review round + fixes
 - [ ] PR + SCORE
@@ -145,6 +145,7 @@ The matrix is the union of three dimensions: consolidation outcomes (merge, no-m
 - DeepSeek asserted `quality_reports/reviews/` was already gitignored by convention. It is not (`.gitignore:22-26`). Reviewer premises need checking even when the conclusion holds.
 - (W2, impl session) `approval.md` cannot live inside `quality_reports/reviews/<slug>/`: git does not re-include a file whose parent directory is excluded, so a committed file under the ignored tree would need a force-add on every run. Evidence: gitignore semantics ("It is not possible to re-include a file if a parent directory of that file is excluded", gitignore(5)). Placement moved, see decision 12.
 - (W2, impl session) The gitignore guard is prose, not a hook: a session that skips it would commit exploit recipes to a target repo on the first findings write. Recorded in `quality_reports/plans/tech-debt.md`.
+- (W3, impl session) crap4go has no tagged release: `@latest` resolves to a master pseudo-version (`v0.0.0-20260521...` at check time), so install-on-demand pins to whatever master is that day. Verified against the Go proxy and GitHub. Also: no project-checks template had an install-on-demand idiom; W3 introduced one (`command -v ... || go install ...` plus a GOTOOLS_BIN PATH prefix scoped to the two new recipes, since GOPATH/bin is not universally on PATH).
 
 ## Decisions
 
@@ -153,6 +154,7 @@ The matrix is the union of three dimensions: consolidation outcomes (merge, no-m
 | # | Decision | Choice | Rationale |
 |---|----------|--------|-----------|
 | 12 | `approval.md` location | `quality_reports/approvals/<YYYY-MM-DD_slug>.md`, outside the ignored tree, one file per run | git cannot re-include a file whose parent directory is gitignored; a committed record under `quality_reports/reviews/<slug>/` would need force-adds or fragile glob ignores. Also makes decision 5's "path of the local findings directory" field meaningful (committed record points at a genuinely separate local path). E2E rows 5 and 7 read against this path |
+| 13 | go.mk parameterization | `PKG` wired only into `mutation` (default `./...`); `crap` takes no argument (crap4go drives `go test -coverprofile` itself); install-on-demand guarded by `command -v`, binaries reached via a GOTOOLS_BIN PATH prefix scoped to the two new recipes | Overloading PKG across both targets would give one variable two meanings; without the PATH prefix, install-on-demand succeeds and the next line fails with command not found. `check`'s execution environment untouched |
 
 ## Outcomes & Retrospective
 
