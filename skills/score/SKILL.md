@@ -22,6 +22,7 @@ Compute a quick quality readiness signal for the current working tree.
    - ≥80 commit-ready
    - ≥90 PR-ready
    - ≥95 excellence
+5. Log the run, then render the trend (see History below). Never hand-write the row or the delta: the script computes both.
 
 ## Output format
 
@@ -39,6 +40,23 @@ Ready to commit:  <yes|no>
 Ready to open PR: <yes|no>
 Excellence:       <yes|no>
 ```
+
+## History
+
+After the report, append the run and show where it sits against the previous ones:
+
+```bash
+SCORE_LOG="$HOME/Development/private/claude-forge/scripts/score-log.sh"   # adjust if the forge checkout lives elsewhere
+"$SCORE_LOG" --score <n> --gate <commit|pr|excellence> --check <pass|fail> --e2e <pass|fail> --major <n> --minor <n>
+"$SCORE_LOG" --trend
+```
+
+Paste the `--trend` output verbatim under the report. Values come from the breakdown just computed; `--gate` is the highest threshold reached (`commit` below 90, `pr` below 95, `excellence` at 95+), and BLOCKED scores log as `commit`.
+
+- The script does the append and the arithmetic. The model supplies the six measured values and nothing else: a hand-written row or a hand-computed delta is exactly the failure this indirection removes.
+- The history file (`quality_reports/score-history.jsonl` at the target repo's git root) is a **denormalized view of harness-trace SCORE events; change one, change the other.**
+- The script gitignores the file in the target repo on first write. It stays local: a branch name next to a low score corroborates gitignored review findings.
+- Script missing or the run fails: report the score anyway and say the history was not written. A logging failure never blocks the gate.
 
 ## Rules
 

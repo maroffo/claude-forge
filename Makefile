@@ -35,7 +35,7 @@ test-e2e:
 
 lint-shell:
 	@if command -v shellcheck >/dev/null 2>&1; then \
-		shellcheck install.sh get.sh scripts/pi-exec && echo "PASS  shellcheck"; \
+		shellcheck install.sh get.sh scripts/pi-exec scripts/score-log.sh && echo "PASS  shellcheck"; \
 	else \
 		echo "SKIP  shellcheck (install with: brew install shellcheck)"; \
 	fi
