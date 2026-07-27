@@ -155,8 +155,8 @@ The matrix is the union of: freeze-guard decision states (boundary × parse × r
 - [x] W6 docs + cleanup (2026-07-27; README rows for /freeze + both hooks + score-history, tech-debt 3 entries. W6.3 EXCEPTION: deleting the untracked snapshot in the MAIN checkout was denied by the session permission classifier (worktree sandbox); verified stale by diff (153-line unticked snapshot vs 188-line authoritative completed/ copy), listed as a manual step in the PR body instead. W6.4: no follow-up issues surfaced)
 - [x] E2E matrix walked, observed output per row (2026-07-27): rows 1-6 = `PASS freeze-guard (matrix rows 1-6)` and rows 10-16 = `PASS forge-drift-check (10 cases)` in make test-e2e; rows 8-9 = test_score_log.py `Ran 11 tests OK`; row 7 = manual walk in a scratch repo (boundary written with physical path + trailing slash, gitignore line appended exactly once across two guard runs, deny JSON outside / silent allow inside, status printed, off removed the file); row 17 = prose evidence at refine-requirements SKILL.md:19,22,24 (bugfix/unsure: no question, Hold silently); row 18 = grep hits at plan-template.md:52 (Depth column), :61 (COVERAGE footer), :81 (DoD slot)
 - [x] Review round + fixes (2026-07-27). Round 1: security+architecture+test on 8035d78, consolidated 1 Critical / 11 Major / 11 Minor, all fixed in bf5aa7f. Round 2: same reviewers (resumed, budget-neutral) verified 23/23 fixed with mutants killed and reproductions re-run; 1 Major + 1 Minor new doc-only findings (stale freeze contract surface, unowned fifth drift class) plus 1 Minor from the blast-radius pass (_INDEX.md), all fixed-in-round-2. Fix rounds spent: 2 of 5. Records: quality_reports/reviews/2026-07-27_gstack-borrowings/00{1,2}-findings.md (gitignored), quality_reports/approvals/2026-07-27_gstack-borrowings.md (committed)
-- [ ] PR + SCORE
-- [ ] Close-out (plan → completed/, retrospective filled)
+- [x] PR + SCORE (2026-07-27): SCORE 100/100 (threshold 90, gate pr) on fresh make check + make test-e2e after the last edit; score-log dogfood row appended; PR opened to main (not merged) with the manual post-merge steps in the body
+- [x] Close-out (2026-07-27): plan moved to completed/, retrospective filled
 
 ## Surprises & Discoveries
 (fill during execution, with evidence: command output, diff, red test)
@@ -186,4 +186,23 @@ The matrix is the union of: freeze-guard decision states (boundary × parse × r
 | 27 | (fix round 1) Drift check gains a FIFTH finding class beyond decision 10's four: a live forge-named symlink repointed outside the checkout is flagged | Extends decision 10, does not alter classes a-d | Review finding F3 (security): the repointed-symlink shape is the diverging-install case the check exists for; scoped to names existing in the checkout, `.forge-omit` suppresses deliberate overrides | This class alone drives falsification #2 of the drift contract (false-positive fatigue) |
 
 ## Outcomes & Retrospective
-(fill at close: shipped, gaps, lessons)
+
+**Shipped** (11 commits on feat/gstack-borrowings, PR to main, not merged):
+- /freeze skill + freeze-guard.sh (PreToolUse Edit/Write/NotebookEdit/MultiEdit, fail-open, repo-local boundary, shared constant under test), 8 test rows.
+- plan-forge Depth column + COVERAGE footer + ASCII path-trace subsection + DoD slot (prompt-only, decision 7).
+- refine-requirements scope modes (Hold default, silent on bugfix/unsure, never-batch verbatim), rule text qualified and mode step at step 0.
+- scripts/score-log.sh (+ --threshold after review) + /score trend, 14 tests, dogfooded on this very run (first row: this branch, 100, pr).
+- forge-drift-check.sh (5 finding classes after review, silent when clean, exit 0 always), 14 tests.
+- 5 change contracts committed with their changes; 3 tech-debt entries; README rows.
+
+**Gaps / residuals:**
+- W6.3 (delete stale snapshot in main checkout active/) blocked by the worktree permission classifier: manual one-liner in the PR body.
+- Real-session PreToolUse wiring testable only after the manual post-merge install (bootstrap caveat, README).
+- Dead-equivalent relative-path branch in _freeze_boundary.sh survives its deletion mutant (informational, 002-findings).
+
+**Lessons:**
+- The plan's "disjoint scopes" claim missed settings.example.json (W1+W5); check shared surfaces per-file, not per-workstream, before parallelizing.
+- Subagents in one shared worktree must not commit: the shared git index makes concurrent commits sweep each other's staged files (decision 14). Orchestrator-as-sole-committer also kept every commit behind the pre-commit gate on a stable tree.
+- Fabricated test payloads are the review fleet's best catch of the day: the NotebookEdit Critical was a green suite certifying a payload shape the tool never sends. "Build payloads from the real tool schema" belongs in test briefs.
+- Resuming reviewers for the verification round (instead of spawning new ones) kept the 10-subagent budget exact and gave verifiers their own round-1 context, including their surviving mutants.
+- Reviewer fix rounds introduce their own blast radius: the F8 fix made the freeze contract stale in five places including Rollback; contracts need a re-read whenever the change they describe moves.
