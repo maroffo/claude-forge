@@ -36,7 +36,8 @@
 | Review code (pre-commit) | `gemini-review` | Language review sections |
 | Review a PR (commit-aware) | `pr-review` | `gemini-review`, `second-opinion` |
 | Deep multi-LLM review | `advanced-review` | deployed via symlink from the claude-advanced-review repo |
-| Score commit/PR readiness | `score` | quality-gates rule |
+| Score commit/PR readiness | `score` | quality-gates rule; `scripts/score-log.sh` trend |
+| Freeze edits to one directory | `freeze` | `freeze-guard.sh` hook |
 | Second opinion | `second-opinion` | `gemini-review` |
 | Assess test quality | `test-design-reviewer` | `gemini-review`, `_PATTERNS.md` |
 | Verify UI changes end-to-end | `verify-frontend` | `verification-protocol` rule, chrome-devtools MCP |

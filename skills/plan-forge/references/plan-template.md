@@ -48,16 +48,37 @@ decisions get NEW rows in ## Decisions below.
 - [ ] follow-up issues DRAFTED in this plan (orchestrator files them at PR time)
 
 ## E2E matrix   <!-- test-heavy tasks -->
-<rows: shape x adapter/variant x action, each with its assertion>
+
+| # | Surface | Scenario | Assertion | Depth |
+|---|---------|----------|-----------|-------|
+| 1 | <shape x adapter/variant> | <action> | <assertion> | 3★ (<the edge and error it also covers>) |
+| 2 | <surface> | <action> | <assertion> | 2★ |
+| 3 | <surface> | <action> | <assertion> | 1★ (grep / prose-verified in review) |
+
+Depth is MANDATORY on every row: 3★ = behavior + edge + error, 2★ = happy path, 1★ = smoke.
+A path the plan knowingly leaves untested is its own row marked `[GAP]`, never an absent row.
+
+COVERAGE: <n>/<m> paths (<p>%)   <!-- MANDATORY, computed over the union below, gaps excluded from n -->
 
 ### Exhaustiveness note
 The matrix is the union of: <dimensions>. Anything beyond is covered by <property/sweep>; do not
 enumerate combinatorially.
 
+### Path trace   <!-- RECOMMENDED, complex verdict only -->
+ASCII on purpose, not mermaid: terminal-native and git-diffable, so a reviewer sees the trace move
+in the diff. Mermaid stays optional for architecture diagrams. One line per hop, matrix row and
+depth at the end of each:
+
+    entry -> parse ............. row 1   3★
+          -> store.Write ....... row 4   2★
+          -> retry on conflict .. [GAP]
+    COVERAGE: 2/3 paths (67%)
+
 ## DoD
 - [ ] (bugfix) REPRODUCE recorded red then green.
 - [ ] Fresh pristine VERIFY after the LAST edit: <repo verify commands, e.g. make check && make lint && make test-e2e && make docs-facts-check>.
 - [ ] (hot-path) bench-compare vs the pre-edit baseline: PASS, or exit!=0 resolved as fix or explicit accept-with-rationale Decision row (never silent).
+- [ ] (test-heavy) Depth column filled, COVERAGE footer computed, gaps counted: <n>.
 - [ ] Review fleet: <security + architecture + test, or file-routed set>. CRITICAL/MAJOR fixed, re-verified.
 - [ ] PR to <integration-branch> (open, NOT merged), `SCORE: <n>/100 (threshold: 90, gate: pr)` with fresh computational evidence.
 - [ ] Follow-up issues filed and linked in the PR body.
@@ -86,4 +107,5 @@ enumerate combinatorially.
 - **REPRODUCE before fix** is what makes a bugfix falsifiable; the red output in the plan is the proof the test binds to the bug. Bind the assertion to the DISTINCT signal (metric label, reason string), never to a status code two gates share.
 - **Locked vs execution decisions** split keeps subagents from relitigating design while still recording what they discover.
 - **Exhaustiveness note** prevents both thin matrices and combinatorial padding; reviewers check the union argument, not the row count.
+- **Depth and COVERAGE are what make the row count mean something.** Without them a smoke row and a full behavioral row look identical on the page, so a thin matrix reads as a thorough one. The ratio is computed from the union, not asserted.
 - **Follow-ups drafted in-plan, filed at PR time** keeps issue-creation out of subagent hands (external side effects stay with the orchestrator).

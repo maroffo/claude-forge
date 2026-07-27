@@ -72,7 +72,7 @@ claude-forge repo
 ├── Makefile            → `make check` + `make test-e2e` (pre-commit gate)
 ├── scripts/            → check_repo.py (ABOUTME, em-dashes, frontmatter, schema), doc_gardening.py (stale cross-references, _INDEX drift), skill-routing-eval.py (does a description route the way it claims)
 ├── hooks/              → Source for the enforcement hooks (installed to ~/.claude/hooks/)
-├── quality_reports/    → traces/ (gitignored), token_baselines/ (gitignored), harness_changes/ (committed audit trail), evals/ (committed routing case sets), knowledge_sync/ (committed monthly propose-only reports), reviews/ (gitignored per-round findings), approvals/ (committed redacted convergence records)
+├── quality_reports/    → traces/ (gitignored), token_baselines/ (gitignored), harness_changes/ (committed audit trail), evals/ (committed routing case sets), knowledge_sync/ (committed monthly propose-only reports), reviews/ (gitignored per-round findings), approvals/ (committed redacted convergence records), score-history.jsonl (gitignored, per-repo /score trend via scripts/score-log.sh)
 │
 Obsidian Vault (Documents/)
 ├── Projects/           → Per-project artifacts (overview, log, solutions)
@@ -101,6 +101,8 @@ Text in rules tells Claude what to do; the enforcement layer makes sure it happe
 
 The matching settings fragment lives at [`hooks/settings.example.json`](hooks/settings.example.json): registration for all enforcement hooks plus the `permissions.deny` path-protection rules. `install.sh` renders it at install time (replacing `{{HOOKS_DIR}}` with the real path) and prints it for a manual merge into `~/.claude/settings.json`. Merge stays manual to avoid clobbering user-specific config.
 
+`forge-drift-check.sh` watches that installed tree afterwards (missing symlinks, stale copies, hooks present but unregistered), with one bootstrap caveat: it cannot detect its own missing installation. A PR that ships a new hook still needs the manual post-merge step, `ln -s` into `~/.claude/hooks/` plus the settings.json registration, and the PR shipping the drift check itself is no exception.
+
 | Mechanism | Trigger | What it does |
 |-----------|---------|--------------|
 | `pre-commit-gate.sh` | PreToolUse on `git commit` | Runs `make check && make test-e2e`, blocks on failure or missing targets (points to `/project-checks`). Docs/assets-only staged diffs skip the e2e half; `make check` always runs. Fails closed if `jq` is missing |
@@ -110,6 +112,8 @@ The matching settings fragment lives at [`hooks/settings.example.json`](hooks/se
 | `doom-loop-detector.py` | PostToolUse Edit/Write/MultiEdit | Advisory nudge at edit #5 to the same file (then every 3rd): stop, classify the error, re-plan, consider `/second-opinion`. Never blocks |
 | `commit-intent-guard.py` | PreToolUse on `git commit` | Tier A intent checks: hook-bypass flags `--no-verify`/`--no-hooks`/`--no-pre-commit-hook` (block), conventional-message regex (block), TODO/FIXME/NotImplementedError/placeholder in ADDED lines (block), unplanned file deletions (advisory) |
 | `gitignore-anchor-lint.py` | PreToolUse on `git commit` | Advisory: flags newly-added bare-name `.gitignore` lines that match a tracked directory (suggests anchoring with `/`), and `.env.*` globs missing a `!.env.example` negation. Never blocks |
+| `freeze-guard.sh` | PreToolUse Edit/Write/NotebookEdit/MultiEdit | Denies edits outside the repo-local `.freeze-boundary` set by `/freeze <dir>`. A focus aid, not a security gate: fails OPEN on missing `jq` or unusable data (a false DENY would block every edit in the repo until the boundary is lifted, a false ALLOW is visible in the diff), inert with no boundary file, repo-local by construction |
+| `forge-drift-check.sh` | SessionStart (startup\|resume) | Read-only scan of `~/.claude` vs the forge checkout: dangling symlinks, missing entries in forge-managed categories, installed-but-unregistered hooks, stale copies (content mismatch). Silent when clean, max 3 `[forge-drift]` lines with exact remedies, exit 0 always; `~/.claude/.forge-omit` suppresses intentional absences |
 | `aboutme-enforcer.py` | PreToolUse Write (block), PostToolUse Edit (advisory) | Requires 2 `# ABOUTME:` (or `// ABOUTME:`) lines on new source files; detects ABOUTME removals on edits. Exempts lock files, vendored/generated paths, uncommentable formats |
 | `routing-advisor.py` | PostToolUse Write/Edit/MultiEdit/Agent | Matches touched file paths against a routing table and nudges Claude via `additionalContext` to invoke the right reviewer (dependency-reviewer on `go.mod`, database-reviewer on migrations, etc.). Deduplicates per-session |
 | `session-end-trace.py` | SessionEnd | No-op outside claude-forge cwd. Otherwise auto-runs `harness-trace extract` against the session's transcript and writes the result under `quality_reports/traces/<date>_<session_id>.jsonl`. Closes the loop for the `harness-mechanic` Evolution Agent (see [Telemetry](#telemetry)) |
@@ -210,7 +214,8 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 |-------|-------------|
 | `source-control/` | Conventional commits, git workflow, hooks |
 | `commit/` | Redirects to `source-control/` |
-| `score/` | Run `make check` + `make test-e2e` and report commit/PR/excellence readiness |
+| `score/` | Run `make check` + `make test-e2e` and report commit/PR/excellence readiness; logs each run via `scripts/score-log.sh` and renders the tail-10 trend |
+| `freeze/` | `/freeze <dir>` / `status` / `off`: repo-local edit boundary enforced by `freeze-guard.sh` (session-wide, does not scope parallel subagents, not a security boundary) |
 | `project-checks/` | Scaffold a Makefile with language-specific check/test-e2e targets; the Go template adds advisory `crap` and `mutation` targets outside `check` |
 | `learning-docs/` | LEARNING.md retrospectives, session analysis, docs/solutions/ capture, vault pattern annotation |
 | `knowledge-sync/` | Vault-to-skills sync: scan Second Brain for recurring patterns, propose skill updates |

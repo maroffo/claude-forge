@@ -44,6 +44,7 @@ Path: `quality_reports/plans/active/YYYY-MM-DD_<slug>.md` in the target repo (wo
 - Locked design-decisions table (append-only afterwards).
 - W0 = REPRODUCE-first for any bugfix: a failing test recorded RED before one line of fix code.
 - E2E matrix WITH an exhaustiveness note (the union rationale; forbid combinatorial padding).
+- Wherever that matrix exists, its `Depth` column (3★ behavior+edge+error / 2★ happy path / 1★ smoke) and its computed `COVERAGE: n/m paths (p%)` footer are mandatory, not optional decoration.
 - DoD includes: fresh pristine VERIFY after last edit; BENCH-BASELINE/bench-compare when hot-path; review fleet (minimum security + architecture + test, or the repo's file-routing); PR to the integration branch NOT merged; `SCORE: <n>/100 (threshold: 90, gate: pr)`; plan updated after every task.
 - Empty living-plan sections: Progress, Surprises & Discoveries, Decisions, Outcomes & Retrospective.
 

@@ -28,7 +28,26 @@
       {
         "matcher": "Write",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/aboutme-enforcer.sh", "timeout": 10 }
+          { "type": "command", "command": "{{HOOKS_DIR}}/aboutme-enforcer.sh", "timeout": 10 },
+          { "type": "command", "command": "{{HOOKS_DIR}}/freeze-guard.sh", "timeout": 10 }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          { "type": "command", "command": "{{HOOKS_DIR}}/freeze-guard.sh", "timeout": 10 }
+        ]
+      },
+      {
+        "matcher": "NotebookEdit",
+        "hooks": [
+          { "type": "command", "command": "{{HOOKS_DIR}}/freeze-guard.sh", "timeout": 10 }
+        ]
+      },
+      {
+        "matcher": "MultiEdit",
+        "hooks": [
+          { "type": "command", "command": "{{HOOKS_DIR}}/freeze-guard.sh", "timeout": 10 }
         ]
       }
     ],
@@ -72,7 +91,8 @@
       {
         "matcher": "startup|resume",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/codemap-session.sh", "timeout": 10 }
+          { "type": "command", "command": "{{HOOKS_DIR}}/codemap-session.sh", "timeout": 10 },
+          { "type": "command", "command": "{{HOOKS_DIR}}/forge-drift-check.sh", "timeout": 10 }
         ]
       },
       {
