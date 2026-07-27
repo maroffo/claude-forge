@@ -147,10 +147,10 @@ The matrix is the union of: freeze-guard decision states (boundary × parse × r
 
 ## Progress
 - [x] Analysis + scope selection + 2-lab second opinion + plan (2026-07-27, planning session)
-- [ ] W1 freeze guard
+- [x] W1 freeze guard (2026-07-27, wave 1; DRIFT aligned; matrix rows 1-6 green in make test-e2e)
 - [ ] W2 plan depth
-- [ ] W3 scope modes
-- [ ] W4 score history
+- [x] W3 scope modes (2026-07-27, wave 1; DRIFT aligned; frontmatter description byte-identical)
+- [x] W4 score history (2026-07-27, wave 1; DRIFT aligned; matrix rows 8-9 green in make test-e2e)
 - [ ] W5 drift check
 - [ ] W6 docs + cleanup
 - [ ] E2E matrix walked, observed output per row
@@ -161,8 +161,22 @@ The matrix is the union of: freeze-guard decision states (boundary × parse × r
 ## Surprises & Discoveries
 (fill during execution, with evidence: command output, diff, red test)
 
+- **W1 sibling-prefix trap caught by its own tests**: a boundary written without a trailing slash matched a sibling directory (`/src` vs `/srcgen`). Fixed by comparing `"$target/"` against a boundary normalized to a trailing slash; the same slash makes the boundary dir itself count as inside. Pinned as a regression case in matrix row 1 (`hooks/tests/test_freeze_guard.py`).
+- **`lint-shell` does not shellcheck `hooks/`** (only install.sh, get.sh, scripts/pi-exec, now scripts/score-log.sh). Both new hooks were shellchecked by hand during W1: clean. Existing convention, left as is.
+- **The plan's "W1/W3/W4/W5 disjoint" missed a shared surface**: W1.5 and W5.3 both edit `hooks/settings.example.json`. Resolved by decision 15 (W5 moved to wave 2), no conflict occurred.
+
 ## Decisions
 (append-only; execution-time decisions land here as new numbered rows, continuing from 13)
+
+| # | Decision | Choice | Rationale | Revisit if |
+|---|----------|--------|-----------|------------|
+| 14 | Subagents do not commit or stage; orchestrator commits each workstream sequentially after its wave (contract together with its change, explicit paths) | Serialize all commits in the orchestrator | The worktree's git index is shared: parallel agents committing concurrently would sweep each other's staged files into the wrong commit. Also honors the orchestrator sole-committer invariant | Worktree-per-agent isolation becomes available for SE agents |
+| 15 | Wave order: W1+W3+W4 parallel, then W2+W5, W6 last inline | W5 moved out of wave 1 | W1.5 and W5.3 both edit hooks/settings.example.json (shared integration surface per orchestrator parallelism rules); the plan's "W1/W3/W4/W5 disjoint" missed this overlap | - |
+| 16 | (W1) Newline-bearing `tool_input.file_path` treated as unparseable: allow + warning, never resolved | Fail-open branch of matrix row 4 | Legal POSIX path, but it breaks the one-line warning contract and any repo inference is guesswork | - |
+| 17 | (W1) Boundary file contents normalized through `freeze_physical_path` before comparison | Symlink-resolved on read, not just on write | A boundary spelled through a symlink would false-deny every edit inside it: exactly the unrecoverable failure the contract's falsification #1 names. Regression case in row 1 | - |
+| 18 | (W1) Gitignore line for the boundary is anchored (`/.freeze-boundary`) | Anchored, not bare | The file only ever lives at the repo root; `gitignore-anchor-lint.py` warns on bare names | - |
+| 19 | (W1) Empty or whitespace-only boundary file = unusable data: allow + warning | Same class as a missing path | Otherwise it would deny every edit in the repo (the false-block failure) | - |
+| 20 | (W1) Tests invoke bash by absolute path in the jq-absent case | Shrunken PATH constrains the hook, not the test harness | Row 6 must starve the hook's lookups without breaking subprocess launch | - |
 
 ## Outcomes & Retrospective
 (fill at close: shipped, gaps, lessons)
