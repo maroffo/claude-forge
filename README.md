@@ -101,6 +101,8 @@ Text in rules tells Claude what to do; the enforcement layer makes sure it happe
 
 The matching settings fragment lives at [`hooks/settings.example.json`](hooks/settings.example.json): registration for all enforcement hooks plus the `permissions.deny` path-protection rules. `install.sh` renders it at install time (replacing `{{HOOKS_DIR}}` with the real path) and prints it for a manual merge into `~/.claude/settings.json`. Merge stays manual to avoid clobbering user-specific config.
 
+`forge-drift-check.sh` watches that installed tree afterwards (missing symlinks, stale copies, hooks present but unregistered), with one bootstrap caveat: it cannot detect its own missing installation. A PR that ships a new hook still needs the manual post-merge step, `ln -s` into `~/.claude/hooks/` plus the settings.json registration, and the PR shipping the drift check itself is no exception.
+
 | Mechanism | Trigger | What it does |
 |-----------|---------|--------------|
 | `pre-commit-gate.sh` | PreToolUse on `git commit` | Runs `make check && make test-e2e`, blocks on failure or missing targets (points to `/project-checks`). Docs/assets-only staged diffs skip the e2e half; `make check` always runs. Fails closed if `jq` is missing |
