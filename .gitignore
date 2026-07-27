@@ -53,3 +53,6 @@ quality_reports/reviews/
 
 # /freeze boundary (local: holds an absolute path from this machine's layout)
 /.freeze-boundary
+
+# /score history (local: branch names next to low scores corroborate gitignored findings)
+quality_reports/score-history.jsonl

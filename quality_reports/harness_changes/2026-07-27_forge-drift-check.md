@@ -53,7 +53,10 @@ Either of these reverts the change:
 
 1. A **third stale-install incident on a machine where the check runs**: drift of a class the check
    claims to cover (dangling symlink, missing entry in a managed category, unregistered hook, stale
-   regular-file copy) that is discovered by hand rather than by the hook.
+   regular-file copy, forge-named live symlink repointed outside the checkout) that is discovered by
+   hand rather than by the hook. The fifth class was added in review fix round 1 (plan decision 27);
+   it is also the class most exposed to falsification #2 below, since a deliberate local override
+   emits a line every session until the name lands in `.forge-omit`.
 2. **Recurring false positives**: any `[forge-drift]` line, in 20 sessions, reporting something Max
    then chooses not to fix and does not silence via `.forge-omit`. That is the state that trains him
    to skim past the prefix, at which point the check costs attention and buys nothing.
