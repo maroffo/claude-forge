@@ -133,6 +133,15 @@ The matrix is the union of three dimensions: consolidation outcomes (merge, no-m
 - [x] W2 review artifacts (3 harness files + contract) (2026-07-27, impl session; W2.1-W2.5 done, `make check` + `make test-e2e` green, DRIFT: aligned; approval.md placed per decision 12)
 - [x] W3 Go metrics as evidence (4 files + contract) (2026-07-27, impl session; W3.1-W3.5 done, `check` target byte-identical (od -c vs HEAD), `make check` + `make test-e2e` green, DRIFT: aligned)
 - [x] W4 docs + follow-ups drafted (2026-07-27, impl session; README: quality_reports tree line + orchestrator and project-checks skill rows, grep-verified surface; follow-up issues stay drafted in W4.2, filed at PR time)
+- [x] E2E matrix walked (2026-07-27, impl session). Observed output per row:
+  - Row 1 (two agents, same defect): dry-run per Finding Consolidation. arch Major + sec Major, both fail-open `x.go:42` → group `(x.go,42)`, same claim, merged to ONE finding, `reported_by: architecture-reviewer,security-reviewer`, SCORE arithmetic 100-10=90 (one deduction). PASS.
+  - Row 2 (same line, distinct defects): perf N+1 + arch god-object, both `y.go:10` → grouped by line, claims distinct, NOT merged: two findings survive, SCORE 100-10-10=80. PASS.
+  - Row 3 (severity collision): arch Minor + sec Major, same fail-open `x.go:42` → merged finding is Major (`max` wins), `reported_by` lists both. Severity never lowered. PASS.
+  - Row 4 (supersede): scratch repo, `002-findings.md` written with `supersedes: 001`, statuses `fixed-in-round-2` x2 + `open` x1; `001-findings.md` shasum identical before/after (`yes`). PASS.
+  - Row 5 (redaction): curl SQLi reproducer present in gitignored `001-findings.md` (grep curl = 1), absent from `approvals/2026-07-27_demo.md` (grep curl/OR 1=1 = 0), which carries `CWE-89` and `Critical: 1 fixed`; `git status --porcelain` sees only `quality_reports/approvals/`. PASS.
+  - Row 6 (non-convergence): dry-run, 5 rounds with a Major open → no approval file written; PRESENT prints `REVIEW-ARTIFACT: round=5 path=quality_reports/reviews/<slug>/ findings=0/1/0 converged=no`. PASS (line format matches the spine).
+  - Row 7 (gitignore guard): scratch `.gitignore` without the line → guard appended `quality_reports/reviews/` once; second guard run a no-op (occurrences=1); `diff` shows exactly `3a4` single-line append, rest byte-identical. PASS.
+  - Row 8 (`make check` unchanged): `git diff origin/main -- templates/go.mk` touches only the variable block, `.PHONY`, and the two appended targets; `make -n check` expansion byte-identical old vs new (`diff` exit 0); `crap`/`mutation` expand only on explicit invocation. PASS.
 - [ ] Review round + fixes
 - [ ] PR + SCORE
 - [ ] Close-out (plan to completed/, retrospective filled)
@@ -155,6 +164,7 @@ The matrix is the union of three dimensions: consolidation outcomes (merge, no-m
 |---|----------|--------|-----------|
 | 12 | `approval.md` location | `quality_reports/approvals/<YYYY-MM-DD_slug>.md`, outside the ignored tree, one file per run | git cannot re-include a file whose parent directory is gitignored; a committed record under `quality_reports/reviews/<slug>/` would need force-adds or fragile glob ignores. Also makes decision 5's "path of the local findings directory" field meaningful (committed record points at a genuinely separate local path). E2E rows 5 and 7 read against this path |
 | 13 | go.mk parameterization | `PKG` wired only into `mutation` (default `./...`); `crap` takes no argument (crap4go drives `go test -coverprofile` itself); install-on-demand guarded by `command -v`, binaries reached via a GOTOOLS_BIN PATH prefix scoped to the two new recipes | Overloading PKG across both targets would give one variable two meanings; without the PATH prefix, install-on-demand succeeds and the next line fails with command not found. `check`'s execution environment untouched |
+| 14 | Dogfood the mechanism on this run | This run's own REVIEW round writes `quality_reports/reviews/2026-07-27_swarm-forge-borrowings/001-findings.md` (gitignored) and, at convergence, `quality_reports/approvals/2026-07-27_swarm-forge-borrowings.md` (committed); the gitignore guard fires for real, appending `quality_reports/reviews/` to this repo's `.gitignore` | claude-forge is the target repo of this run, and the W4 README edit already declares `reviews/` gitignored, so without the append the README would lie about the tree. Self-hosting also hands pr-review a real Phase 0b record on the very PR that introduces Phase 0b |
 
 ## Outcomes & Retrospective
 
