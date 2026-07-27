@@ -142,9 +142,9 @@ The matrix is the union of three dimensions: consolidation outcomes (merge, no-m
   - Row 6 (non-convergence): dry-run, 5 rounds with a Major open → no approval file written; PRESENT prints `REVIEW-ARTIFACT: round=5 path=quality_reports/reviews/<slug>/ findings=0/1/0 converged=no`. PASS (line format matches the spine).
   - Row 7 (gitignore guard): scratch `.gitignore` without the line → guard appended `quality_reports/reviews/` once; second guard run a no-op (occurrences=1); `diff` shows exactly `3a4` single-line append, rest byte-identical. PASS.
   - Row 8 (`make check` unchanged): `git diff origin/main -- templates/go.mk` touches only the variable block, `.PHONY`, and the two appended targets; `make -n check` expansion byte-identical old vs new (`diff` exit 0); `crap`/`mutation` expand only on explicit invocation. PASS.
-- [ ] Review round + fixes
-- [ ] PR + SCORE
-- [ ] Close-out (plan to completed/, retrospective filled)
+- [x] Review round + fixes (2026-07-27, impl session). Round 1 (architecture + dx on the diff vs origin/main): 6 raw findings consolidated to 5 (the GOBIN defect was reported by both reviewers and merged, dogfooding W1); 1 Major (REVIEW-ARTIFACT literal line had no consumer in the harness-trace extractor) + 4 Minor. Fix round 1 fixed all five (extractor pattern + models + 5 tests + enumeration; go.mk GOBIN + one-shell recipes; c/m/n gloss; slug rule). Round 2: same reviewers verified 5/5 fixed, none new. Records: `quality_reports/reviews/2026-07-27_swarm-forge-borrowings/00{1,2}-findings.md` (gitignored), `quality_reports/approvals/2026-07-27_swarm-forge-borrowings.md` (committed). Fix rounds spent: 1 of 5.
+- [x] PR + SCORE (2026-07-27, impl session): SCORE 100/100 (threshold 90, gate pr) on fresh `make check` + `make test-e2e` after the last edit; PR opened from `feat/swarm-forge-borrowings` to `main` (open, not merged), follow-up issues filed and linked in the PR body.
+- [x] Close-out (plan to completed/, retrospective filled) (2026-07-27, impl session)
 
 ## Surprises & Discoveries
 
@@ -168,4 +168,21 @@ The matrix is the union of three dimensions: consolidation outcomes (merge, no-m
 
 ## Outcomes & Retrospective
 
-(fill at close)
+**Shipped (8 commits on `feat/swarm-forge-borrowings`, PR open to main, not merged):**
+- W1 finding dedup: Finding Consolidation subsection in the orchestrator skill, spine clause, consolidated scoring in quality-gates. Zero agent edits, as locked.
+- W2 split persistence: Review Artifacts section (gitignored NNN-findings + committed approvals), REVIEW-ARTIFACT literal line, pr-review Phase 0b. approval.md at `quality_reports/approvals/` (decision 12).
+- W3 Go metrics as evidence: advisory `crap`/`mutation` targets (check byte-identical), two new Finding Contract evidence forms, surviving-mutant evidence in test-design-reviewer. No thresholds anywhere, as locked.
+- W4: README surface (3 rows), follow-up issues filed at PR time.
+- Three change contracts, one failure mode each, referenced from their commit bodies.
+- Unplanned but forced by review: REVIEW-ARTIFACT wired into the harness-trace extractor (pattern, models, 5 tests, enumeration, schema row); the mandate and its only consumer would otherwise have drifted apart in the same PR.
+- The mechanism was dogfooded on its own PR (decision 14): the review round above produced real 001/002 findings files and the committed approval record; the gitignore guard fired for real.
+
+**Gaps:**
+- Gitignore guard and approval redaction are prose contracts, not hooks (tech-debt.md).
+- `harness-mechanic` deliberately not wired to the findings corpus yet (follow-up issue).
+- Contract Result rows empty until 10-20 sessions of data (by design).
+
+**Lessons:**
+- A new literal report line is not done when the spine mandates it: the trace extractor is its consumer, and mandate + consumer belong in the same change. Caught by review as a blast-radius contradiction, missed by the plan (the plan's own W-lists never mention harness-trace).
+- Consolidation paid for itself in its first live run: 6 raw reports to 5 findings, the merged one reported by both reviewers with identical claims.
+- Second-opinion hard requirements (no negative scope, no thresholds, split persistence) survived implementation contact unchanged; the only execution-time corrections were placements and plumbing (decisions 12-14), not design.
