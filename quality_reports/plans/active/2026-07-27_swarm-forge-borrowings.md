@@ -130,7 +130,7 @@ The matrix is the union of three dimensions: consolidation outcomes (merge, no-m
 
 - [x] Analysis + 2-lab second opinion + plan (2026-07-27, planning session)
 - [x] W1 finding dedup (3 harness files + contract) (2026-07-27, impl session; W1.1-W1.4 done, `make check` green, DRIFT: aligned)
-- [ ] W2 review artifacts (3 harness files + contract)
+- [x] W2 review artifacts (3 harness files + contract) (2026-07-27, impl session; W2.1-W2.5 done, `make check` + `make test-e2e` green, DRIFT: aligned; approval.md placed per decision 12)
 - [ ] W3 Go metrics as evidence (4 files + contract)
 - [ ] W4 docs + follow-ups drafted
 - [ ] Review round + fixes
@@ -143,10 +143,16 @@ The matrix is the union of three dimensions: consolidation outcomes (merge, no-m
 - `mutate4go` writes its manifest as a footer **inside the source file under test**; unclebob's `engineering.prompt` carries a matching "do not hand-edit mutation manifests" guardrail, which is the tell that the design leaked into agent behavior.
 - Every published swarm-forge config runs `codex`, not claude.
 - DeepSeek asserted `quality_reports/reviews/` was already gitignored by convention. It is not (`.gitignore:22-26`). Reviewer premises need checking even when the conclusion holds.
+- (W2, impl session) `approval.md` cannot live inside `quality_reports/reviews/<slug>/`: git does not re-include a file whose parent directory is excluded, so a committed file under the ignored tree would need a force-add on every run. Evidence: gitignore semantics ("It is not possible to re-include a file if a parent directory of that file is excluded", gitignore(5)). Placement moved, see decision 12.
+- (W2, impl session) The gitignore guard is prose, not a hook: a session that skips it would commit exploit recipes to a target repo on the first findings write. Recorded in `quality_reports/plans/tech-debt.md`.
 
 ## Decisions
 
 (append-only; execution-time decisions land here as new numbered rows, continuing from 11)
+
+| # | Decision | Choice | Rationale |
+|---|----------|--------|-----------|
+| 12 | `approval.md` location | `quality_reports/approvals/<YYYY-MM-DD_slug>.md`, outside the ignored tree, one file per run | git cannot re-include a file whose parent directory is gitignored; a committed record under `quality_reports/reviews/<slug>/` would need force-adds or fragile glob ignores. Also makes decision 5's "path of the local findings directory" field meaningful (committed record points at a genuinely separate local path). E2E rows 5 and 7 read against this path |
 
 ## Outcomes & Retrospective
 

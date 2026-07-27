@@ -60,6 +60,22 @@ gh pr view <N> --json commits --jq '.commits[] | "\(.oid) \(.messageHeadline)"' 
 - \> 1000 lines or > 15 files: large, commit-by-commit essential + flag scope concern.
 - \> 5000 lines or > 50 files: excessive, recommend reject-and-split.
 
+### Phase 0b: Prior review record
+
+Read what the implementing loop already recorded before judging anything (see the `orchestrator` skill, Review Artifacts):
+
+- **Committed:** `quality_reports/approvals/<YYYY-MM-DD_slug>.md` on the PR branch. Redacted by design: branch, commit, rounds run, severity counts, CWE ids, final SCORE, residual risks, and the path of the local findings directory.
+- **Local, if present:** that findings directory, `quality_reports/reviews/<slug>/NNN-findings.md`. It is gitignored, so it exists only when the PR was built on this machine; its absence says nothing about the PR.
+
+How it changes the review:
+
+| Record says | Do |
+|-------------|-----|
+| Finding `accepted` | Do not re-litigate. Cite the record and the stated rationale, unless new evidence contradicts it |
+| Finding `fixed-in-round-<n>` | Verify against the diff, do not re-derive from scratch |
+| Finding still `open` | Treat as a live finding of the recorded severity |
+| No approval record at all | State it explicitly in the Phase 7 report: the loop did not converge, or never ran. Never read silence as a clean bill |
+
 ### Phase 1: Isolated build verification
 
 Never check out the PR on the active repo: review always happens in a throwaway clone so uncommitted work is never contaminated. Clone, checkout the PR, run the project gate (`make check` or the CLAUDE.md equivalent), and export `$PR_REVIEW_DIR` for every later phase. Full mechanics, partial-clone budget, and base-branch comparison: `references/isolated-clone.md`.

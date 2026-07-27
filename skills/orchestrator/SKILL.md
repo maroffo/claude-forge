@@ -89,6 +89,45 @@ Reviewers overlap by design: the routing table above maps file patterns to agent
 
 **Invariant:** consolidation may lower the finding *count*, never the highest *severity* in a group. Grouping by line is not merging by line: an N+1 and a god-object both filed at `y.go:10` are distinct claims, so both survive as separate findings.
 
+## Review Artifacts
+
+Findings that live only in session context die at the next auto-compact: fix round 3 cannot cite round 1, and the fix-round budget ends up asserted in the final summary instead of auditable. Persist them, split in two, because a finding carries the exploit recipe by construction (the Finding Contract demands evidence such as a reproducing command). The recipe stays local; only a redacted record is committed.
+
+### Per-round findings (local, gitignored)
+
+Each REVIEW round writes one file: `quality_reports/reviews/<YYYY-MM-DD_slug>/NNN-findings.md`, numbered from `001` in round order. Contents:
+
+| Field | Content |
+|-------|---------|
+| Reviewed branch and commit | Branch name plus the exact commit SHA the round reviewed |
+| Round | Round number, matching `NNN` |
+| Findings | The **consolidated** list (see Finding Consolidation) in Finding Contract shape: severity, location, claim, fix, evidence |
+| Status | Per finding, one of `open` / `fixed-in-round-<n>` / `accepted` |
+| `supersedes: NNN` | Present when this round restates findings first recorded in an earlier file |
+| Verification gaps | What this round could not check, and why |
+
+**Immutable once written.** A later round never edits an earlier file: it writes the next `NNN`, carries `supersedes: NNN`, and restates fresh per-finding statuses for everything it inherits. A mutable shared list would be a second amnesia source: if round 2 fixed 2 of 3 findings and did not update the file, round 3 reads three open findings and re-fixes two.
+
+**Gitignore guard, before the FIRST write.** These artifacts land in the user's project repos, not in claude-forge. Check the target repo's `.gitignore` for a `quality_reports/reviews/` entry; append the line if absent, never rewrite the existing file. Exploit detail must not enter git history: committing it publishes the vulnerable state permanently, with no coordinated-disclosure discipline.
+
+### approval.md (committed)
+
+Written at convergence and committed with the change, at `quality_reports/approvals/<YYYY-MM-DD_slug>.md` (outside the ignored tree, so the record reaches the PR and the human reviewer):
+
+| Field | Content |
+|-------|---------|
+| Branch, commit | What was approved |
+| Rounds run | Count, matching the highest `NNN` written |
+| Counts by severity | Critical / Major / Minor, over the consolidated list |
+| CWE ids | Where applicable, id only |
+| Final SCORE | In the canonical `SCORE:` form |
+| Residual risks | What was accepted and why, in one line each |
+| Findings path | Path of the local, gitignored findings directory |
+
+**Prohibited in `approval.md`:** no exploit text, no reproducing command, no vulnerable-code excerpt. The findings files carry the recipe locally; `approval.md` carries only the redacted record. A CWE id and a count are the level of detail it may reach.
+
+**Absence of `approval.md` means the loop did not converge.** That is a signal only if something reads it, so PRESENT (step 8) surfaces it on the literal `REVIEW-ARTIFACT:` line with `converged=no`. It is never left for a human to notice.
+
 ## Blast Radius (Step 5b, conditional)
 
 After RE-VERIFY, before SCORE. Detects entropy: docs, tests, imports still referencing pre-change behavior.
