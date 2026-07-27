@@ -72,7 +72,7 @@ claude-forge repo
 ├── Makefile            → `make check` + `make test-e2e` (pre-commit gate)
 ├── scripts/            → check_repo.py (ABOUTME, em-dashes, frontmatter, schema), doc_gardening.py (stale cross-references, _INDEX drift), skill-routing-eval.py (does a description route the way it claims)
 ├── hooks/              → Source for the enforcement hooks (installed to ~/.claude/hooks/)
-├── quality_reports/    → traces/ (gitignored), token_baselines/ (gitignored), harness_changes/ (committed audit trail), evals/ (committed routing case sets), knowledge_sync/ (committed monthly propose-only reports)
+├── quality_reports/    → traces/ (gitignored), token_baselines/ (gitignored), harness_changes/ (committed audit trail), evals/ (committed routing case sets), knowledge_sync/ (committed monthly propose-only reports), reviews/ (gitignored per-round findings), approvals/ (committed redacted convergence records)
 │
 Obsidian Vault (Documents/)
 ├── Projects/           → Per-project artifacts (overview, log, solutions)
@@ -211,7 +211,7 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | `source-control/` | Conventional commits, git workflow, hooks |
 | `commit/` | Redirects to `source-control/` |
 | `score/` | Run `make check` + `make test-e2e` and report commit/PR/excellence readiness |
-| `project-checks/` | Scaffold a Makefile with language-specific check/test-e2e targets |
+| `project-checks/` | Scaffold a Makefile with language-specific check/test-e2e targets; the Go template adds advisory `crap` and `mutation` targets outside `check` |
 | `learning-docs/` | LEARNING.md retrospectives, session analysis, docs/solutions/ capture, vault pattern annotation |
 | `knowledge-sync/` | Vault-to-skills sync: scan Second Brain for recurring patterns, propose skill updates |
 | `learning-loop/` | Cross-repo: mine all `LEARNING.md` for recurring failure-modes, propose harness changes with falsifiable change-contracts (retrospective-driven complement to trace-driven `harness-mechanic`) |
@@ -219,7 +219,7 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | `obsidian/` | Obsidian vault operations via CLI (CRUD, search, daily notes, graph, tasks) |
 | `refine-requirements/` | Structured requirements gathering before planning |
 | `plan-forge/` | Issue or in-session analysis to locked ExecPlan on disk + paste-ready implementation prompt + /goal line (deep code analysis, second opinion, REPRODUCE-first, exhaustive E2E, opus subagents in a worktree) |
-| `orchestrator/` | Full contractor-mode loop, loaded on demand before step 1: sub-protocols (LOCALIZE, BENCH-BASELINE, REPRODUCE, DRIFT), review routing, blast radius, UAT, parallelism and effort caps, escalation, goal-backed runs |
+| `orchestrator/` | Full contractor-mode loop, loaded on demand before step 1: sub-protocols (LOCALIZE, BENCH-BASELINE, REPRODUCE, DRIFT), review routing, finding consolidation, review artifacts (local findings + committed approval), blast radius, UAT, parallelism and effort caps, escalation, goal-backed runs |
 | `clickup/` | Task management via MCP |
 | `gemini-review/` | Local code review with Gemini CLI |
 | `verify-frontend/` | End-to-end UI verification in a real browser (console gate, before/after screenshots, Lighthouse) |

@@ -132,7 +132,7 @@ The matrix is the union of three dimensions: consolidation outcomes (merge, no-m
 - [x] W1 finding dedup (3 harness files + contract) (2026-07-27, impl session; W1.1-W1.4 done, `make check` green, DRIFT: aligned)
 - [x] W2 review artifacts (3 harness files + contract) (2026-07-27, impl session; W2.1-W2.5 done, `make check` + `make test-e2e` green, DRIFT: aligned; approval.md placed per decision 12)
 - [x] W3 Go metrics as evidence (4 files + contract) (2026-07-27, impl session; W3.1-W3.5 done, `check` target byte-identical (od -c vs HEAD), `make check` + `make test-e2e` green, DRIFT: aligned)
-- [ ] W4 docs + follow-ups drafted
+- [x] W4 docs + follow-ups drafted (2026-07-27, impl session; README: quality_reports tree line + orchestrator and project-checks skill rows, grep-verified surface; follow-up issues stay drafted in W4.2, filed at PR time)
 - [ ] Review round + fixes
 - [ ] PR + SCORE
 - [ ] Close-out (plan to completed/, retrospective filled)
