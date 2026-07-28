@@ -45,7 +45,11 @@ decisions get NEW rows in ## Decisions below.
 
 ### W(last) - docs + follow-ups
 - [ ] docs updated in the same PR (the repo's docs-sync rule); docs-facts/consistency gate green
-- [ ] follow-up issues DRAFTED in this plan (orchestrator files them at PR time)
+- [ ] follow-up issues DRAFTED in this plan (orchestrator files them at PR time). Draft each one
+      complete enough to pass the issue-triage rubric on its own: what + where (files/paths),
+      done-when (observable outcome), how to verify. At PR time the orchestrator files them
+      labeled `agent:ready` when the rubric holds (so issue-loop can claim them autonomously),
+      `agent:needs-spec` when it does not, `agent:human` for 🔴 classes; never unlabeled.
 
 ## E2E matrix   <!-- test-heavy tasks -->
 
@@ -89,7 +93,7 @@ executed or auto-ticked. Results land in the evidence bundle as `dod-results.jso
 | 4 | (test-heavy) Depth column filled, COVERAGE footer computed, gaps counted: <n> | - | matrix complete per template rules | no |
 | 5 | Review fleet: <security + architecture + test, or file-routed set> | - | CRITICAL/MAJOR fixed, re-verified | no |
 | 6 | PR to <integration-branch> open, NOT merged | - | `SCORE: <n>/100 (threshold: 90, gate: pr, evidence: <bundle-path>)` with fresh computational evidence | no |
-| 7 | Follow-up issues filed and linked in the PR body | - | links present | no |
+| 7 | Follow-up issues filed and linked in the PR body | - | filed with a triage label (`agent:ready` when the rubric holds), links present | no |
 | 8 | This plan updated after every task | - | Progress ticked, Surprises with evidence, Decisions appended | no |
 
 Drop rows whose qualifier does not apply ((bugfix), (hot-path), (test-heavy)); add task-specific
