@@ -32,17 +32,20 @@ NON_REVIEWER_AGENTS = [
 BLOCK_START = "- **Read-only with respect to the main tree.**"
 BLOCK_END = "- No `tools:` allowlist is declared"
 
-# Sentences that must survive verbatim, each the fix for a round-1 Major:
-# confinement itself, the shared-.git boundary (M1), the fail-closed guard (M2).
+# Sentences that must survive verbatim, each the fix for a Major finding:
+# confinement plus the origin/main checkout caveat (R2-m1), the shared-.git
+# boundary (R1-M1), the brief assertion the write-gate keys on and the path
+# comparison beside it (R1-M2 as corrected by R2-M1).
 PINNED = [
-    "You run in an isolated git worktree copy of the repo at a named base SHA.",
+    "You run in an isolated git worktree copy of the repo, and its checkout may be based on the default branch rather than the base SHA your brief names.",
     "never mutate shared git state",
-    "`git rev-parse --git-dir` must differ from `git rev-parse --git-common-dir`",
+    'your brief explicitly asserts this launch carried `isolation: "worktree"`',
+    "`git rev-parse --git-dir` differs from `git rev-parse --git-common-dir`",
 ]
 
 # The confinement sentence is the one a reader could invert while keeping the
-# words ("it is false that You run in an ..."). The other two pins carry their own
-# negations by design ("never mutate ...", "must differ ..."), so scanning their
+# words ("it is false that You run in an ..."). The other pins carry their own
+# negations by design ("never mutate ...", "rather than ..."), so scanning their
 # context for negation words would fail by construction.
 NEGATION_SCANNED = PINNED[0]
 NEGATION_WINDOW = 60
