@@ -169,8 +169,9 @@ def scan(transcript_path):
                         edit_lines.append((i, parse_event_ts(obj)))
                 elif name in ("Task", "Agent") and inp.get("subagent_type") in WRITE_AGENT_TYPES:
                     # Write-class subagents edit files on sidechains we cannot see;
-                    # their launch invalidates any earlier evidence. Read-only agents
-                    # (reviewers) do not: REVIEW legitimately runs after VERIFY.
+                    # their launch invalidates any earlier evidence. Main-tree
+                    # read-only (worktree-isolated) agents do not: REVIEW
+                    # legitimately runs after VERIFY.
                     edit_lines.append((i, parse_event_ts(obj)))
                 elif name == "Bash" and is_verify_cmd(inp.get("command", "")):
                     verifies.append((i, c.get("id")))

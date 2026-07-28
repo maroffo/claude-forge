@@ -172,7 +172,7 @@ def main():
         "write-agent-after-verify",
     )
 
-    # 15. Read-only reviewer agent after the verify does NOT invalidate -> allow
+    # 15. Main-tree read-only (worktree-isolated) reviewer after the verify does NOT invalidate -> allow
     reviewer = assistant_tool("Task", tool_id="t2", subagent_type="security-reviewer", prompt="review")
     expect_allow(
         run_hook([human(), edit_py, tool_result(), verify_ok, tool_result("v1"), reviewer, tool_result("t2"), score]),

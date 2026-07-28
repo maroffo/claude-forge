@@ -21,7 +21,7 @@ Typos, one-liners, single-function fixes with passing tests; config-only changes
     1b. REPRODUCE → (bug-fix only) write script proving the bug exists
     1c. DRIFT    → verify alignment after each subtask
 2.  VERIFY       → tests, lint, build, reproduction_confirmed
-3.  REVIEW       → review agents by file pattern, launched in BACKGROUND (read-only agents never block); findings reach FIX consolidated, then persisted per round (see orchestrator skill, Finding Consolidation + Review Artifacts)
+3.  REVIEW       → review agents by file pattern, launched in BACKGROUND + worktree-isolated (they never block, never touch the main tree); findings reach FIX consolidated, then persisted per round (see orchestrator skill, Finding Consolidation + Review Artifacts)
 4.  FIX          → software-engineer addresses Critical/Major findings
 5.  RE-VERIFY    → rebuild, retest
 5b. BLAST-RADIUS → (conditional) check related files for contradictions/staleness
@@ -56,6 +56,6 @@ Every REVIEW round prints `REVIEW-ROUND:` before its findings, and `n` counts **
 
 ## Invariants
 
-- Review agents are read-only. software-engineer is read-write, scoped to its assigned files.
+- Review agents are read-only **with respect to the main working tree**: every launch carries `isolation: "worktree"`, so the writes empirical review needs (probes, mutation runs) land in the agent's own copy. The `.git` database is shared, so shared git state (branches, stash, config, hooks) stays untouched. Prose, not enforcement: nothing checks the parameter, a launch that omits it puts a write-encouraged reviewer in the real tree, and the definitions downgrade themselves to read-only when the brief lacks the isolation assertion the launch template emits (a path check alone cannot tell an isolated copy from the linked worktree the session already runs in). Isolation, not permission: it bounds contamination, it does not prevent prompt injection. software-engineer is read-write, scoped to its assigned files.
 - The orchestrator is the sole committer. pi never commits, never takes a review or spec role (rules, agents and skills are spec), and every pi-executed subtask gets a DRIFT check.
 - Fix-round ceiling, writer concurrency and finalization evidence come from the plan's Budget (plan-first-workflow). Hitting a limit means escalate; it never means stop quietly with a fluent summary.
