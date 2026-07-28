@@ -93,8 +93,12 @@ executed or auto-ticked. Results land in the evidence bundle as `dod-results.jso
 | 8 | This plan updated after every task | - | Progress ticked, Surprises with evidence, Decisions appended | no |
 
 Drop rows whose qualifier does not apply ((bugfix), (hot-path), (test-heavy)); add task-specific
-`Auto: yes` rows for every mechanically checkable outcome the plan promises (a curl returning 200,
-a grep finding zero stale references, a migration applying cleanly).
+`Auto: yes` rows for every mechanically checkable outcome the plan promises (a health endpoint
+returning 200, a grep finding zero stale references, a migration applying cleanly). A shell pipe
+inside a Command cell is written `\|` (dod_run unescapes it). Commands outside dod_run's
+conservative allowlist need the caller to pass `--allow '<prefix>'` explicitly. `dod-results.json`
+embeds the output tail of failing commands: before committing a red bundle, review it for leaked
+env/config values (same rule as the junit failure blocks).
 
 ## Progress
 - [x] Analysis + second opinion + plan (YYYY-MM-DD, planning session)

@@ -276,6 +276,32 @@ def main():
             "make-evidence-is-verify",
         )
 
+        # 26. VALID evidence but no fresh verify -> the legacy gate still blocks
+        # (the bundle complements the verify requirement, never replaces it)
+        expect_block(
+            run_hook([human(), edit_past, tool_result(), score_ev], cwd=proj),
+            "valid-evidence-no-verify-still-blocks",
+        )
+
+        # 27. Prose after the closing paren saying 'evidence:' is NOT a claim -> allow
+        score_prose = assistant_text(
+            "SCORE: 92/100 (threshold: 90, gate: pr). The verification evidence: "
+            "make check ran green earlier this turn.\n"
+        )
+        expect_allow(
+            run_hook([human(), edit_past, tool_result(), verify_ok, tool_result("v1"), score_prose], cwd=proj),
+            "prose-evidence-not-a-claim",
+        )
+
+        # 28. Claim carrying a control character -> malformed claim -> block
+        score_nul = assistant_text(
+            "SCORE: 92/100 (threshold: 90, gate: pr, evidence: qux\x01etc)\n"
+        )
+        expect_block(
+            run_hook([human(), edit_past, tool_result(), verify_ok, tool_result("v1"), score_nul], cwd=proj),
+            "control-char-claim-blocks",
+        )
+
     print("test_score_evidence_guard: all tests passed")
 
 

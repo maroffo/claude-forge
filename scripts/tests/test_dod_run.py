@@ -26,12 +26,16 @@ class DodRunTest(unittest.TestCase):
         self.evidence.mkdir()
         self.addCleanup(self.tmp.cleanup)
 
-    def _run(self, plan_text, extra=()):
+    ALLOW = ("--allow", "true", "--allow", "false", "--allow", "test ", "--allow", "sleep ")
+
+    def _run(self, plan_text, extra=(), allow=None):
         plan = self.root / "plan.md"
         plan.write_text(plan_text, encoding="utf-8")
+        allow_flags = self.ALLOW if allow is None else allow
         return subprocess.run(
             [sys.executable, str(DOD_RUN), "--plan", str(plan),
-             "--evidence-dir", str(self.evidence), "--repo", str(self.root), *extra],
+             "--evidence-dir", str(self.evidence), "--repo", str(self.root),
+             *allow_flags, *extra],
             capture_output=True, text=True, timeout=120,
         )
 
@@ -86,6 +90,31 @@ class DodRunTest(unittest.TestCase):
         r = self._run("## DoD\n\n| A | B |\n|---|---|\n| 1 | 2 |\n")
         self.assertEqual(r.returncode, 2)
         self.assertIn("header", r.stderr)
+
+    def test_non_allowlisted_command_fails_without_executing(self):
+        marker = self.root / "should-not-exist.txt"
+        r = self._run(
+            plan_with(f"| 1 | injected | `touch {marker}` | exit 0 | yes |\n"),
+            allow=(),
+        )
+        self.assertEqual(r.returncode, 1)
+        self.assertFalse(marker.exists(), "non-allowlisted command must never execute")
+        out = self._results()
+        self.assertFalse(out["rows"][0]["passed"])
+        self.assertIn("allowlist", out["rows"][0]["output_tail"])
+
+    def test_allow_flag_extends_the_allowlist(self):
+        r = self._run(plan_with("| 1 | ok | `true` | exit 0 | yes |\n"), allow=("--allow", "true"))
+        self.assertEqual(r.returncode, 0, r.stderr)
+
+    def test_escaped_pipe_in_command_cell(self):
+        r = self._run(
+            plan_with("| 1 | piped | `true \\| sort` | exit 0 | yes |\n"),
+            allow=("--allow", "true"),
+        )
+        self.assertEqual(r.returncode, 0, r.stderr)
+        out = self._results()
+        self.assertEqual(out["rows"][0]["command"], "true | sort")
 
     def test_missing_evidence_dir_exits_two(self):
         plan = self.root / "plan.md"

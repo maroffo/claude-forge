@@ -59,8 +59,29 @@ def check_score_literal_sync():
     assert "evidence: <bundle-path>" in rule, (
         "orchestrator-protocol.md SCORE literal no longer documents the evidence field"
     )
+    # Parse-equivalence probes: the same fixture strings must yield the same
+    # evidence capture in the hook's SCORE_RE (functional) and stay compatible
+    # with the extractor's anchored pattern (source-level: same core char class
+    # and SCORE-line anchor — the divergence that shipped unanchored first).
+    fixtures = {
+        "SCORE: 92/100 (threshold: 90, gate: pr)": None,
+        "SCORE: 92/100 (threshold: 90, gate: pr, evidence: quality_reports/evidence/x)": (
+            "quality_reports/evidence/x"
+        ),
+        "SCORE: 92/100 (threshold: 90, gate: pr). Note the evidence: prose here.": None,
+        "| evidence: CWE-79 |\nSCORE: 90/100 (threshold: 90, gate: pr, evidence: qr/e/y)": "qr/e/y",
+    }
+    for text, want in fixtures.items():
+        matches = list(seg.SCORE_RE.finditer(text))
+        got = (matches[-1].group("evidence") or "").strip() if matches else ""
+        got = got or None
+        assert got == want, f"SCORE_RE evidence capture drifted on {text!r}: {got!r} != {want!r}"
     with open(os.path.join(REPO_ROOT, "skills", "harness-trace", "src", "harness_trace", "extractor.py")) as fh:
-        assert "evidence_path" in fh.read(), "harness-trace extractor dropped evidence_path"
+        extractor_src = fh.read()
+    assert "evidence_path" in extractor_src, "harness-trace extractor dropped evidence_path"
+    assert r"\bevidence:\s*([^,)\n]+)" in extractor_src and "^SCORE:" in extractor_src, (
+        "extractor evidence pattern lost the SCORE-line anchor or the shared char class"
+    )
     with open(os.path.join(REPO_ROOT, "skills", "harness-trace", "src", "harness_trace", "models.py")) as fh:
         assert "evidence_path" in fh.read(), "harness-trace ScoreData dropped evidence_path"
     with open(os.path.join(REPO_ROOT, "scripts", "score-log.sh")) as fh:

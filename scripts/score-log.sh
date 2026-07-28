@@ -218,8 +218,14 @@ branch="$(git branch --show-current)"
 branch="$(printf '%s' "$branch" | tr -d '[:cntrl:]' | sed 's/\\/\\\\/g; s/"/\\"/g')"
 
 # --evidence is optional and additive (stage A of the evidence-path rollout):
-# rows without it stay valid, consumers must not require the field. Escaped like
-# the branch name: paths are attacker-adjacent input (bundle names come from refs).
+# rows without it stay valid, consumers must not require the field. The value
+# must respect the SCORE literal's char class ([^,)\n]+): a path the hook and
+# extractor would truncate must not land verbatim in history, so it is rejected
+# here rather than silently recorded as something the guard never validated.
+if [[ "$evidence" == *,* || "$evidence" == *\)* ]]; then
+  die 2 "--evidence must not contain ',' or ')': the SCORE literal cannot carry it: $evidence"
+fi
+# Escaped like the branch name: paths are attacker-adjacent input.
 if [[ -n "$evidence" ]]; then
   evidence="$(printf '%s' "$evidence" | tr -d '[:cntrl:]' | sed 's/\\/\\\\/g; s/"/\\"/g')"
   printf '{"ts":"%s","branch":"%s","score":%d,"threshold":%d,"gate":"%s","check":"%s","e2e":"%s","major":%d,"minor":%d,"evidence":"%s"}\n' \

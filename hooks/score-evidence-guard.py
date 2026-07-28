@@ -46,10 +46,12 @@ NON_VERIFY_PREFIXES = ("echo ", "grep ", "cat ", "ls ", "find ", "rg ")
 
 # The literal step-6 reporting form from rules/orchestrator-protocol.md.
 # The evidence group is optional (stage A of the evidence-path rollout): a bare
-# `SCORE: n/100 (...)` keeps matching; when `evidence: <path>` is present the
-# path is captured for filesystem validation.
+# `SCORE: n/100 (...)` keeps matching. The group is anchored INSIDE the literal's
+# parentheses: prose after the closing paren that happens to say "evidence:" is
+# never treated as a claim (it would otherwise cause spurious blocks).
 SCORE_RE = re.compile(
-    r"^SCORE:\s*\d{1,3}/100\b(?:[^\n]*?\bevidence:\s*(?P<evidence>[^,)\n]+))?",
+    r"^SCORE:\s*\d{1,3}/100\b"
+    r"(?:\s*\([^)\n]*?\bevidence:\s*(?P<evidence>[^,)\n]+)[^)\n]*\))?",
     re.MULTILINE,
 )
 
@@ -181,6 +183,10 @@ def evidence_block_reason(path, cwd, last_edit_ts):
     Stat-only checks; unexpected errors return None (fail-open): an infra error
     must never wedge a session, only a present-but-false claim blocks.
     """
+    # A malformed claim value (NUL, control chars) is a false claim, not an
+    # infra error: it must block, not slip through the fail-open net below.
+    if any(ord(ch) < 32 for ch in path):
+        return "contains control characters (malformed claim)"
     try:
         root = os.path.realpath(cwd)
         bundle = os.path.realpath(path if os.path.isabs(path) else os.path.join(root, path))
@@ -191,12 +197,14 @@ def evidence_block_reason(path, cwd, last_edit_ts):
         meta = os.path.join(bundle, "metadata.json")
         if not os.path.isfile(meta):
             return "has no metadata.json manifest"
-        if last_edit_ts is not None:
-            try:
-                if os.stat(meta).st_mtime < last_edit_ts:
-                    return "predates the last source edit (stale bundle: regenerate it)"
-            except OSError:
-                return None
+        try:
+            st = os.stat(meta)
+        except OSError:
+            return None
+        if st.st_size == 0:
+            return "has an empty metadata.json (not a real bundle manifest)"
+        if last_edit_ts is not None and st.st_mtime < last_edit_ts:
+            return "predates the last source edit (stale bundle: regenerate it)"
         return None
     except Exception:
         return None
@@ -225,12 +233,15 @@ def main():
     if not turn_scores:
         sys.exit(0)
 
-    # When the SCORE claims an evidence bundle, the claim must be provably true:
+    # When a SCORE claims an evidence bundle, the claim must be provably true:
     # in-repo, existing, with a metadata.json no older than the last source edit.
-    # A false evidence claim is worse than none, so it blocks even if a verify ran.
-    claimed = turn_scores[-1][1]
-    if claimed:
-        edit_ts = [ts for _idx, ts in edit_lines if ts is not None]
+    # A false evidence claim is worse than none, so it blocks even if a verify
+    # ran. EVERY claimed path in the turn is validated: a false claim followed
+    # by a bare re-report must not slip into telemetry unchallenged.
+    edit_ts = [ts for _idx, ts in edit_lines if ts is not None]
+    for _idx, claimed in turn_scores:
+        if not claimed:
+            continue
         problem = evidence_block_reason(
             claimed, payload.get("cwd") or os.getcwd(), max(edit_ts) if edit_ts else None
         )

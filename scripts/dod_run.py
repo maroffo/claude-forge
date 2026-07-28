@@ -16,7 +16,9 @@ before any command ran.
 
 import argparse
 import json
+import os
 import re
+import signal
 import subprocess
 import sys
 import time
@@ -25,6 +27,21 @@ from pathlib import Path
 ROW_RE = re.compile(r"^\s*\|(.+)\|\s*$")
 SEPARATOR_RE = re.compile(r"^[\s|:-]+$")
 EXPECTED_HEADER = ["#", "criterion", "command", "expected", "auto"]
+CELL_SPLIT_RE = re.compile(r"(?<!\\)\|")  # cells may carry shell pipes as `\|`
+
+# Command cells reach `bash -c`. Plans can be seeded from GitHub issue text
+# (plan-forge <- gh issue view), which anyone can write, and dod_run executes
+# OUTSIDE Claude Code's Bash permission layer — so commands are constrained to
+# a conservative prefix allowlist. Callers extend it per repo with --allow;
+# a non-allowlisted command is recorded as a failed row, never executed.
+DEFAULT_ALLOWED_PREFIXES = (
+    "make ", "make", "./scripts/", "bash scripts/", "sh scripts/",
+    "go test", "go vet", "go build", "uv run ", "pytest",
+)
+
+
+def allowed(command, extra_prefixes):
+    return any(command.startswith(p) for p in (*DEFAULT_ALLOWED_PREFIXES, *extra_prefixes))
 
 
 def die(msg):
@@ -46,7 +63,7 @@ def parse_dod_table(plan_text):
         m = ROW_RE.match(line)
         if not m:
             continue
-        cells = [c.strip() for c in m.group(1).split("|")]
+        cells = [c.strip().replace("\\|", "|") for c in CELL_SPLIT_RE.split(m.group(1))]
         if not header_seen:
             if [c.lower() for c in cells] != EXPECTED_HEADER:
                 die(f"DoD table header must be {EXPECTED_HEADER}, got {cells}")
@@ -68,7 +85,27 @@ def clean_command(cell):
     return "" if cmd in ("", "-", "—") else cmd
 
 
-def run_rows(rows, repo, timeout):
+def execute(command, repo, timeout):
+    """Run command in its own process group so a timeout kills grandchildren too
+    (a backgrounded daemon holding stdout would otherwise hang the read forever)."""
+    proc = subprocess.Popen(
+        ["bash", "-c", command], cwd=str(repo),
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+        start_new_session=True,
+    )
+    try:
+        out, _ = proc.communicate(timeout=timeout)
+        return proc.returncode, (out or "")[-2000:]
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            pass
+        proc.wait()
+        return -1, f"timeout after {timeout}s (process group killed)"
+
+
+def run_rows(rows, repo, timeout, extra_prefixes):
     results, overall_pass = [], True
     for row in rows:
         auto = row["auto"].strip().lower() == "yes"
@@ -81,27 +118,29 @@ def run_rows(rows, repo, timeout):
             "exit_code": None,
             "passed": None,
             "duration_s": None,
+            "output_tail": None,
         }
         if auto:
             if not entry["command"]:
                 # An Auto row without a runnable command is a plan defect, not a pass.
                 entry["passed"] = False
                 entry["exit_code"] = -1
+                entry["output_tail"] = "auto row without a runnable command"
+                overall_pass = False
+            elif not allowed(entry["command"], extra_prefixes):
+                entry["passed"] = False
+                entry["exit_code"] = -1
+                entry["output_tail"] = (
+                    "command not on the allowlist, not executed "
+                    "(extend with --allow '<prefix>' if legitimate)"
+                )
                 overall_pass = False
             else:
                 start = time.monotonic()
-                try:
-                    proc = subprocess.run(
-                        ["bash", "-c", entry["command"]],
-                        cwd=str(repo), capture_output=True, text=True, timeout=timeout,
-                    )
-                    entry["exit_code"] = proc.returncode
-                    entry["passed"] = proc.returncode == 0
-                    entry["output_tail"] = (proc.stdout + proc.stderr)[-2000:]
-                except subprocess.TimeoutExpired:
-                    entry["exit_code"] = -1
-                    entry["passed"] = False
-                    entry["output_tail"] = f"timeout after {timeout}s"
+                entry["exit_code"], entry["output_tail"] = execute(
+                    entry["command"], repo, timeout
+                )
+                entry["passed"] = entry["exit_code"] == 0
                 entry["duration_s"] = round(time.monotonic() - start, 1)
                 overall_pass = overall_pass and entry["passed"]
         results.append(entry)
@@ -114,6 +153,8 @@ def main():
     ap.add_argument("--evidence-dir", required=True)
     ap.add_argument("--repo", default=".")
     ap.add_argument("--timeout", type=int, default=1800)
+    ap.add_argument("--allow", action="append", default=[],
+                    help="additional allowed command prefix (repeatable)")
     args = ap.parse_args()
 
     plan = Path(args.plan)
@@ -127,7 +168,7 @@ def main():
         die(f"evidence dir not found (run the bundle first): {evidence_dir}")
 
     rows = parse_dod_table(plan.read_text(encoding="utf-8"))
-    results, overall_pass = run_rows(rows, repo, args.timeout)
+    results, overall_pass = run_rows(rows, repo, args.timeout, tuple(args.allow))
 
     out = {
         "schema_version": 1,
