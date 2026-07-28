@@ -89,8 +89,8 @@ The union is: definition-file surface (static, testable), launch surface (one li
 - [x] W2 definitions (2026-07-28, commit ad2ffca: identical 5-bullet confinement block in all 7 `*-reviewer` AGENT.md, no `tools:` key anywhere)
 - [x] W3.1 test + W3.2 contract (2026-07-28, commits ad2ffca + 99acd29: `hooks/tests/test_agent_definitions.py` red-green verified against 3 mutated fixtures, contract filed)
 - [ ] W3.3 update PR #114 follow-up issue (at close)
-- [ ] Review round + fixes (live wave doubles as E2E row 2)
-- [ ] PR + SCORE
+- [x] Review round 1 + fixes (2026-07-28): security + architecture, both `isolation: "worktree"`, backgrounded, joined at consolidation, agents=2/2. Consolidated 0 Critical / 2 Major / 7 Minor; fixed in commit 3e0da33 (m7 accepted). Live wave = E2E row 2: main-checkout `git status` byte-identical before/during/after; loop worktree 0 dirty throughout; arch worktree auto-cleaned (unchanged), sec worktree leftover reported then removed post-consolidation (E2E rows 3/5).
+- [ ] Review round 2 (confirm fixes) + SCORE + PR
 
 ## Surprises & Discoveries
 - (planning) The mechanism both reviewers wanted already exists as `isolation: "worktree"` on the Agent tool; Gemini proposed it from first principles without knowing. The plan shrank from "build isolation" to "pass a parameter and say why".
@@ -98,6 +98,9 @@ The union is: definition-file surface (static, testable), launch surface (one li
 - (W2) The em-dash lint (`scripts/check_repo.py`, `EM_DASH_SCOPE_SUBSTRINGS`) is scoped to `/skills/` only; `rules/` and `agents/` carry grandfathered em dashes under a "clean on touch" comment. The 8 touched files kept their pre-existing ABOUTME em dashes: strict "clean on touch" would have ballooned the diff beyond this change's scope (see Decisions #8).
 - (W2) security-reviewer was the only definition with read-only claims beyond the standard bullet (ABOUTME line 2 and the reasoning-gates sentence "and you stay read-only"); both restated per decision 6, making it the one non-uniform diff of the seven.
 - (W2) Reviewer definitions now carry two overlapping citation rules: the new "cite `file:line` against the base SHA" and the pre-existing "Quote exact code with file path and line number". Complementary, not conflicting; dedup deferred (tech-debt candidate).
+- (review round 1) **The plan's own premise was half wrong for three commits.** "Cannot contaminate the main tree" held only for the working tree: a git worktree shares object store, refs, stash, config and hooks with the main repo, so git-plumbing writes (stash/branch/hook) from a reviewer copy DO reach state the main tree consumes. Found by the security reviewer probing `git rev-parse --git-common-dir` from inside its own live isolated copy; the guarantee is now correctly scoped to the working tree (M1, commit 3e0da33). Meta: the finding was produced by exactly the empirical-review capability decision 2 exists to protect.
+- (review round 1) `isolation: "worktree"` bases the copy on origin/main (worktree.baseRef=fresh), NOT the current branch HEAD: both reviewer worktrees materialized at e68e948 while reviewing 1df0bfe. Harmless here because the object store is shared (reviewers ran `git diff`/checkouts of the branch SHA inside their copies), but briefs must keep naming the SHA, since the copy's checkout is not it.
+- (review round 1) The `isolation` parameter is fail-open by construction: prose-only, no hook inspects it, and pr-review routes the same agents without it (safe today only via its own clone). Fixed agent-side (self-check guard bullet, M2); a launch-side hook was NOT added, and would be a separate contract.
 
 ## Decisions
 (append-only)
@@ -106,6 +109,9 @@ The union is: definition-file surface (static, testable), launch surface (one li
 |---|----------|--------|-----------|------------|
 | 8 | Em dashes in touched `rules/`/`agents/` files | Left grandfathered ones alone; no new ones introduced | Lint scope excludes those dirs; strict clean-on-touch would balloon an isolation change into a punctuation sweep | The em-dash lint scope widens to `rules/`/`agents/` |
 | 9 | Overlapping citation rules in reviewer definitions | Both kept (base-SHA anchor + quote-exact-code) | They compose: one anchors, one evidences; deleting either loses information | A dedup pass merges them into one sentence |
+| 10 | Finding m7 (rejection history duplicated in 7 runtime prompts) | Accepted, not fixed | Plan W2.2 mandates the in-prose record so a future editor of that file sees it; the new uniformity hash pin (m3 fix) guards the copies against drift | The uniformity pin is ever removed |
+| 11 | W3.3 target | Comment on PR #114 thread, not an issue | No follow-up issue exists; the follow-up list lives in the PR #114 body ("Open, deliberately not fixed here", item 2), so the outcome belongs on that thread | A tracking issue is created later |
+| 12 | Scope of the non-contamination guarantee | Working tree only, stated explicitly at every layer | Worktrees share the `.git` database; claiming more would be the overclaim this repo's discipline forbids | Git grows per-worktree refs/config that change the boundary |
 
 ## Outcomes & Retrospective
 (fill at close)
