@@ -85,17 +85,27 @@ The union is: definition-file surface (static, testable), launch surface (one li
 
 ## Progress
 - [x] Analysis + second opinion + plan (2026-07-28)
-- [ ] W1 launch-side
-- [ ] W2 definitions
-- [ ] W3 test + contract
-- [ ] Review round + fixes
+- [x] W1 launch-side (2026-07-28, commit 38f685e: SKILL.md Review Scheduling + protocol Invariants restated per decision 6)
+- [x] W2 definitions (2026-07-28, commit ad2ffca: identical 5-bullet confinement block in all 7 `*-reviewer` AGENT.md, no `tools:` key anywhere)
+- [x] W3.1 test + W3.2 contract (2026-07-28, commits ad2ffca + 99acd29: `hooks/tests/test_agent_definitions.py` red-green verified against 3 mutated fixtures, contract filed)
+- [ ] W3.3 update PR #114 follow-up issue (at close)
+- [ ] Review round + fixes (live wave doubles as E2E row 2)
 - [ ] PR + SCORE
 
 ## Surprises & Discoveries
 - (planning) The mechanism both reviewers wanted already exists as `isolation: "worktree"` on the Agent tool; Gemini proposed it from first principles without knowing. The plan shrank from "build isolation" to "pass a parameter and say why".
+- (W1-W3) `make check` does NOT run `hooks/tests/*.py`; `make test-e2e` picks the new test up via the glob at `Makefile:31`, so no wiring was needed. Evidence: its pass line appears in `make test-e2e` output.
+- (W2) The em-dash lint (`scripts/check_repo.py`, `EM_DASH_SCOPE_SUBSTRINGS`) is scoped to `/skills/` only; `rules/` and `agents/` carry grandfathered em dashes under a "clean on touch" comment. The 8 touched files kept their pre-existing ABOUTME em dashes: strict "clean on touch" would have ballooned the diff beyond this change's scope (see Decisions #8).
+- (W2) security-reviewer was the only definition with read-only claims beyond the standard bullet (ABOUTME line 2 and the reasoning-gates sentence "and you stay read-only"); both restated per decision 6, making it the one non-uniform diff of the seven.
+- (W2) Reviewer definitions now carry two overlapping citation rules: the new "cite `file:line` against the base SHA" and the pre-existing "Quote exact code with file path and line number". Complementary, not conflicting; dedup deferred (tech-debt candidate).
 
 ## Decisions
 (append-only)
+
+| # | Decision | Choice | Rationale | Revisit if |
+|---|----------|--------|-----------|------------|
+| 8 | Em dashes in touched `rules/`/`agents/` files | Left grandfathered ones alone; no new ones introduced | Lint scope excludes those dirs; strict clean-on-touch would balloon an isolation change into a punctuation sweep | The em-dash lint scope widens to `rules/`/`agents/` |
+| 9 | Overlapping citation rules in reviewer definitions | Both kept (base-SHA anchor + quote-exact-code) | They compose: one anchors, one evidences; deleting either loses information | A dedup pass merges them into one sentence |
 
 ## Outcomes & Retrospective
 (fill at close)
