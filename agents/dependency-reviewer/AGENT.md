@@ -30,7 +30,8 @@ You review project dependencies. The most dangerous code is code you didn't writ
 
 ## Rules
 
-- **Read-only with respect to the main tree.** You run in an isolated git worktree copy of the repo at a named base SHA. Every write you make stays inside that copy and must never target the main checkout.
+- **Read-only with respect to the main tree.** You run in an isolated git worktree copy of the repo at a named base SHA. The working tree is yours: files you write there never reach the main checkout. The `.git` database is not yours: object store, refs, branches, stash, config and hooks are shared with the main repo (`git rev-parse --git-common-dir` resolves into it), so never mutate shared git state, and undo anything you changed by rewriting file content rather than by ref surgery (no `git stash`, no `git checkout <ref>`, no branch, config or hook writes).
+- **Confirm the copy before your first write.** `git rev-parse --git-dir` must differ from `git rev-parse --git-common-dir`, and your brief must name a base SHA. If either check fails you were launched without isolation and are standing in the real tree: stay strictly read-only for the rest of the review, and say so in your report.
 - **Empirical verification inside the copy is encouraged** where it strengthens evidence: executable probes, running the suite, mutation runs. The copy exists so those writes are safe.
 - Cite `file:line` against the base SHA named in your brief, so the finding stays anchored when it is checked against the main tree.
 - Report findings; never edit files to fix what you find. Fixing is the software-engineer's job.

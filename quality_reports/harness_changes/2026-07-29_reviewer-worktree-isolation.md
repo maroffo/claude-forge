@@ -16,7 +16,12 @@ A review agent writes to the main tree and a later step consumes what it left. C
 
 ## Predicted improvement
 
-Contamination incidents from reviewer writes go to zero by construction rather than by prose: the reviewer's filesystem root is a throwaway copy, so there is no write path to the main tree left to discipline. Sample: the next 10 review waves, checked by `git status` on the main tree before and after each wave (expected: no diff attributable to a reviewer, versus a current rate that is unmeasured but non-zero-by-luck, see above).
+On any launch that carries `isolation: "worktree"`, contamination of the main **working tree** by reviewer file writes goes to zero by construction: the reviewer's filesystem root is a throwaway copy, so there is no write path left to discipline. Two scoping caveats, both deliberate rather than hedges:
+
+- The parameter is not enforced anywhere (see Falsification #2), so the guarantee is conditional on the launcher. Launches that omit it fail closed on the agent side instead: the shared block tells the reviewer to compare `git rev-parse --git-dir` against `--git-common-dir` and drop to strictly read-only when they match. That is a weaker property (an instruction, not a boundary) and is claimed as nothing more.
+- The `.git` database is shared with the main repo, so the guarantee covers working-tree writes, not git state. Shared-state discipline (no `stash`, no branch or config or hook writes, restore by file content) is likewise instruction, not enforcement.
+
+Sample: the next 10 review waves, checked by `git status` on the main tree before and after each wave (expected: no diff attributable to a reviewer, versus a current rate that is unmeasured but non-zero-by-luck, see above).
 
 ## Invariants preserved
 
