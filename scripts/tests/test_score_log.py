@@ -37,6 +37,23 @@ class ScoreLogTest(unittest.TestCase):
 
     # Row 8 (3*): two sequential appends.
 
+    def test_evidence_flag_adds_field_and_omission_keeps_legacy_shape(self):
+        with tempfile.TemporaryDirectory() as d:
+            repo = Path(d).resolve()
+            subprocess.run(["git", "init", "-b", "feat/demo", str(repo)],
+                           capture_output=True, check=True)
+            r = self._run(
+                ["--score", "97", "--threshold", "90", "--gate", "pr", "--check", "pass",
+                 "--e2e", "pass", "--major", "0", "--minor", "0",
+                 "--evidence", "quality_reports/evidence/2026-07-28_feat-x"],
+                repo,
+            )
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self._append(repo, 80)  # second row without --evidence
+            rows = self._rows(repo)
+            self.assertEqual(rows[0]["evidence"], "quality_reports/evidence/2026-07-28_feat-x")
+            self.assertNotIn("evidence", rows[1], "--evidence omitted must not add the field")
+
     def test_two_appends_produce_two_valid_rows(self):
         with tempfile.TemporaryDirectory() as d:
             repo = Path(d).resolve()

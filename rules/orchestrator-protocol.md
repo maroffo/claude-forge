@@ -43,7 +43,7 @@ DRIFT: subtask=<id> verdict=aligned|minor_drift|significant_drift
 EXECUTOR: pi-exec model=<id> subtask=<id>
 BLAST-RADIUS: clean (files_checked=<k>) | MAJOR=<n> MINOR=<m> (files_checked=<k>) | skipped (<reason>)
 REVIEW-ARTIFACT: round=<n> path=<path> findings=<c/m/n> converged=<yes/no>
-SCORE: <n>/100 (threshold: <t>, gate: commit|pr|excellence)
+SCORE: <n>/100 (threshold: <t>, gate: commit|pr|excellence[, evidence: <bundle-path>])
 ```
 
 A SCORE is a judge verdict, valid only alongside fresh computational evidence: a successful test/lint/build run after the last source edit (`score-evidence-guard` enforces this). If VERIFY ran inside a subagent, say so when reporting.

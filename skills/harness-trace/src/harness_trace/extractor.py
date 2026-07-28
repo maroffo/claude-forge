@@ -422,6 +422,9 @@ def _extract_text_step_data(step: str, text: str) -> dict[str, Any]:
         m = SCORE_PATTERN.search(text)
         if m:
             data["score"] = int(m.group(1))
+        ev = re.search(r"\bevidence:\s*([^,)\n]+)", text)
+        if ev:
+            data["evidence_path"] = ev.group(1).strip()
     elif step == "LOOP":
         m = re.search(r"round\s+(\d+)\s+of\s+(\d+)", text, re.IGNORECASE)
         if m:

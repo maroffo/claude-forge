@@ -45,6 +45,28 @@ def check_freeze_boundary_basename():
     )
 
 
+def check_score_literal_sync():
+    """The SCORE literal's evidence field has four consumers: the protocol rule
+    (canonical form), the guard hook (SCORE_RE evidence group), the trace
+    extractor (evidence_path), and score-log.sh (--evidence). A consumer that
+    forgets the field silently drops the evidence link."""
+    seg = load("score-evidence-guard.py")
+    assert "evidence" in seg.SCORE_RE.groupindex, (
+        "score-evidence-guard SCORE_RE lost its named 'evidence' group"
+    )
+    with open(os.path.join(REPO_ROOT, "rules", "orchestrator-protocol.md")) as fh:
+        rule = fh.read()
+    assert "evidence: <bundle-path>" in rule, (
+        "orchestrator-protocol.md SCORE literal no longer documents the evidence field"
+    )
+    with open(os.path.join(REPO_ROOT, "skills", "harness-trace", "src", "harness_trace", "extractor.py")) as fh:
+        assert "evidence_path" in fh.read(), "harness-trace extractor dropped evidence_path"
+    with open(os.path.join(REPO_ROOT, "skills", "harness-trace", "src", "harness_trace", "models.py")) as fh:
+        assert "evidence_path" in fh.read(), "harness-trace ScoreData dropped evidence_path"
+    with open(os.path.join(REPO_ROOT, "scripts", "score-log.sh")) as fh:
+        assert "--evidence" in fh.read(), "score-log.sh dropped the --evidence flag"
+
+
 def main():
     vbs = load("verify-before-stop.py")
     seg = load("score-evidence-guard.py")
@@ -58,6 +80,7 @@ def main():
     )
 
     check_freeze_boundary_basename()
+    check_score_literal_sync()
 
     print("test_hook_constants_sync: all tests passed")
 
