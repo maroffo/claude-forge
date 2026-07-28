@@ -87,7 +87,7 @@ def main():
     expect_allow(
         run_hook([
             human(), review_round(6, budget=5), artifact(2, 2, 6),
-            assistant_text("Fix-round budget exhausted; escalating with the current artifact."),
+            assistant_text("ESCALATION: budget=5 rounds_used=6 reason=findings not converging"),
             score,
         ]),
         "over-budget-with-escalation",
@@ -97,7 +97,7 @@ def main():
     expect_block(
         run_hook([
             human(),
-            assistant_text("If this drags on we will escalate."),
+            assistant_text("If this drags on we will escalate."),  # prose, not the literal
             review_round(7, budget=5), artifact(1, 1, 7), score,
         ]),
         "stale-escalation-before-round",
@@ -173,6 +173,108 @@ def main():
     r = run_hook([human(), review_round(7, budget=5), artifact(1, 3, 7), score])
     expect_block(r, "both-violations")
     assert "agents=1/3" in r["reason"], f"expected the join reason first, got: {r['reason'][:120]}"
+
+    # --- TEST-1 (Critical): escalation sharing ONE assistant block with its round line.
+    # Production writes several protocol literals per block (8 of 10 real blocks do);
+    # a line-index-only comparison rejected the honest escalation.
+    expect_allow(
+        run_hook([human(), assistant_text(
+            "REVIEW-ROUND: n=6 budget=5 scope=full\n"
+            "ESCALATION: budget=5 rounds_used=6 reason=stalled on flaky suite\n"
+            f"{SCORE}\n"
+        ), artifact(2, 2, 6)]),
+        "escalation-same-block-after-round",
+    )
+    # ...and the same block with the escalation BEFORE the round line does not count.
+    expect_block(
+        run_hook([human(), assistant_text(
+            "ESCALATION: budget=5 rounds_used=1 reason=stale, from an earlier round\n"
+            "REVIEW-ROUND: n=6 budget=5 scope=full\n"
+            f"{SCORE}\n"
+        ), artifact(2, 2, 6)]),
+        "escalation-same-block-before-round",
+    )
+
+    # --- SEC-1: prose containing escalat* must NOT satisfy the gate (it used to) ---
+    for prose in ("MAJOR: privilege escalation via unchecked role.",
+                  "The user escalated the ticket to support.",
+                  "Escalating privileges is denied by policy."):
+        expect_block(
+            run_hook([human(), review_round(7, budget=5), artifact(1, 1, 7),
+                      assistant_text(prose), score]),
+            f"prose-escalation-does-not-disarm: {prose[:28]}",
+        )
+
+    # --- ARCH-1: self-reported n= cannot buy unlimited rounds; the LINES are counted ---
+    expect_block(
+        run_hook([human()] + [review_round(1, budget=5) for _ in range(8)]
+                 + [artifact(2, 2, 1), score]),
+        "eight-rounds-all-declared-n1",
+    )
+
+    # --- ARCH-minor: a PRESENT recap of an earlier artifact must not gate the SCORE ---
+    expect_allow(
+        run_hook([human(), review_round(1), artifact(2, 3, 1),
+                  review_round(2), artifact(3, 3, 2),
+                  assistant_text("Recap:\nREVIEW-ARTIFACT: round=1 path=x findings=0/1/2 agents=2/3 converged=no"),
+                  score]),
+        "recap-of-earlier-artifact-ignored",
+    )
+
+    # --- TEST-2: a literal quoted mid-line must never arm the gate ---
+    expect_allow(
+        run_hook([human(),
+                  assistant_text("We are still at REVIEW-ROUND: n=9 budget=5 scope=full per the plan."),
+                  artifact(2, 2, 1), score]),
+        "mid-line-literal-not-a-report",
+    )
+
+    # --- TEST-3: an isMeta user record (Stop-hook feedback) must not reset turn scoping ---
+    meta = {"type": "user", "isMeta": True, "message": {"content": "Stop hook feedback:\nsomething"}}
+    expect_block(
+        run_hook([human(), review_round(7, budget=5), artifact(1, 2, 7), meta, score]),
+        "ismeta-does-not-reset-turn",
+    )
+
+    # --- TEST-3b: a human turn whose content is a LIST of text blocks counts as human ---
+    human_list = {"type": "user", "message": {"content": [{"type": "text", "text": "new task"}]}}
+    expect_allow(
+        run_hook([human(), review_round(9, budget=5), artifact(0, 3, 9),
+                  human_list, review_round(1), artifact(2, 2, 1), score]),
+        "list-content-human-resets-turn",
+    )
+
+    # --- TEST-5: rounds printed out of order; the block must name the highest ---
+    r = run_hook([human(), review_round(6, budget=5), review_round(2, budget=5),
+                  artifact(2, 2, 6), score])
+    expect_block(r, "out-of-order-rounds")
+    assert "round 6" in r["reason"], f"expected the highest round named, got: {r['reason'][:100]}"
+
+    # --- TEST-7: reason content is asserted for BOTH gates, not just the join ---
+    r = run_hook([human(), review_round(7, budget=5), artifact(2, 2, 7), score])
+    expect_block(r, "round-gate-reason")
+    assert "round 7" in r["reason"] and "budget of 5" in r["reason"], (
+        f"round-gate reason must name both numbers, got: {r['reason'][:140]}"
+    )
+
+    # --- TEST-4: outer fail-open — an unreadable transcript must exit 0 silently ---
+    import stat
+    with tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False) as fh:
+        fh.write(json.dumps(human()) + "\n")
+        unreadable = fh.name
+    try:
+        os.chmod(unreadable, 0)
+        proc = subprocess.run(
+            [sys.executable, HOOK],
+            input=json.dumps({"hook_event_name": "Stop", "transcript_path": unreadable}),
+            capture_output=True, text=True, timeout=30,
+        )
+        assert proc.returncode == 0 and not proc.stdout.strip(), (
+            f"unreadable transcript must fail open silently: rc={proc.returncode} out={proc.stdout!r}"
+        )
+    finally:
+        os.chmod(unreadable, stat.S_IRUSR | stat.S_IWUSR)
+        os.unlink(unreadable)
 
     print("test_review_budget_guard: all tests passed")
 

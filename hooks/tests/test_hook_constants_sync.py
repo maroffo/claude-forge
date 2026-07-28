@@ -103,6 +103,22 @@ def check_review_literals_sync():
         m = rbg.ROUND_RE.search(text)
         got = (int(m.group("n")), int(m.group("budget"))) if m else None
         assert got == want, f"ROUND_RE drifted on {text!r}: {got} != {want}"
+    # Anchoring is the property, not just the shape: this repo shipped an
+    # unanchored-vs-anchored divergence once. A literal quoted mid-line must not match.
+    for embedded in ("we are still at REVIEW-ROUND: n=9 budget=5",
+                     "quoting ESCALATION: budget=5 rounds_used=9 in prose"):
+        assert not rbg.ROUND_RE.search(embedded) and not rbg.ESCALATION_RE.search(embedded), (
+            f"a literal quoted mid-line must not match: {embedded!r}"
+        )
+    multi = "some prose\nREVIEW-ROUND: n=4 budget=5 scope=full\nmore prose"
+    assert rbg.ROUND_RE.search(multi), "ROUND_RE must match on a later line (re.MULTILINE)"
+    assert rbg.ESCALATION_RE.search("x\nESCALATION: budget=5 rounds_used=6 reason=y"), (
+        "ESCALATION_RE must be the anchored literal, never a prose match"
+    )
+    for prose in ("privilege escalation via unchecked role", "the user escalated the ticket"):
+        assert not rbg.ESCALATION_RE.search(prose), (
+            f"prose must not satisfy the escalation gate: {prose!r}"
+        )
     m = rbg.ARTIFACT_RE.search(
         "REVIEW-ARTIFACT: round=2 path=p findings=0/1/2 agents=2/3 converged=no"
     )
@@ -111,6 +127,9 @@ def check_review_literals_sync():
     )
     with open(os.path.join(REPO_ROOT, "rules", "orchestrator-protocol.md")) as fh:
         rule = fh.read()
+    assert "ESCALATION: budget=<b> rounds_used=<n>" in rule, (
+        "orchestrator-protocol.md no longer documents the ESCALATION literal"
+    )
     assert "REVIEW-ROUND: n=<n> budget=<b>" in rule, (
         "orchestrator-protocol.md no longer documents the REVIEW-ROUND literal"
     )
@@ -119,7 +138,8 @@ def check_review_literals_sync():
     )
     with open(os.path.join(REPO_ROOT, "skills", "orchestrator", "SKILL.md")) as fh:
         skill = fh.read()
-    for token in ("agents=<returned>/<launched>", "run_in_background", "15 minutes per reviewer"):
+    for token in ("agents=<returned>/<launched>", "run_in_background", "15 minutes per reviewer",
+                  "REVIEW-ROUND: n=<n> budget=<b>", "SendMessage", "TaskStop"):
         assert token in skill, f"orchestrator SKILL.md no longer states {token!r}"
 
 
