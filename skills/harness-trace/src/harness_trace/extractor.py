@@ -422,6 +422,16 @@ def _extract_text_step_data(step: str, text: str) -> dict[str, Any]:
         m = SCORE_PATTERN.search(text)
         if m:
             data["score"] = int(m.group(1))
+        # Anchored to the SCORE literal's own parentheses, last match wins —
+        # same shape as score-evidence-guard's SCORE_RE (test_hook_constants_sync
+        # pins the equivalence). An unanchored search would capture the
+        # `evidence:` token that Finding Contract entries carry in prose.
+        evs = list(re.finditer(
+            r"^SCORE:\s*\d{1,3}/100\b\s*\([^)\n]*?\bevidence:\s*([^,)\n]+)",
+            text, re.MULTILINE,
+        ))
+        if evs:
+            data["evidence_path"] = evs[-1].group(1).strip()
     elif step == "LOOP":
         m = re.search(r"round\s+(\d+)\s+of\s+(\d+)", text, re.IGNORECASE)
         if m:

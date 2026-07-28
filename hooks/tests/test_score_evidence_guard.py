@@ -24,26 +24,30 @@ def tool_result(tool_use_id=None, is_error=False):
     return {"type": "user", "message": {"content": [block]}}
 
 
-def assistant_tool(name, tool_id=None, **tool_input):
+def assistant_tool(name, tool_id=None, timestamp=None, **tool_input):
     block = {"type": "tool_use", "name": name, "input": tool_input}
     if tool_id:
         block["id"] = tool_id
-    return {"type": "assistant", "message": {"content": [block]}}
+    obj = {"type": "assistant", "message": {"content": [block]}}
+    if timestamp:
+        obj["timestamp"] = timestamp
+    return obj
 
 
 def assistant_text(text):
     return {"type": "assistant", "message": {"content": [{"type": "text", "text": text}]}}
 
 
-def run_hook(lines, stop_hook_active=False):
+def run_hook(lines, stop_hook_active=False, cwd=None):
     with tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False) as fh:
         for obj in lines:
             fh.write(obj if isinstance(obj, str) else json.dumps(obj))
             fh.write("\n")
         path = fh.name
-    payload = json.dumps(
-        {"hook_event_name": "Stop", "transcript_path": path, "stop_hook_active": stop_hook_active}
-    )
+    body = {"hook_event_name": "Stop", "transcript_path": path, "stop_hook_active": stop_hook_active}
+    if cwd:
+        body["cwd"] = cwd
+    payload = json.dumps(body)
     try:
         proc = subprocess.run(
             [sys.executable, HOOK], input=payload, capture_output=True, text=True, timeout=30
@@ -188,6 +192,115 @@ def main():
         run_hook([human(), poison, "not json at all", edit_py, tool_result(), verify_ok, tool_result("v1"), score]),
         "poisoned-lines-fail-open",
     )
+
+    # --- Evidence-path validation (stage A: field optional, false claims block) ---
+
+    with tempfile.TemporaryDirectory() as proj:
+        bundle_rel = "quality_reports/evidence/2026-07-28_feat-x"
+        bundle_abs = os.path.join(proj, bundle_rel)
+        os.makedirs(os.path.join(bundle_abs, "raw"))
+        with open(os.path.join(bundle_abs, "metadata.json"), "w") as fh:
+            fh.write('{"schema_version": 1, "overall_exit": 0}\n')
+        score_ev = assistant_text(
+            f"Done.\nSCORE: 92/100 (threshold: 90, gate: pr, evidence: {bundle_rel})\n"
+        )
+        past = "2020-01-01T00:00:00.000Z"
+        future = "2099-01-01T00:00:00.000Z"
+        edit_past = assistant_tool(
+            "Edit", timestamp=past, file_path="/repo/app/main.py", old_string="a", new_string="b"
+        )
+        edit_future = assistant_tool(
+            "Edit", timestamp=future, file_path="/repo/app/main.py", old_string="a", new_string="b"
+        )
+
+        # 18. Valid fresh bundle (metadata newer than the last edit) -> allow
+        expect_allow(
+            run_hook([human(), edit_past, tool_result(), verify_ok, tool_result("v1"), score_ev], cwd=proj),
+            "evidence-valid-fresh",
+        )
+
+        # 19. Claimed path does not exist -> block even though a verify ran
+        score_bad = assistant_text(
+            "Done.\nSCORE: 92/100 (threshold: 90, gate: pr, evidence: quality_reports/evidence/absent)\n"
+        )
+        expect_block(
+            run_hook([human(), edit_past, tool_result(), verify_ok, tool_result("v1"), score_bad], cwd=proj),
+            "evidence-path-missing",
+        )
+
+        # 20. Bundle older than the last source edit -> block (stale claim)
+        expect_block(
+            run_hook([human(), edit_future, tool_result(), verify_ok, tool_result("v1"), score_ev], cwd=proj),
+            "evidence-stale-bundle",
+        )
+
+        # 21. Path escaping the project dir -> block
+        score_out = assistant_text(
+            "Done.\nSCORE: 92/100 (threshold: 90, gate: pr, evidence: ../outside)\n"
+        )
+        expect_block(
+            run_hook([human(), edit_past, tool_result(), verify_ok, tool_result("v1"), score_out], cwd=proj),
+            "evidence-outside-project",
+        )
+
+        # 22. Bundle dir without metadata.json -> block
+        bare_dir = "quality_reports/evidence/no-manifest"
+        os.makedirs(os.path.join(proj, bare_dir))
+        score_nometa = assistant_text(
+            f"Done.\nSCORE: 92/100 (threshold: 90, gate: pr, evidence: {bare_dir})\n"
+        )
+        expect_block(
+            run_hook([human(), edit_past, tool_result(), verify_ok, tool_result("v1"), score_nometa], cwd=proj),
+            "evidence-no-manifest",
+        )
+
+        # 23. Unparseable edit timestamp -> freshness unenforceable -> fail-open (allow)
+        edit_bad_ts = assistant_tool(
+            "Edit", timestamp="not-a-date", file_path="/repo/app/main.py", old_string="a", new_string="b"
+        )
+        expect_allow(
+            run_hook([human(), edit_bad_ts, tool_result(), verify_ok, tool_result("v1"), score_ev], cwd=proj),
+            "evidence-bad-edit-ts-fail-open",
+        )
+
+        # 24. Bare legacy literal (no evidence field) keeps legacy behavior -> allow
+        expect_allow(
+            run_hook([human(), edit_past, tool_result(), verify_ok, tool_result("v1"), score], cwd=proj),
+            "legacy-literal-unchanged",
+        )
+
+        # 25. make evidence counts as a verify command -> allow
+        verify_evidence = assistant_tool("Bash", tool_id="v9", command="make evidence")
+        expect_allow(
+            run_hook([human(), edit_past, tool_result(), verify_evidence, tool_result("v9"), score_ev], cwd=proj),
+            "make-evidence-is-verify",
+        )
+
+        # 26. VALID evidence but no fresh verify -> the legacy gate still blocks
+        # (the bundle complements the verify requirement, never replaces it)
+        expect_block(
+            run_hook([human(), edit_past, tool_result(), score_ev], cwd=proj),
+            "valid-evidence-no-verify-still-blocks",
+        )
+
+        # 27. Prose after the closing paren saying 'evidence:' is NOT a claim -> allow
+        score_prose = assistant_text(
+            "SCORE: 92/100 (threshold: 90, gate: pr). The verification evidence: "
+            "make check ran green earlier this turn.\n"
+        )
+        expect_allow(
+            run_hook([human(), edit_past, tool_result(), verify_ok, tool_result("v1"), score_prose], cwd=proj),
+            "prose-evidence-not-a-claim",
+        )
+
+        # 28. Claim carrying a control character -> malformed claim -> block
+        score_nul = assistant_text(
+            "SCORE: 92/100 (threshold: 90, gate: pr, evidence: qux\x01etc)\n"
+        )
+        expect_block(
+            run_hook([human(), edit_past, tool_result(), verify_ok, tool_result("v1"), score_nul], cwd=proj),
+            "control-char-claim-blocks",
+        )
 
     print("test_score_evidence_guard: all tests passed")
 

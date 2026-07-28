@@ -159,6 +159,7 @@ class ScoreData(BaseModel):
     score: int = 0
     threshold: int = 80
     gate: Literal["commit", "pr", "excellence"] = "commit"
+    evidence_path: str = ""  # optional bundle path from the SCORE literal's evidence field
 
 
 class LoopData(BaseModel):

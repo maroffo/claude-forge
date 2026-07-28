@@ -2,6 +2,7 @@
 # ABOUTME: Stop hook — blocks ending a turn that reports SCORE without fresh computational evidence
 # ABOUTME: Two-confirmation gate (Bringles import): a verify command must run after the last source edit
 
+import datetime
 import json
 import os
 import re
@@ -22,7 +23,7 @@ EXEMPT_PATH_SUBSTRINGS = (
 )
 VERIFY_RE = re.compile(
     r"""(\bgit\s+commit\b) | \b(
-    make\s+(check|test|lint|build|e2e)\S*
+    make\s+(check|test|lint|build|e2e|evidence)\S*
     | pytest | tox
     | python3?\s+(-m\s+(unittest|pytest)\b|\S*/?tests?/\S+)
     | go\s+(test|vet|build)
@@ -44,7 +45,15 @@ VERIFY_RE = re.compile(
 NON_VERIFY_PREFIXES = ("echo ", "grep ", "cat ", "ls ", "find ", "rg ")
 
 # The literal step-6 reporting form from rules/orchestrator-protocol.md.
-SCORE_RE = re.compile(r"^SCORE:\s*\d{1,3}/100\b", re.MULTILINE)
+# The evidence group is optional (stage A of the evidence-path rollout): a bare
+# `SCORE: n/100 (...)` keeps matching. The group is anchored INSIDE the literal's
+# parentheses: prose after the closing paren that happens to say "evidence:" is
+# never treated as a claim (it would otherwise cause spurious blocks).
+SCORE_RE = re.compile(
+    r"^SCORE:\s*\d{1,3}/100\b"
+    r"(?:\s*\([^)\n]*?\bevidence:\s*(?P<evidence>[^,)\n]+)[^)\n]*\))?",
+    re.MULTILINE,
+)
 
 # Subagent types allowed to edit files per orchestrator-protocol Invariants.
 WRITE_AGENT_TYPES = {"software-engineer"}
@@ -85,12 +94,25 @@ def is_human_message(obj):
     return False
 
 
+def parse_event_ts(obj):
+    """Epoch seconds of a transcript event's ISO timestamp, or None."""
+    ts = obj.get("timestamp")
+    if not isinstance(ts, str):
+        return None
+    try:
+        return datetime.datetime.fromisoformat(ts.replace("Z", "+00:00")).timestamp()
+    except ValueError:
+        return None
+
+
 def scan(transcript_path):
     """Return (score_lines, edit_lines, verifies, failed_ids, last_human).
 
-    score_lines: [line_idx] of assistant text blocks containing a SCORE report.
-    edit_lines: [line_idx] of source-file edits, including write-class subagent
-        launches (their file edits happen on sidechains, invisible here).
+    score_lines: [(line_idx, evidence_path_or_None)] of assistant text blocks
+        containing a SCORE report (evidence from the last SCORE in the block).
+    edit_lines: [(line_idx, epoch_ts_or_None)] of source-file edits, including
+        write-class subagent launches (their file edits happen on sidechains,
+        invisible here).
     verifies: [(line_idx, tool_use_id)] of verification commands (main loop only).
     failed_ids: {tool_use_id} whose tool_result carries is_error.
     """
@@ -132,8 +154,10 @@ def scan(transcript_path):
                 if not isinstance(c, dict):
                     continue
                 if c.get("type") == "text":
-                    if SCORE_RE.search(c.get("text") or ""):
-                        score_lines.append(i)
+                    matches = list(SCORE_RE.finditer(c.get("text") or ""))
+                    if matches:
+                        evidence = (matches[-1].group("evidence") or "").strip() or None
+                        score_lines.append((i, evidence))
                     continue
                 if c.get("type") != "tool_use":
                     continue
@@ -142,15 +166,48 @@ def scan(transcript_path):
                 if name in ("Edit", "Write", "MultiEdit", "NotebookEdit"):
                     path = inp.get("file_path") or inp.get("notebook_path") or ""
                     if is_source(path):
-                        edit_lines.append(i)
+                        edit_lines.append((i, parse_event_ts(obj)))
                 elif name in ("Task", "Agent") and inp.get("subagent_type") in WRITE_AGENT_TYPES:
                     # Write-class subagents edit files on sidechains we cannot see;
                     # their launch invalidates any earlier evidence. Read-only agents
                     # (reviewers) do not: REVIEW legitimately runs after VERIFY.
-                    edit_lines.append(i)
+                    edit_lines.append((i, parse_event_ts(obj)))
                 elif name == "Bash" and is_verify_cmd(inp.get("command", "")):
                     verifies.append((i, c.get("id")))
     return score_lines, edit_lines, verifies, failed_ids, last_human
+
+
+def evidence_block_reason(path, cwd, last_edit_ts):
+    """Why a claimed evidence path is provably invalid, or None (valid / fail-open).
+
+    Stat-only checks; unexpected errors return None (fail-open): an infra error
+    must never wedge a session, only a present-but-false claim blocks.
+    """
+    # A malformed claim value (NUL, control chars) is a false claim, not an
+    # infra error: it must block, not slip through the fail-open net below.
+    if any(ord(ch) < 32 for ch in path):
+        return "contains control characters (malformed claim)"
+    try:
+        root = os.path.realpath(cwd)
+        bundle = os.path.realpath(path if os.path.isabs(path) else os.path.join(root, path))
+        if bundle != root and not bundle.startswith(root + os.sep):
+            return "resolves outside the project directory"
+        if not os.path.isdir(bundle):
+            return "does not exist (or is not a directory)"
+        meta = os.path.join(bundle, "metadata.json")
+        if not os.path.isfile(meta):
+            return "has no metadata.json manifest"
+        try:
+            st = os.stat(meta)
+        except OSError:
+            return None
+        if st.st_size == 0:
+            return "has an empty metadata.json (not a real bundle manifest)"
+        if last_edit_ts is not None and st.st_mtime < last_edit_ts:
+            return "predates the last source edit (stale bundle: regenerate it)"
+        return None
+    except Exception:
+        return None
 
 
 def main():
@@ -172,14 +229,37 @@ def main():
         sys.exit(0)  # fail-open: a broken transcript must never break a session
 
     # Only act when THIS turn reported a score.
-    if not any(idx > last_human for idx in score_lines):
+    turn_scores = [(idx, ev) for idx, ev in score_lines if idx > last_human]
+    if not turn_scores:
         sys.exit(0)
+
+    # When a SCORE claims an evidence bundle, the claim must be provably true:
+    # in-repo, existing, with a metadata.json no older than the last source edit.
+    # A false evidence claim is worse than none, so it blocks even if a verify
+    # ran. EVERY claimed path in the turn is validated: a false claim followed
+    # by a bare re-report must not slip into telemetry unchallenged.
+    edit_ts = [ts for _idx, ts in edit_lines if ts is not None]
+    for _idx, claimed in turn_scores:
+        if not claimed:
+            continue
+        problem = evidence_block_reason(
+            claimed, payload.get("cwd") or os.getcwd(), max(edit_ts) if edit_ts else None
+        )
+        if problem:
+            reason = (
+                f"This turn's SCORE cites evidence bundle '{claimed}', which "
+                f"{problem}. An evidence claim must point at a real, fresh bundle "
+                "(run `make evidence` after the last edit and cite its directory), "
+                "or drop the evidence field and rely on the standard verify gate."
+            )
+            print(json.dumps({"decision": "block", "reason": reason}))
+            sys.exit(0)
 
     # Evidence: a successful verify command issued after BOTH the last source edit
     # and the last failed verify — the freshest computational signal must be green.
     # A verify with no tool_use id cannot be correlated to its result: not evidence.
     # A verify with no result at all gets the benefit of the doubt.
-    last_edit = edit_lines[-1] if edit_lines else -1
+    last_edit = edit_lines[-1][0] if edit_lines else -1
     failed_lines = [idx for idx, tool_id in verifies if tool_id in failed_ids]
     threshold = max([last_edit] + failed_lines)
     for idx, tool_id in verifies:

@@ -25,7 +25,7 @@ EXEMPT_PATH_SUBSTRINGS = (
 # `git commit` counts: the pre-commit-gate hook runs `make check && make test-e2e` on it.
 VERIFY_RE = re.compile(
     r"""(\bgit\s+commit\b) | \b(
-    make\s+(check|test|lint|build|e2e)\S*
+    make\s+(check|test|lint|build|e2e|evidence)\S*
     | pytest | tox
     | python3?\s+(-m\s+(unittest|pytest)\b|\S*/?tests?/\S+)
     | go\s+(test|vet|build)
