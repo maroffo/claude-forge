@@ -19,35 +19,76 @@
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/pre-commit-gate.sh", "if": "Bash(git commit*)", "timeout": 600, "statusMessage": "Running make check + make test-e2e..." },
-          { "type": "command", "command": "{{HOOKS_DIR}}/main-branch-guard.sh", "if": "Bash(git commit*)", "timeout": 10 },
-          { "type": "command", "command": "{{HOOKS_DIR}}/commit-intent-guard.sh", "if": "Bash(git commit*)", "timeout": 10 },
-          { "type": "command", "command": "{{HOOKS_DIR}}/gitignore-anchor-lint.sh", "if": "Bash(git commit*)", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/pre-commit-gate.sh",
+            "if": "Bash(git commit*)",
+            "timeout": 600,
+            "statusMessage": "Running make check + make test-e2e..."
+          },
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/main-branch-guard.sh",
+            "if": "Bash(git commit*)",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/commit-intent-guard.sh",
+            "if": "Bash(git commit*)",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/gitignore-anchor-lint.sh",
+            "if": "Bash(git commit*)",
+            "timeout": 10
+          }
         ]
       },
       {
         "matcher": "Write",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/aboutme-enforcer.sh", "timeout": 10 },
-          { "type": "command", "command": "{{HOOKS_DIR}}/freeze-guard.sh", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/aboutme-enforcer.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/freeze-guard.sh",
+            "timeout": 10
+          }
         ]
       },
       {
         "matcher": "Edit",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/freeze-guard.sh", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/freeze-guard.sh",
+            "timeout": 10
+          }
         ]
       },
       {
         "matcher": "NotebookEdit",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/freeze-guard.sh", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/freeze-guard.sh",
+            "timeout": 10
+          }
         ]
       },
       {
         "matcher": "MultiEdit",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/freeze-guard.sh", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/freeze-guard.sh",
+            "timeout": 10
+          }
         ]
       }
     ],
@@ -55,35 +96,71 @@
       {
         "matcher": "Edit",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/aboutme-enforcer.sh", "timeout": 10 },
-          { "type": "command", "command": "{{HOOKS_DIR}}/routing-advisor.sh", "timeout": 10 },
-          { "type": "command", "command": "{{HOOKS_DIR}}/doom-loop-detector.sh", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/aboutme-enforcer.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/routing-advisor.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/doom-loop-detector.sh",
+            "timeout": 10
+          }
         ]
       },
       {
         "matcher": "Write",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/routing-advisor.sh", "timeout": 10 },
-          { "type": "command", "command": "{{HOOKS_DIR}}/doom-loop-detector.sh", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/routing-advisor.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/doom-loop-detector.sh",
+            "timeout": 10
+          }
         ]
       },
       {
         "matcher": "MultiEdit",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/routing-advisor.sh", "timeout": 10 },
-          { "type": "command", "command": "{{HOOKS_DIR}}/doom-loop-detector.sh", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/routing-advisor.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/doom-loop-detector.sh",
+            "timeout": 10
+          }
         ]
       },
       {
         "matcher": "Agent",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/routing-advisor.sh", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/routing-advisor.sh",
+            "timeout": 10
+          }
         ]
       },
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/context-watcher.sh", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/context-watcher.sh",
+            "timeout": 10
+          }
         ]
       }
     ],
@@ -91,26 +168,46 @@
       {
         "matcher": "startup|resume",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/codemap-session.sh", "timeout": 10 },
-          { "type": "command", "command": "{{HOOKS_DIR}}/forge-drift-check.sh", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/codemap-session.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/forge-drift-check.sh",
+            "timeout": 10
+          }
         ]
       },
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/checkpoint-reminder.sh", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/checkpoint-reminder.sh",
+            "timeout": 10
+          }
         ]
       },
       {
         "matcher": "compact|clear",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/retrospective-nudge.sh", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/retrospective-nudge.sh",
+            "timeout": 10
+          }
         ]
       },
       {
         "matcher": "compact",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/compact-resume.sh", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/compact-resume.sh",
+            "timeout": 10
+          }
         ]
       }
     ],
@@ -118,8 +215,21 @@
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/verify-before-stop.sh", "timeout": 15 },
-          { "type": "command", "command": "{{HOOKS_DIR}}/score-evidence-guard.sh", "timeout": 15 }
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/verify-before-stop.sh",
+            "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/score-evidence-guard.sh",
+            "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/review-budget-guard.sh",
+            "timeout": 15
+          }
         ]
       }
     ],
@@ -127,7 +237,11 @@
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/session-end-trace.sh", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/session-end-trace.sh",
+            "timeout": 10
+          }
         ]
       }
     ],
@@ -135,19 +249,31 @@
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/session-end-trace.sh", "timeout": 30 }
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/session-end-trace.sh",
+            "timeout": 30
+          }
         ]
       },
       {
         "matcher": "manual",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/retrospective-nudge.sh", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/retrospective-nudge.sh",
+            "timeout": 10
+          }
         ]
       },
       {
         "matcher": "auto",
         "hooks": [
-          { "type": "command", "command": "{{HOOKS_DIR}}/compact-resume.sh", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/compact-resume.sh",
+            "timeout": 10
+          }
         ]
       }
     ]

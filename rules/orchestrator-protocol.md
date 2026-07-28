@@ -21,7 +21,7 @@ Typos, one-liners, single-function fixes with passing tests; config-only changes
     1b. REPRODUCE → (bug-fix only) write script proving the bug exists
     1c. DRIFT    → verify alignment after each subtask
 2.  VERIFY       → tests, lint, build, reproduction_confirmed
-3.  REVIEW       → review agents by file pattern; findings reach FIX consolidated, then persisted per round (see orchestrator skill, Finding Consolidation + Review Artifacts)
+3.  REVIEW       → review agents by file pattern, launched in BACKGROUND (read-only agents never block); findings reach FIX consolidated, then persisted per round (see orchestrator skill, Finding Consolidation + Review Artifacts)
 4.  FIX          → software-engineer addresses Critical/Major findings
 5.  RE-VERIFY    → rebuild, retest
 5b. BLAST-RADIUS → (conditional) check related files for contradictions/staleness
@@ -42,11 +42,14 @@ REPRODUCE: script=<path> fails_before_fix=true|false
 DRIFT: subtask=<id> verdict=aligned|minor_drift|significant_drift
 EXECUTOR: pi-exec model=<id> subtask=<id>
 BLAST-RADIUS: clean (files_checked=<k>) | MAJOR=<n> MINOR=<m> (files_checked=<k>) | skipped (<reason>)
-REVIEW-ARTIFACT: round=<n> path=<path> findings=<c/m/n> converged=<yes/no>
+REVIEW-ROUND: n=<n> budget=<b> scope=full|fix-diff
+REVIEW-ARTIFACT: round=<n> path=<path> findings=<c/m/n> agents=<returned>/<launched> converged=<yes/no>
 SCORE: <n>/100 (threshold: <t>, gate: commit|pr|excellence[, evidence: <bundle-path>])
 ```
 
 A SCORE is a judge verdict, valid only alongside fresh computational evidence: a successful test/lint/build run after the last source edit (`score-evidence-guard` enforces this). If VERIFY ran inside a subagent, say so when reporting.
+
+Every REVIEW round prints `REVIEW-ROUND:` before its findings. The round count is the fix-round budget made countable: past it, the next line is an escalation (step 7), never another round. Reviewers launch in background and are joined at Finding Consolidation, so `agents=<returned>/<launched>` must balance before a SCORE: an unreturned reviewer is not a clean one. `review-budget-guard` enforces both.
 
 ## Invariants
 

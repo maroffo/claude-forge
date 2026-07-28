@@ -88,6 +88,41 @@ def check_score_literal_sync():
         assert "--evidence" in fh.read(), "score-log.sh dropped the --evidence flag"
 
 
+def check_review_literals_sync():
+    """REVIEW-ROUND and the agents= field on REVIEW-ARTIFACT have three homes: the protocol
+    rule (canonical form), the guard hook (regexes), and the orchestrator skill (the text
+    that tells the loop to print them). A home that forgets the literal silently disables
+    the gate — the same failure the SCORE literal had before it was pinned."""
+    rbg = load("review-budget-guard.py")
+    fixtures = [
+        ("REVIEW-ROUND: n=3 budget=5 scope=full", (3, 5)),
+        ("REVIEW-ROUND: n=12 budget=5 scope=fix-diff", (12, 5)),
+        ("REVIEW-ROUND: n=many budget=5 scope=full", None),
+    ]
+    for text, want in fixtures:
+        m = rbg.ROUND_RE.search(text)
+        got = (int(m.group("n")), int(m.group("budget"))) if m else None
+        assert got == want, f"ROUND_RE drifted on {text!r}: {got} != {want}"
+    m = rbg.ARTIFACT_RE.search(
+        "REVIEW-ARTIFACT: round=2 path=p findings=0/1/2 agents=2/3 converged=no"
+    )
+    assert m and (int(m.group("returned")), int(m.group("launched"))) == (2, 3), (
+        "ARTIFACT_RE lost the agents=<returned>/<launched> capture"
+    )
+    with open(os.path.join(REPO_ROOT, "rules", "orchestrator-protocol.md")) as fh:
+        rule = fh.read()
+    assert "REVIEW-ROUND: n=<n> budget=<b>" in rule, (
+        "orchestrator-protocol.md no longer documents the REVIEW-ROUND literal"
+    )
+    assert "agents=<returned>/<launched>" in rule, (
+        "orchestrator-protocol.md REVIEW-ARTIFACT literal lost the agents= field"
+    )
+    with open(os.path.join(REPO_ROOT, "skills", "orchestrator", "SKILL.md")) as fh:
+        skill = fh.read()
+    for token in ("agents=<returned>/<launched>", "run_in_background", "15 minutes per reviewer"):
+        assert token in skill, f"orchestrator SKILL.md no longer states {token!r}"
+
+
 def main():
     vbs = load("verify-before-stop.py")
     seg = load("score-evidence-guard.py")
@@ -102,6 +137,7 @@ def main():
 
     check_freeze_boundary_basename()
     check_score_literal_sync()
+    check_review_literals_sync()
 
     print("test_hook_constants_sync: all tests passed")
 
