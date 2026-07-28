@@ -114,8 +114,9 @@ Run schedulato ~02:00 di /bug-hunter-hikma su wasit. Pre-flight skip se: working
 - [x] 2026-07-28 14:30 — Fase 2a: plan-template DoD→tabella, dod_run.py + 12 test, contract C1; issue-loop-hikma DoD gate aggiornato (claude-hikma-skills branch feat/dod-evidence-gate @ e072395)
 - [x] 2026-07-28 14:45 — Fase 2b: contracts C2+C3; 5-file sync completata (hook SCORE_RE+FS validation, VERIFY_RE `make evidence` in entrambi gli Stop hook, rule literal, extractor+ScoreData.evidence_path, score-log --evidence); 8 nuovi casi hook (18-25) + sync test del literal
 - [x] 2026-07-28 15:10 — Fase 2 REVIEW round 1 (security+architecture su 7ece93b+7fba111): 4 Major (allowlist comandi dod_run: issue text non fidato raggiunge bash -c fuori dal permission layer; pipe `\|` nelle celle; extractor unanchored avvelenato dal Finding Contract; timeout senza killpg) + 8 Minor; 11 fixati, 1 accepted-mitigated. Commit fix 4a29df9. Suite completa verde (hooks+scripts+harness-trace 114+make check). SCORE: 96/100 (threshold: 80, gate: commit)
-- [ ] Fase 2 exit (CHECKPOINT Max): sessione pilota wasit con nuovo literal accettato dal hook live + falsificazione C3 dal vivo (path fabbricato → block). I casi sintetici 18-28 già lo dimostrano; manca la conferma live.
-Next action: checkpoint con Max; poi Fase 3 (bug-hunter-hikma skill + contract C4 + fast-path triage)
+- [x] 2026-07-28 15:40 — Fase 2 exit CHECKPOINT superato dal vivo (delegato a Claude da Max): hook installato via symlink ~/.claude, bundle wasit reale, cwd reale. Valido→ALLOW; fabbricato→BLOCK ("does not exist"); stale (edit post-bundle)→BLOCK ("predates the last source edit"). Fase 2 chiusa.
+- [x] 2026-07-28 15:45 — Push (autorizzati): wasit feat/evidence-bundle, forge feat/real-evidence-pipeline, hikma-skills feat/dod-evidence-gate. PR non aperte (non delegate).
+Next action: Fase 3 — bug-hunter-hikma skill + contract C4 + fast-path triage + label agent:hunted + run supervisionato
 
 ## Surprises & Discoveries
 - Il primo run del bundle ha scovato una vuln reale pre-esistente (GO-2026-6061, non allowlisted) che il `make check` abituale avrebbe mostrato solo a chi guardava l'output: evidenza del valore del bundle (vuln.txt persistito).
