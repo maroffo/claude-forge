@@ -52,7 +52,7 @@ Append-only after this point. The implementing session does NOT relitigate; exec
 ## Workstreams & tasklist
 
 ### W0 - Background-run audit (gate for W2, mandatory first)
-- [ ] W0.1 Over the 84 historical background reviewer launches, determine for each whether its findings were collected (a later task-notification / TaskOutput / findings-file entry referencing it) or dropped. Record the ratio in `## Surprises`. Dropped > 0 means the join hook (W1.2) MUST land before the background default (W2) — the plan already orders them that way; a dropped-rate above ~20% additionally requires a `converged` recount on affected sessions.
+- [x] W0.1 (2026-07-28, verdict GO) Over the 84 historical background reviewer launches, determine for each whether its findings were collected (a later task-notification / TaskOutput / findings-file entry referencing it) or dropped. Record the ratio in `## Surprises`. Dropped > 0 means the join hook (W1.2) MUST land before the background default (W2) — the plan already orders them that way; a dropped-rate above ~20% additionally requires a `converged` recount on affected sessions.
 
 ### W1 - Round-budget enforcement + join barrier (the load-bearing workstream)
 - [ ] W1.1 `rules/orchestrator-protocol.md`: add `REVIEW-ROUND: n=<n> budget=<b> scope=<full|fix-diff>` to the literal report lines; extend `REVIEW-ARTIFACT:` with `agents=<returned>/<launched>`; state that step 3 launches reviewers in background and step 4 consumes them at consolidation.
@@ -113,7 +113,7 @@ The matrix is the union of: hook decision surface (allow/block × budget/join ×
 
 ## Progress
 - [x] Measurement + 3-lab second opinion + plan (2026-07-28, planning session)
-- [ ] W0 background-run audit (gates W2)
+- [x] W0 background-run audit (gates W2) — 84/84 collected, 0 dropped, strict-verified
 - [ ] W1 round budget + join barrier
 - [ ] W2 background default + cap
 - [ ] W3 contracts, tech-debt, follow-ups
@@ -122,6 +122,7 @@ The matrix is the union of: hook decision surface (allow/block × budget/join ×
 - [ ] Close-out (plan -> completed/, retrospective)
 
 ## Surprises & Discoveries
+- **W0 verdict (2026-07-28): 84/84 background reviewer launches had their findings collected, 0% dropped — W2 is GO.** Measured twice: a generous heuristic (any task-notification within 400 following lines) and a strict one (the launch's OWN tool_use_id or its unique agent name reappearing later). Both returned 100%. The strict pass exists because the generous one would have credited a notification belonging to an unrelated background task; the verdict gates the background default, so a false green there would have been the expensive kind of wrong.
 - (planning) My own headline metric was inflated 2.3x: "142.9 blocking minutes" was a sum of concurrent durations; the true union is 62.7. Recorded here because the corrected number changed the plan's priority order.
 - (planning) Isolated Claude's serial-launch hypothesis was refuted by measurement (14/16 rounds already overlap), which is why "batch the launches" is not a workstream.
 
