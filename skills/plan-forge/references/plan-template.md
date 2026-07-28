@@ -75,14 +75,26 @@ depth at the end of each:
     COVERAGE: 2/3 paths (67%)
 
 ## DoD
-- [ ] (bugfix) REPRODUCE recorded red then green.
-- [ ] Fresh pristine VERIFY after the LAST edit: <repo verify commands, e.g. make check && make lint && make test-e2e && make docs-facts-check>.
-- [ ] (hot-path) bench-compare vs the pre-edit baseline: PASS, or exit!=0 resolved as fix or explicit accept-with-rationale Decision row (never silent).
-- [ ] (test-heavy) Depth column filled, COVERAGE footer computed, gaps counted: <n>.
-- [ ] Review fleet: <security + architecture + test, or file-routed set>. CRITICAL/MAJOR fixed, re-verified.
-- [ ] PR to <integration-branch> (open, NOT merged), `SCORE: <n>/100 (threshold: 90, gate: pr)` with fresh computational evidence.
-- [ ] Follow-up issues filed and linked in the PR body.
-- [ ] This plan updated after every task (Progress ticked, Surprises with evidence, Decisions appended).
+
+Executable table, run by `scripts/dod_run.py --plan <this file> --evidence-dir <bundle>` (forge repo).
+`Auto: yes` rows MUST carry a runnable Command (executed in repo cwd, pass = exit 0; Expected is the
+human-readable meaning of that pass). `Auto: no` rows are human/orchestrator judgment and are never
+executed or auto-ticked. Results land in the evidence bundle as `dod-results.json`.
+
+| # | Criterion | Command | Expected | Auto |
+|---|-----------|---------|----------|------|
+| 1 | (bugfix) REPRODUCE red then green | `<repro test command>` | exit 0 on fixed code (red output pre-fix recorded in W0.1) | yes |
+| 2 | Fresh pristine VERIFY after the LAST edit | `<repo verify, e.g. make evidence or make check && make test-e2e>` | exit 0; bundle green when the repo has `make evidence` | yes |
+| 3 | (hot-path) bench-compare vs pre-edit baseline | `make bench-compare` | exit 0, or exit!=0 resolved as fix / accept-with-rationale Decision row (never silent) | yes |
+| 4 | (test-heavy) Depth column filled, COVERAGE footer computed, gaps counted: <n> | - | matrix complete per template rules | no |
+| 5 | Review fleet: <security + architecture + test, or file-routed set> | - | CRITICAL/MAJOR fixed, re-verified | no |
+| 6 | PR to <integration-branch> open, NOT merged | - | `SCORE: <n>/100 (threshold: 90, gate: pr, evidence: <bundle-path>)` with fresh computational evidence | no |
+| 7 | Follow-up issues filed and linked in the PR body | - | links present | no |
+| 8 | This plan updated after every task | - | Progress ticked, Surprises with evidence, Decisions appended | no |
+
+Drop rows whose qualifier does not apply ((bugfix), (hot-path), (test-heavy)); add task-specific
+`Auto: yes` rows for every mechanically checkable outcome the plan promises (a curl returning 200,
+a grep finding zero stale references, a migration applying cleanly).
 
 ## Progress
 - [x] Analysis + second opinion + plan (YYYY-MM-DD, planning session)
