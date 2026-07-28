@@ -111,10 +111,11 @@ Run schedulato ~02:00 di /bug-hunter-hikma su wasit. Pre-flight skip se: working
   4. skills/harness-trace/src/harness_trace/models.py ScoreData: + `evidence_path: str = ""`
   5. scripts/score-log.sh: flag opzionale `--evidence <path>` → campo additivo nel row JSONL (righe vecchie valide)
 - [ ] Fase 2b test: nuovi casi in hooks/tests/test_score_evidence_guard.py (valido passa, mancante blocca, stale blocca, assente=legacy, metadata illeggibile=fail-open); test_hook_constants_sync.py pinna il literal su hook/rule/extractor/score-log; estendere test_score_log.py per --evidence
-- [ ] Fase 2: run suite forge (`make check` + loop test), poi commit su feat/real-evidence-pipeline citando C1-C3 nel body
-- [ ] Fase 2 exit: sessione pilota wasit con nuovo literal accettato dal hook + falsificazioni C3 che bloccano → CHECKPOINT Max
-- [ ] Fase 2a bis: issue-loop-hikma DoD gate invoca dod_run.py (repo separato claude-hikma-skills, commit separato)
-Next action: editare skills/plan-forge/references/plan-template.md sezione ## DoD (righe 77-85) in tabella; poi scrivere scripts/dod_run.py
+- [x] 2026-07-28 14:30 — Fase 2a: plan-template DoD→tabella, dod_run.py + 12 test, contract C1; issue-loop-hikma DoD gate aggiornato (claude-hikma-skills branch feat/dod-evidence-gate @ e072395)
+- [x] 2026-07-28 14:45 — Fase 2b: contracts C2+C3; 5-file sync completata (hook SCORE_RE+FS validation, VERIFY_RE `make evidence` in entrambi gli Stop hook, rule literal, extractor+ScoreData.evidence_path, score-log --evidence); 8 nuovi casi hook (18-25) + sync test del literal
+- [x] 2026-07-28 15:10 — Fase 2 REVIEW round 1 (security+architecture su 7ece93b+7fba111): 4 Major (allowlist comandi dod_run: issue text non fidato raggiunge bash -c fuori dal permission layer; pipe `\|` nelle celle; extractor unanchored avvelenato dal Finding Contract; timeout senza killpg) + 8 Minor; 11 fixati, 1 accepted-mitigated. Commit fix 4a29df9. Suite completa verde (hooks+scripts+harness-trace 114+make check). SCORE: 96/100 (threshold: 80, gate: commit)
+- [ ] Fase 2 exit (CHECKPOINT Max): sessione pilota wasit con nuovo literal accettato dal hook live + falsificazione C3 dal vivo (path fabbricato → block). I casi sintetici 18-28 già lo dimostrano; manca la conferma live.
+Next action: checkpoint con Max; poi Fase 3 (bug-hunter-hikma skill + contract C4 + fast-path triage)
 
 ## Surprises & Discoveries
 - Il primo run del bundle ha scovato una vuln reale pre-esistente (GO-2026-6061, non allowlisted) che il `make check` abituale avrebbe mostrato solo a chi guardava l'output: evidenza del valore del bundle (vuln.txt persistito).
