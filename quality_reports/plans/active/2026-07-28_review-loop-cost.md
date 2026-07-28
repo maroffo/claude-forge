@@ -55,19 +55,19 @@ Append-only after this point. The implementing session does NOT relitigate; exec
 - [x] W0.1 (2026-07-28, verdict GO) Over the 84 historical background reviewer launches, determine for each whether its findings were collected (a later task-notification / TaskOutput / findings-file entry referencing it) or dropped. Record the ratio in `## Surprises`. Dropped > 0 means the join hook (W1.2) MUST land before the background default (W2) — the plan already orders them that way; a dropped-rate above ~20% additionally requires a `converged` recount on affected sessions.
 
 ### W1 - Round-budget enforcement + join barrier (the load-bearing workstream)
-- [ ] W1.1 `rules/orchestrator-protocol.md`: add `REVIEW-ROUND: n=<n> budget=<b> scope=<full|fix-diff>` to the literal report lines; extend `REVIEW-ARTIFACT:` with `agents=<returned>/<launched>`; state that step 3 launches reviewers in background and step 4 consumes them at consolidation.
-- [ ] W1.2 `hooks/review-budget-guard.py` (new Stop hook): from the transcript, count `REVIEW-ROUND:` lines this turn/session and reviewer launches vs returns. BLOCK a `SCORE:` claim when (a) round count exceeds the stated budget without an escalation line, or (b) `agents=<returned>/<launched>` shows unreturned reviewers. Fail-open on any exception, `stop_hook_active` short-circuit, one nudge per turn — same discipline as `score-evidence-guard.py`.
-- [ ] W1.3 Register in `hooks/settings.example.json` (Stop array, after score-evidence-guard) + README row.
-- [ ] W1.4 `skills/orchestrator/SKILL.md`: Finding Consolidation gains the join step (roster recorded, `agents=` computed, SHA-match check per decision 8); Parallelism table gains a Scheduling column stating read-only agents launch backgrounded.
+- [x] W1.1 `rules/orchestrator-protocol.md`: add `REVIEW-ROUND: n=<n> budget=<b> scope=<full|fix-diff>` to the literal report lines; extend `REVIEW-ARTIFACT:` with `agents=<returned>/<launched>`; state that step 3 launches reviewers in background and step 4 consumes them at consolidation.
+- [x] W1.2 `hooks/review-budget-guard.py` (new Stop hook): from the transcript, count `REVIEW-ROUND:` lines this turn/session and reviewer launches vs returns. BLOCK a `SCORE:` claim when (a) round count exceeds the stated budget without an escalation line, or (b) `agents=<returned>/<launched>` shows unreturned reviewers. Fail-open on any exception, `stop_hook_active` short-circuit, one nudge per turn — same discipline as `score-evidence-guard.py`.
+- [x] W1.3 Register in `hooks/settings.example.json` (Stop array, after score-evidence-guard) + README row.
+- [x] W1.4 `skills/orchestrator/SKILL.md`: Finding Consolidation gains the join step (roster recorded, `agents=` computed, SHA-match check per decision 8); Parallelism table gains a Scheduling column stating read-only agents launch backgrounded.
 
 ### W2 - Background default + cap (depends on W0 verdict and W1.2)
-- [ ] W2.1 `skills/orchestrator/SKILL.md` REVIEW step: launch routed reviewers with `run_in_background: true`, name them, state the running roster to the user (decision 10), and do non-conflicting work while they run (contract/plan/commit-message prep — never edits to files under review).
-- [ ] W2.2 Cap procedure: poll with `TaskList`/`Monitor`; at 15 min per agent issue `TaskStop`, record per-agent status `completed|truncated`, and synthesize the truncation Major finding per decision 7. The cap value lives in ONE place in the skill text, quoted by the hook test.
-- [ ] W2.3 `hooks/tests/test_review_budget_guard.py`: synthetic transcripts covering the matrix below.
+- [x] W2.1 `skills/orchestrator/SKILL.md` REVIEW step: launch routed reviewers with `run_in_background: true`, name them, state the running roster to the user (decision 10), and do non-conflicting work while they run (contract/plan/commit-message prep — never edits to files under review).
+- [x] W2.2 Cap procedure: poll with `TaskList`/`Monitor`; at 15 min per agent issue `TaskStop`, record per-agent status `completed|truncated`, and synthesize the truncation Major finding per decision 7. The cap value lives in ONE place in the skill text, quoted by the hook test.
+- [x] W2.3 `hooks/tests/test_review_budget_guard.py`: synthetic transcripts covering the matrix below.
 
 ### W3 - docs + follow-ups
-- [ ] W3.1 Three change contracts (one failure mode each): `2026-07-28_review-round-budget.md`, `_review-join-barrier.md`, `_review-background-cap.md`.
-- [ ] W3.2 `quality_reports/plans/tech-debt.md`: scoped re-review deferred, carrying the reviewers' expansion rule verbatim (interface point touched => expand to depth-1 importers via the existing ast-grep pre-filter; scope and non-reviewed remainder written into the findings file's Verification gaps).
+- [x] W3.1 Three change contracts (one failure mode each): `2026-07-28_review-round-budget.md`, `_review-join-barrier.md`, `_review-background-cap.md`.
+- [x] W3.2 `quality_reports/plans/tech-debt.md`: scoped re-review deferred, carrying the reviewers' expansion rule verbatim (interface point touched => expand to depth-1 importers via the existing ast-grep pre-filter; scope and non-reviewed remainder written into the findings file's Verification gaps).
 - [ ] W3.3 Follow-up issues drafted here, filed at PR time with triage labels per the follow-ups-agent-ready contract.
 
 ## E2E matrix
@@ -114,9 +114,9 @@ The matrix is the union of: hook decision surface (allow/block × budget/join ×
 ## Progress
 - [x] Measurement + 3-lab second opinion + plan (2026-07-28, planning session)
 - [x] W0 background-run audit (gates W2) — 84/84 collected, 0 dropped, strict-verified
-- [ ] W1 round budget + join barrier
-- [ ] W2 background default + cap
-- [ ] W3 contracts, tech-debt, follow-ups
+- [x] W1 round budget + join barrier
+- [x] W2 background default + cap
+- [x] W3 contracts, tech-debt (follow-ups at PR time)
 - [ ] Review round + fixes
 - [ ] PR + SCORE
 - [ ] Close-out (plan -> completed/, retrospective)
@@ -127,7 +127,11 @@ The matrix is the union of: hook decision surface (allow/block × budget/join ×
 - (planning) Isolated Claude's serial-launch hypothesis was refuted by measurement (14/16 rounds already overlap), which is why "batch the launches" is not a workstream.
 
 ## Decisions
-(append-only; execution-time decisions land here as new numbered rows)
+| # | Decision | Choice | Rationale |
+|---|----------|--------|-----------|
+| 11 | Which violation blocks first when both fire | Join before round budget | The join is the more specific signal (a named count) and its fix is mechanical; the budget block asks for a judgment call (escalate or justify), so it should not mask a missing reviewer |
+| 12 | Escalation recognition | Loose regex (escalat*, budget exhausted/spent/reached, stopping here, fix-round budget/ceiling), and it must appear AFTER the offending round | An escalation is prose by design, so a narrow pattern would block honest ones; requiring it after the round stops stale earlier mentions from satisfying the gate |
+| 13 | Cap has no hook | Procedure in the skill, not enforcement | The Agent tool has no timeout and a Stop hook cannot interrupt a running tool call; the enforceable part (a truncated agent must not read as clean) IS hooked, via the join count |
 
 ## Outcomes & Retrospective
 (fill at close: shipped, gaps, lessons)
