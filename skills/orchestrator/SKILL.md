@@ -63,6 +63,8 @@ If a `.bench/baseline.txt` exists for the task (BENCH-BASELINE ran), also run `m
 
 ## Review Routing (Step 3)
 
+Open every round with the literal `REVIEW-ROUND: n=<n> budget=<b> scope=full`, where `n` is `total_fix_rounds` (REVIEW->FIX plus UAT->FIX cycles, the same number the plan's Budget bounds) and `<b>` is that budget. Without it the round is invisible to telemetry and to `review-budget-guard`, which then has nothing to count.
+
 | Pattern | Agents |
 |---------|--------|
 | `*.go`, `*.rb`, `*.py`, `*.ts`, `*.kt`, `*.swift` | architecture + security |
@@ -79,6 +81,8 @@ Findings come back in the Finding Contract shape (`rules/quality-gates.md`): sev
 
 Reviewers overlap by design: the routing table above maps file patterns to agents, never defect classes to owners. Consolidate the reports before FIX runs:
 
+0. **Join.** Reviewers run in background (see Review Scheduling), so consolidation is the barrier: collect every launched agent before proceeding. Mechanically: write the launched roster to `quality_reports/reviews/<slug>/000-roster.md` at launch; wait for each completion notification; for any agent that signals idle WITHOUT a report, request it with `SendMessage({to: <agent name>})`, because a backgrounded reviewer does NOT reliably self-deliver (observed 2026-07-28: of three, one delivered only on request and two never did, and had to be relaunched synchronously). Count `agents=` from reports actually in hand, read off the roster file, never from memory. **Not FIX**, FIX is skippable when no Critical/Major lands, and that is exactly the path where a missing reviewer reads as "clean". Record the launched roster in the round's findings file and print `agents=<returned>/<launched>` on the `REVIEW-ARTIFACT:` line; `review-budget-guard` blocks a SCORE while they disagree. A stopped-at-cap agent counts as returned only once its truncation finding exists (see Review Scheduling).
+0b. **Snapshot check.** Findings are anchored to the SHA each reviewer read. Before consolidating, confirm the working tree still matches it (`git rev-parse HEAD` plus a clean-tree check for the reviewed paths). A mismatch means the tree moved under a running reviewer: say so loudly and either re-anchor the affected findings or re-run that reviewer. Silently consolidating line-anchored findings against a moved tree produces fixes at the wrong lines.
 1. Collect every agent report.
 2. Group findings by `(file, line)`.
 3. Within a group, merge the findings whose claims describe the same defect; the dedup key is `(file, line, normalized claim)`.
@@ -104,6 +108,7 @@ Each REVIEW round writes one file: `quality_reports/reviews/<YYYY-MM-DD_slug>/NN
 | Findings | The **consolidated** list (see Finding Consolidation) in Finding Contract shape: severity, location, claim, fix, evidence |
 | Status | Per finding, one of `open` / `fixed-in-round-<n>` / `accepted` |
 | `supersedes: NNN` | Present when this round restates findings first recorded in an earlier file |
+| Reviewer roster | Every agent launched this round, with per-agent status `completed` / `truncated`; the source `agents=` is counted from |
 | Verification gaps | What this round could not check, and why |
 
 **Immutable once written.** A later round never edits an earlier file: it writes the next `NNN`, carries `supersedes: NNN`, and restates fresh per-finding statuses for everything it inherits. A mutable shared list would be a second amnesia source: if round 2 fixed 2 of 3 findings and did not update the file, round 3 reads three open findings and re-fixes two.
@@ -156,12 +161,23 @@ Build the table from the goal (3-7 observable truths). Fill `Evidence` via CLI/o
 
 **Skip when:** in SKIP_SET.
 
+## Review Scheduling
+
+Read-only agents are read-only for **scheduling** too: they cannot conflict with anything, so they never need to block the loop. Measured over 420 reviewer launches (78 sessions): per-agent latency is not the problem (median 2.0 min, p90 6.1), but a single pathological run consumed 20% of all blocking time in the dataset, and the worst sessions ran 8-15 review rounds against a budget of 5.
+
+- **Launch backgrounded** (`run_in_background: true`) with an explicit `name`, and say which reviewers are running and what you are doing meanwhile. A silent multi-minute block leaves interruption as the user's only control, which is how four of the six longest recorded "runs" ended.
+- **Do non-conflicting work while they run**: change contracts, plan updates, commit-message prep. Never edit a file that is under review, that moves the tree beneath a running reviewer (see Consolidation step 0b).
+- **Cap: 15 minutes per reviewer**, enforced harness-side (`TaskStop` on the backgrounded task), because the `Agent` tool has no timeout parameter and a synchronous launch therefore cannot be capped at all. **Never state the cap in the reviewer's prompt**: an agent told its deadline returns shallow findings fast, which is worse than truncation because it is indistinguishable from diligence.
+- **Poll, do not hope.** Between the non-conflicting work items, check outstanding reviewers (`TaskList`, or a `Monitor` with an until-condition). At the 15-minute mark for an agent, `TaskStop` it. An unattended orchestrator has no clock event: without an explicit poll the cap is a number in a document, not a limit.
+- **No commits while a reviewer is outstanding.** `git commit` runs the pre-commit gate, which runs the test suites and moves HEAD, tripping the snapshot check for every running reviewer at once. Preparing a commit message is safe; committing is not.
+- **A stopped agent is `truncated`, never clean.** Record its per-agent status in the findings file and file a **Major** finding, "review incomplete: covered X, uncovered Y", so it flows through the normal FIX/escalation path. `converged=yes` requires every routed agent `completed`. Major, not Critical: an infra timeout should cost a fix round, not zero the score.
+
 ## Parallelism
 
-| Agent class | Default | Max | Condition for max |
-|-------------|---------|-----|-------------------|
-| Read-only (research-analyst, review agents, explorers) | 5 | 7 | Always |
-| Write (software-engineer) | 3 | 5 | File scopes disjoint AND no shared integration surfaces |
+| Agent class | Default | Max | Scheduling | Condition for max |
+|-------------|---------|-----|------------|-------------------|
+| Read-only (research-analyst, review agents, explorers) | 5 | 7 | background | Always |
+| Write (software-engineer) | 3 | 5 | synchronous | File scopes disjoint AND no shared integration surfaces |
 
 **Shared integration surfaces** (even a 1-line change needs a sequential wave): routing tables, barrel exports / `index.*`, DI container config, dependency manifests (`go.mod`, `package.json`), migrations directory, shared test fixtures.
 
