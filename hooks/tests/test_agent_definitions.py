@@ -43,10 +43,14 @@ PINNED = [
     "`git rev-parse --git-dir` differs from `git rev-parse --git-common-dir`",
 ]
 
-# The confinement sentence is the one a reader could invert while keeping the
-# words ("it is false that You run in an ..."). The other pins carry their own
-# negations by design ("never mutate ...", "rather than ..."), so scanning their
-# context for negation words would fail by construction.
+# Only the confinement sentence gets the negation scan. The other pins are
+# guarded by verbatim presence plus the 7-file hash identity, nothing more: an
+# inversion of their surrounding framing (e.g. rewriting the write-gate clause
+# around PINNED[2] in all 7 files at once) is outside this test's reach, which
+# is consistent with the mechanism being a prose guard, not a boundary. Note
+# PINNED[0] itself contains "rather than", so NEGATION_RE deliberately excludes
+# that phrase; extending the scan to the other pins would require per-pin
+# negation vocabularies, not this shared one.
 NEGATION_SCANNED = PINNED[0]
 NEGATION_WINDOW = 60
 NEGATION_RE = re.compile(r"\b(?:not|never|n't|false|without|neither|nor)\b", re.IGNORECASE)
