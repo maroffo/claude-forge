@@ -91,7 +91,8 @@ The union is: definition-file surface (static, testable), launch surface (one li
 - [ ] W3.3 update PR #114 follow-up issue (at close)
 - [x] Review round 1 + fixes (2026-07-28): security + architecture, both `isolation: "worktree"`, backgrounded, joined at consolidation, agents=2/2. Consolidated 0 Critical / 2 Major / 7 Minor; fixed in commit 3e0da33 (m7 accepted). Live wave = E2E row 2: main-checkout `git status` byte-identical before/during/after; loop worktree 0 dirty throughout; arch worktree auto-cleaned (unchanged), sec worktree leftover reported then removed post-consolidation (E2E rows 3/5).
 - [x] Review round 2 (2026-07-28): same fleet, agents=2/2, all 9 round-1 findings verified closed with red-side probes. New: 1 Major (self-check discriminator detects "linked worktree", not "my copy" — false-passes when the launcher session is itself in `.claude/worktrees/<branch>`, both reviewers proved it live) + 1 Minor (pinned sentence implied checkout==base SHA; copy materializes at origin/main). Fixed in 5a4eaf1: write gate now keys on a brief-carried isolation assertion (only the isolating launch path emits it), honestly labeled "prose guard, not a boundary"; pins retargeted; contract blast-radius corrected.
-- [ ] Review round 3 (confirm round-2 closures) + SCORE + PR
+- [x] Review round 3 (2026-07-28): agents=2/2, both round-2 closures verified with red-side probes (assertion-strip, PINNED[0] negation, bullet drift, non-reviewer scope). New: 1 Minor (negation-scan exemption comment misjustified, probe P5) — fixed by the orchestrator (comment-only), full suite re-verified green after. Converged.
+- [x] W3.3 + PR + SCORE (2026-07-28): SCORE 97/100 gate pr; approval.md committed; PR opened to main (not merged); PR #114 thread updated; follow-ups filed with triage labels.
 
 ## Surprises & Discoveries
 - (planning) The mechanism both reviewers wanted already exists as `isolation: "worktree"` on the Agent tool; Gemini proposed it from first principles without knowing. The plan shrank from "build isolation" to "pass a parameter and say why".
@@ -116,4 +117,13 @@ The union is: definition-file surface (static, testable), launch surface (one li
 | 12 | Scope of the non-contamination guarantee | Working tree only, stated explicitly at every layer | Worktrees share the `.git` database; claiming more would be the overclaim this repo's discipline forbids | Git grows per-worktree refs/config that change the boundary |
 
 ## Outcomes & Retrospective
-(fill at close)
+
+**Shipped.** `isolation: "worktree"` on every review-agent launch (SKILL.md Review Scheduling), the invariant restated honestly at the spine, a byte-identical 6-bullet confinement block in all 7 reviewer definitions, `hooks/tests/test_agent_definitions.py` pinning the block, the uniformity hash, and the locked `tools:` rejection, plus the change contract. 3 review rounds (security + architecture, all worktree-isolated, agents=2/2 each), 3 fix passes, SCORE 97/100 gate pr. E2E matrix: 5/5 rows exercised, row 2 verified live three times (main tree byte-identical across every wave).
+
+**Gaps / follow-ups filed.** Launch-side enforcement (PreToolUse hook on `*-reviewer` launches) deliberately not shipped: separate failure mode, separate contract. Citation-rule dedup (decision 9). Both filed as labeled issues at close.
+
+**Lessons.**
+1. Every defect found (3 Major, 9 Minor over 3 rounds) was an *overclaim about the guarantee*, never a broken mechanism. When the deliverable is spec prose, review effort should aim at the gap between claimed and provided properties: that is where all the risk sat.
+2. Worktree isolation of reviewers paid for itself inside its own PR: both round-1 Majors were found by reviewers probing git topology *from inside their own isolated copies* — the empirical-review capability decision 2 exists to protect.
+3. `isolation: "worktree"` materializes at origin/main, not branch HEAD; the shared object store makes that workable, but every brief must say so (now baked into the launch template).
+4. A discriminator must test the property you need ("my copy"), not a correlate ("a linked worktree"); the correlate was false-positive in exactly this repo's dominant topology.
