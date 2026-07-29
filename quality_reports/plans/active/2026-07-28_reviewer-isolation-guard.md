@@ -92,7 +92,8 @@ The union is: the four verdict classes the hook can emit (deny, policy allow, sc
 - [x] Analysis + second opinion (Claude FAILED 401; Gemini + DeepSeek OK) + plan (2026-07-28)
 - [x] W1 hook + registration (2026-07-29): `hooks/reviewer-isolation-guard.sh` (10-step ladder, deny JSON carrying both remedies verbatim), `hooks/settings.example.json` PreToolUse `Agent` block. Evidence: `shellcheck` clean, six hand-driven smoke payloads exercising deny / worktree-allow / anchored-exempt / mid-sentence-deny / non-reviewer / malformed-JSON.
 - [x] W2 docs made true again (2026-07-29): `skills/orchestrator/SKILL.md:173` (bullet rewritten, prose-only paths named, exemption documented with the not-a-write-enable caveat), `rules/orchestrator-protocol.md:59` (one clause), `skills/pr-review/SKILL.md` Phase 3 (exemption line + read-only consequence), `README.md` hook-inventory row (decision 12). Evidence: `scripts/check_repo.py check` all PASS; `grep -rn "Nothing in .hooks/\|nothing checks\|Prose, not enforcement"` over `agents/ skills/ rules/ README.md` returns no surviving false claim.
-- [ ] W3 test + contract + follow-up + close
+- [x] W3.1 + W3.2 (2026-07-29): `hooks/tests/test_reviewer_isolation_guard.py` (rows 1-6, each row's fixture cwd is a real `git init` repo and every row opens with an anti-vacuity assertion, because the non-git rung would otherwise make every "allow" pass for free), change contract `quality_reports/harness_changes/2026-07-28_reviewer-isolation-guard.md`. Evidence: `PASS  reviewer-isolation-guard (matrix rows 1-6)` inside `make test-e2e` (exit 0); independent mutation (drop the `^` anchor from the exemption regex) killed by `row_4_exemption/mid-sentence mention`, hook restored byte-identical (`git diff --stat` empty).
+- [ ] W3.3 follow-up issue + W3.4 install note + close
 - [ ] Review round + fixes
 - [ ] PR + SCORE
 
