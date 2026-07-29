@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-# ABOUTME: E2E tests for hooks/reviewer-isolation-guard.sh, matrix rows 1-6 of the reviewer-isolation-guard plan
+# ABOUTME: E2E tests for hooks/reviewer-isolation-guard.sh, matrix rows 1-6 and 10 of the reviewer-isolation-guard plan
 # ABOUTME: Run with: uv run --no-project python3 hooks/tests/test_reviewer_isolation_guard.py
 
+import glob
 import json
 import os
 import shutil
@@ -337,6 +338,42 @@ def row_6_non_git_cwd(root, outside):
     assert err == "", f"warned outside any git repo: {err!r}"
 
 
+def row_10_whole_roster(root):
+    """Every reviewer definition on disk is covered, and every non-reviewer agent is not.
+
+    The reviewer list comes from the same glob `test_agent_definitions.py` treats as the
+    source of truth, so an eighth `agents/<name>-reviewer/` directory is covered the day
+    it lands instead of the day someone remembers to add a case here. This is the row
+    that makes the matcher's deny set checkable rather than argued: three review rounds
+    each found a spelling the matcher missed (case, Unicode compatibility forms,
+    separators), and the answer to "is it complete now" is a sweep, not a promise."""
+    assert_repo_enforces(root, "row 10")
+
+    reviewers = sorted(
+        os.path.basename(os.path.dirname(p))
+        for p in glob.glob(os.path.join(HOOKS, "..", "agents", "*-reviewer", "AGENT.md"))
+    )
+    assert len(reviewers) >= 7, f"reviewer glob found {len(reviewers)}, would pass vacuously"
+
+    for agent_type in reviewers:
+        result, _ = run(agent_payload(agent_type), cwd=root)
+        assert is_deny(result), f"{agent_type}: a reviewer definition on disk is not covered"
+
+    # Non-reviewer agent DIRECTORIES, same glob source, minus the reviewers. These must
+    # stay outside the policy: the matcher folds separators away, and this is what proves
+    # the fold cannot reach a non-reviewer.
+    others = sorted(
+        os.path.basename(os.path.dirname(p))
+        for p in glob.glob(os.path.join(HOOKS, "..", "agents", "*", "AGENT.md"))
+        if not os.path.dirname(p).endswith("-reviewer")
+    )
+    assert others, "non-reviewer agent glob is empty, the inverse direction is untested"
+    for agent_type in others:
+        result, err = run(agent_payload(agent_type), cwd=root)
+        assert result is None, f"{agent_type}: non-reviewer agent denied by the reviewer guard"
+        assert err == "", f"{agent_type}: non-reviewer agent made the guard talk: {err!r}"
+
+
 def main():
     parent = tempfile.mkdtemp(prefix="reviewer-isolation-test-")
     try:
@@ -350,10 +387,11 @@ def main():
         outside = os.path.join(parent, "row6-not-a-repo")
         os.makedirs(outside, exist_ok=True)
         row_6_non_git_cwd(make_repo(parent, "row6"), outside)
+        row_10_whole_roster(make_repo(parent, "row10"))
     finally:
         shutil.rmtree(parent, ignore_errors=True)
 
-    print("PASS  reviewer-isolation-guard (matrix rows 1-6)")
+    print("PASS  reviewer-isolation-guard (matrix rows 1-6, 10)")
 
 
 if __name__ == "__main__":

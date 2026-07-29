@@ -71,12 +71,17 @@
 | 8 | Exemption-note output | reason carrying terminal escapes and a carriage return; reason carrying a tab and non-ASCII text | escapes and CR stripped before printing (CWE-117), tab and non-ASCII preserved: the strip must not silently mangle a legitimate reason | 2★ |
 | 9 | Undecidable spelling | `subagent_type` with a non-ASCII hyphen (U+2011) or in fullwidth latin, no isolation | deny: the tool's resolver folds Unicode compatibility forms to the real reviewer, so a byte-level matcher cannot follow it and the conservative branch is free (every registered type is ASCII) | 2★ |
 
-Rows 8 and 9 were added in fix round 2 (findings G1 and G7): both pin behaviour the hook actually ships,
-which the original matrix did not describe. Rows are appended, never renumbered.
+| 10 | Whole roster | every `agents/*-reviewer/` directory on disk, and every non-reviewer agent directory, run through the hook | reviewers deny, non-reviewers allow silently; the reviewer list comes from the same glob `test_agent_definitions.py` treats as source of truth, so an eighth reviewer is covered the day it lands | 2★ |
+
+Rows 8 and 9 were added in fix round 2 (findings G1 and G7) and row 10 at the close of fix round 3:
+all three pin behaviour the hook actually ships, which the original matrix did not describe. Row 10
+exists because three consecutive rounds each found a spelling the matcher missed (case, Unicode
+compatibility forms, separators), and the honest answer to "is the deny set complete now" is a
+sweep that reruns itself, not a promise. Rows are appended, never renumbered.
 
 Depth: 3★ = behavior + edge + error, 2★ = happy path, 1★ = smoke.
 
-COVERAGE: 9/9 paths (100%)
+COVERAGE: 10/10 paths (100%)
 
 ### Exhaustiveness note
 The union is: the four verdict classes the hook can emit (deny, policy allow, scope allow, exempt allow), the two failure ladders (environment, non-git), and one live launch proving the registration + message loop. Workflow-bypass is deliberately NOT a row: the hook cannot see those launches by construction (decision 8), and pinning a test to its blindness would imply coverage it does not have. Combinatorial padding (every agent type × every isolation value) is forbidden; the suffix rule and the three isolation variants in row 1 cover the input classes.
