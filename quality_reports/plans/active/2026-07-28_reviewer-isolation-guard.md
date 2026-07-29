@@ -91,7 +91,7 @@ The union is: the four verdict classes the hook can emit (deny, policy allow, sc
 ## Progress
 - [x] Analysis + second opinion (Claude FAILED 401; Gemini + DeepSeek OK) + plan (2026-07-28)
 - [x] W1 hook + registration (2026-07-29): `hooks/reviewer-isolation-guard.sh` (10-step ladder, deny JSON carrying both remedies verbatim), `hooks/settings.example.json` PreToolUse `Agent` block. Evidence: `shellcheck` clean, six hand-driven smoke payloads exercising deny / worktree-allow / anchored-exempt / mid-sentence-deny / non-reviewer / malformed-JSON.
-- [ ] W2 docs made true again
+- [x] W2 docs made true again (2026-07-29): `skills/orchestrator/SKILL.md:173` (bullet rewritten, prose-only paths named, exemption documented with the not-a-write-enable caveat), `rules/orchestrator-protocol.md:59` (one clause), `skills/pr-review/SKILL.md` Phase 3 (exemption line + read-only consequence), `README.md` hook-inventory row (decision 12). Evidence: `scripts/check_repo.py check` all PASS; `grep -rn "Nothing in .hooks/\|nothing checks\|Prose, not enforcement"` over `agents/ skills/ rules/ README.md` returns no surviving false claim.
 - [ ] W3 test + contract + follow-up + close
 - [ ] Review round + fixes
 - [ ] PR + SCORE
