@@ -135,4 +135,51 @@ The union is: the four verdict classes the hook can emit (deny, policy allow, sc
 | 20 | Reviewer-ness matching, final form | Fold the key to bare alphanumerics (`tr -cd 'a-z0-9'`) and match the suffix `reviewer` WITHOUT the hyphen | Round-3 H1: the Agent resolver folds separators as well as case, so `security_reviewer`, `securityreviewer` and `security reviewer` all started the real reviewer un-isolated (proven by three live launches whose transcripts carry `"attributionAgent":"security-reviewer"`). Worse, the round-2 whitespace deletion NARROWED the deny set by destroying the hyphen the old suffix needed, contradicting the contract's own invariant. Only `*-reviewer` types end in `reviewer` once folded, verified by walking the whole roster: 7 reviewers plus 4 alias spellings deny, 12 non-reviewers allow | A registered non-reviewer agent type is ever named `*reviewer` |
 
 ## Outcomes & Retrospective
-(fill at close)
+
+**Shipped.** `hooks/reviewer-isolation-guard.sh` plus its `PreToolUse` `Agent` registration, an E2E
+suite covering matrix rows 1 to 6 and 10 as their own functions (rows 8 and 9 are asserted inside
+rows 4 and 1; row 7 is the live dogfood, walked by hand twice), a change contract, and the five doc
+surfaces the hook made false or would have
+broken (`skills/orchestrator/SKILL.md`, `rules/orchestrator-protocol.md`, `skills/pr-review/SKILL.md`,
+`skills/adr/SKILL.md`, `README.md`). Four review rounds, `SCORE: 97/100 (threshold: 90, gate: pr)`,
+approval record at `quality_reports/approvals/2026-07-28_reviewer-isolation-guard.md`. PR open, not
+merged. Follow-up #118 filed. Two tech-debt rows added.
+
+**The lesson worth carrying: an enforcement matcher is only as complete as the resolver it mirrors,
+and prose about the resolver is not evidence.** Three consecutive rounds each found exactly one
+bypass, each a different way the Agent tool's `subagent_type` resolution is looser than a byte
+comparison: case (`Security-Reviewer`), Unicode compatibility forms (U+2011, fullwidth latin), and
+separators (`security_reviewer`, `securityreviewer`, `security reviewer`). Each was found by
+LAUNCHING the spelling and reading the transcript's attribution, never by reading the hook. The plan
+locked "suffix match on `subagent_type` ending in `-reviewer`" as decision 6 and called it dynamic;
+it was dynamic with respect to the agent roster and completely static with respect to the resolver.
+Nobody, including the second-opinion round, questioned that. The fix that finally held was not a
+better guess at the fold, it was `row_10_whole_roster`: a test that walks the roster glob and reruns
+itself, which converts "we think we covered it" into a claim that fails when it stops being true.
+
+**Round 2 also produced the sharpest single finding of the run, and it was about the previous
+round's fix, not the code.** The assertion added in round 1 to close a tautology finding was itself
+unreachable for every input the hook can produce. A fix pass writing under time pressure reproduced
+the exact defect class it was closing. That is an argument for keeping the review loop running one
+round past the point where it feels finished, and for the mutation discipline that caught it: every
+claimed fix in this run was re-mutated by the orchestrator independently of the agent that wrote it,
+and that independent pass is what found the survivor.
+
+**Round 4 truncated, four agent runs, all on infrastructure stalls.** The protocol's rule (a stopped
+agent is `truncated`, never clean, and costs a Major) did its job: instead of quietly declaring
+convergence, the round is recorded with what it did and did not cover, and its questions were
+answered directly. The decisive evidence arrived by accident: the resolver's rejection message for
+`dx-reviewers` enumerates the entire agent universe, which settles both the completeness of the deny
+set and the fuzzy-matching question that round 3 could only infer. Worth remembering as a technique:
+an error message that enumerates a namespace is stronger evidence than any number of positive probes.
+
+**What the plan got right and would repeat.** Locking fail-OPEN on environment failures with the
+freeze-guard and main-branch-guard precedents named made every later argument about a new binary on
+the path (`head`, `grep`, `tr`) a one-line decision instead of a debate. Refusing to touch the 7
+pinned `AGENT.md` files held for the whole run. The anti-vacuity assertion in every test row, written
+before any finding demanded it, is what stopped the suite from certifying a hook that never denies.
+
+**What it got wrong.** The DoD claimed `make check` shellchecks the new hook; it does not. The E2E
+matrix contradicted itself between W1.1 and row 5 on a missing `subagent_type`. Both were caught
+within the first workstream, but both were the kind of claim a plan makes without checking, which is
+the same failure the run then spent three rounds finding in the code.
