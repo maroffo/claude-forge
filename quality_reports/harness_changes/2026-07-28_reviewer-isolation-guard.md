@@ -10,7 +10,7 @@ Follow-up to `2026-07-29_reviewer-worktree-isolation.md`, whose Falsification #2
 - `hooks/reviewer-isolation-guard.sh` (new): PreToolUse hook on the `Agent` tool.
 - `hooks/settings.example.json`: new `PreToolUse` block with `matcher: "Agent"`, timeout 10, registering the hook. Source of truth for the `~/.claude/settings.json` block Max applies after merge.
 - `hooks/tests/test_reviewer_isolation_guard.py` (new): E2E rows 1 to 6, auto-picked by the `Makefile` `test-e2e` glob.
-- Doc surfaces made true again in the same change: `skills/orchestrator/SKILL.md` (Review Scheduling, the fail-open bullet), `rules/orchestrator-protocol.md` (the read-only invariant clause), `skills/pr-review/SKILL.md` Phase 3 (reviewer briefs open with the exemption line), `README.md` hook inventory row.
+- Doc surfaces made true again in the same change: `skills/orchestrator/SKILL.md` (Review Scheduling, the fail-open bullet), `rules/orchestrator-protocol.md` (the read-only invariant clause), `skills/pr-review/SKILL.md` Phase 3 (reviewer briefs open with the exemption line), `skills/adr/SKILL.md` Step 8 (the one `*-reviewer` launch site outside `pr-review`, exempted for the same reason), `README.md` hook inventory row.
 
 ## Failure mode targeted
 
@@ -19,14 +19,15 @@ A `*-reviewer` subagent launched through the `Agent` tool without `isolation: "w
 ## Predicted improvement
 
 - Un-isolated `*-reviewer` launches reaching execution on the `Agent` tool path: to 0 by construction, since the hook denies before the launch happens. This is a hard zero on that path only, and it is the only path a PreToolUse matcher can see: Workflow-tool `agent()` launches and an edited or unregistered hook stay prose-only, covered by the agent-side downgrade.
-- Exemptions stay countable rather than silent: `grep -c '^ISOLATION-EXEMPT:' ` over session transcripts, expected steady state 1 per `pr-review` reviewer brief and 0 elsewhere.
+- Exemptions stay countable rather than silent: `grep -c '^ISOLATION-EXEMPT:' ` over session transcripts, expected steady state 1 per `pr-review` reviewer brief, 1 per `/adr` Step 8, and 0 elsewhere.
 - Sample needed: 10 sessions containing at least one review wave. A single observed deny with a relaunch that then passes (E2E row 7, the live dogfood) confirms the message loop; the rate claim needs the 10 sessions because omission is intermittent by nature.
 
 ## Invariants preserved
 
 - Fail OPEN on every environment failure: missing `jq`, unparseable payload, absent `subagent_type`, a cwd outside any work tree. Only the policy violation itself denies. The gated action is corrigible (a launch, and writes that show up in the diff), while a false deny bricks every review in every session until someone notices. Pinned by E2E rows 5 and 6.
 - The 7 `agents/*-reviewer/AGENT.md` files stay byte-identical: no PINNED churn, and the agent-side three-condition write gate remains the universal backstop for the launch paths this hook cannot see. Pinned by `hooks/tests/test_agent_definitions.py`, including its 7-file hash.
-- `pr-review` keeps working: its throwaway-clone flow deliberately cannot pass `isolation: "worktree"`, and passes the guard via the line-anchored exemption instead of being denied.
+- `pr-review` keeps working: its throwaway-clone flow deliberately cannot pass `isolation: "worktree"`, and passes the guard via the first-line exemption instead of being denied. Same for `/adr` Step 8, whose target file is uncommitted and therefore absent from any reviewer worktree.
+- The exemption marker is honoured on the FIRST line of the prompt and nowhere else. Briefs quote untrusted text verbatim, so a marker accepted on any line would let quoted content exempt its own launch, and the transcript could not tell that from an authored exemption.
 - No `tools:` allowlist is introduced anywhere (locked in #115, decision 2, and not relitigated here).
 - The exemption silences this hook for one launch and nothing else. It is not a write-enable: an exempted brief carries no isolation assertion, so the reviewer still self-downgrades to read-only agent-side. Stated at every place the marker is documented.
 
@@ -37,7 +38,7 @@ A `*-reviewer` subagent launched through the `Agent` tool without `isolation: "w
 
 ## Rollback
 
-`git revert <commit>`, then remove `~/.claude/hooks/reviewer-isolation-guard.sh` (the installed symlink) and the `Agent` block from the `PreToolUse` array of `~/.claude/settings.json`. Affects: `hooks/reviewer-isolation-guard.sh`, `hooks/settings.example.json`, `hooks/tests/test_reviewer_isolation_guard.py`, `skills/orchestrator/SKILL.md`, `rules/orchestrator-protocol.md`, `skills/pr-review/SKILL.md`, `README.md`, this contract.
+`git revert <commit>`, then remove `~/.claude/hooks/reviewer-isolation-guard.sh` (the installed symlink) and the `Agent` block from the `PreToolUse` array of `~/.claude/settings.json`. Affects: `hooks/reviewer-isolation-guard.sh`, `hooks/settings.example.json`, `hooks/tests/test_reviewer_isolation_guard.py`, `skills/orchestrator/SKILL.md`, `rules/orchestrator-protocol.md`, `skills/pr-review/SKILL.md`, `skills/adr/SKILL.md`, `README.md`, this contract.
 
 ---
 

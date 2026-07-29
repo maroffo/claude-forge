@@ -110,6 +110,8 @@ Run `dx-reviewer` agent on the ADR file, focusing on:
 - Evidence (claims backed by data/code)
 - Actionability (enough detail to implement)
 
+This launch cannot pass `isolation: "worktree"`: the ADR file is still uncommitted here (Step 9 commits it), and a reviewer worktree materialises at the default branch, where the file does not exist. Open the brief with the first line `ISOLATION-EXEMPT: ADR review, the target file is uncommitted and the reviewer only reads it`, which is what `reviewer-isolation-guard` reads; the reviewer then stays read-only agent-side, which is all this step wants.
+
 Alternatively, if the ADR is short and straightforward, skip the agent and self-review against the checklist above.
 
 ### Step 9: Commit, Push, PR
