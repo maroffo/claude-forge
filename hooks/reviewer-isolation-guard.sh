@@ -61,10 +61,31 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || exit 0
 # case-insensitively, so `Security-Reviewer` and a trailing space name the same real
 # reviewer; normalising can only widen the deny set, so the fail direction holds.
 # The RAW value stays for the message, which must name what the launcher typed.
-match_key=$(printf '%s' "$subagent_type" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')
+# LC_ALL=C keeps every class below byte-scoped: under a UTF-8 locale `[:space:]` and
+# bracket ranges follow the collation table, so the same spelling could decide
+# differently on two machines.
+LC_ALL=C
+match_key=$(printf '%s' "$subagent_type" | LC_ALL=C tr '[:upper:]' '[:lower:]' | LC_ALL=C tr -d '[:space:]')
+
+# The tool's resolver also folds Unicode compatibility forms, so `dx-reviewer` spelled
+# with U+2011 instead of the ASCII hyphen, or entirely in fullwidth latin, starts the
+# real reviewer while the normalised key ends in no ASCII `-reviewer`. A byte-level
+# normaliser cannot follow that fold, so reviewer-ness is undecidable for any type
+# carrying a byte outside printable ASCII, and undecidable belongs in the policy
+# branch. Every registered agent type is ASCII, so the conservative reading costs no
+# legitimate launch: it only widens the deny set, which is the safe direction. Matched
+# on the RAW value with a `case` glob, no binary, so a missing `tr` cannot turn this
+# into a deny. The set is printable ASCII plus tab, newline and CR, which the
+# normalisation above already strips; NBSP and friends land here instead of in
+# `[:space:]`, which under the `LC_ALL=C` pin no longer covers them.
+undecidable=""
+case "$subagent_type" in
+  *[!$'\t\n\r'" "-~]*) undecidable=yes ;;
+esac
+
 case "$match_key" in
   *-reviewer) ;;
-  *) exit 0 ;;
+  *) [ -n "$undecidable" ] || exit 0 ;;
 esac
 
 # Only "worktree" satisfies the policy, and "remote" deliberately does not: a remote
@@ -76,19 +97,28 @@ isolation=$(printf '%s' "$payload" | jq -r '.tool_input.isolation // empty')
 
 # First line only, and line-anchored within it: a mid-sentence mention of the marker
 # must not exempt a launch, and neither must untrusted content quoted into the brief
-# further down. The pattern is fixed, so regex metacharacters in the prompt cannot
-# alter the match.
+# further down. The first line is cut with parameter expansion and matched with a
+# `case` glob, so this path shells out to nothing: `head -1 | grep -E` meant that the
+# absence of either binary made an exempt launch DENY, the one direction this hook
+# promised never to fail in. `?*` is the old `.+`, at least one character after the
+# marker, and a `case` glob is case-sensitive, so `isolation-exempt:` is not the
+# marker. The pattern is fixed and its tail is a wildcard, so metacharacters in the
+# reason are data.
 prompt=$(printf '%s' "$payload" | jq -r '.tool_input.prompt // empty')
-exempt_line=$(printf '%s\n' "$prompt" | head -1 | grep -E '^ISOLATION-EXEMPT: .+' || true)
-if [ -n "$exempt_line" ]; then
-  # The reason is attacker-influenced text on its way to a terminal (CWE-117): strip
-  # every control byte except tab, so it cannot forge a line attributed to another
-  # hook. Carriage return goes too, since it overwrites the printed line just as an
-  # escape sequence does. Newline cannot occur here, the line came out of `head -1`.
-  reason=$(printf '%s' "${exempt_line#ISOLATION-EXEMPT: }" | LC_ALL=C tr -d '\000-\010\013-\037\177')
-  warn "ISOLATION-EXEMPT honored for $subagent_type: $reason (launch allowed, the reviewer stays read-only agent-side)"
-  exit 0
-fi
+first_line=${prompt%%$'\n'*}
+case "$first_line" in
+  'ISOLATION-EXEMPT: '?*)
+    # The reason is attacker-influenced text on its way to a terminal (CWE-117): strip
+    # every control byte except tab, so it cannot forge a line attributed to another
+    # hook. Carriage return goes too, since it overwrites the printed line just as an
+    # escape sequence does. Newline cannot occur here, the line was cut at the first
+    # one. A missing `tr` empties the reason and still ALLOWS, so the fail direction
+    # holds on this path too.
+    reason=$(printf '%s' "${first_line#ISOLATION-EXEMPT: }" | LC_ALL=C tr -d '\000-\010\013-\037\177')
+    warn "ISOLATION-EXEMPT honored for $subagent_type: $reason (launch allowed, the reviewer stays read-only agent-side)"
+    exit 0
+    ;;
+esac
 
 jq -cn --arg t "$subagent_type" \
   '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:("Reviewer isolation guard: refusing to launch `" + $t + "` without an isolated worktree. Review agents write mutants and probe files, so an un-isolated launch lands those writes in the real tree: relaunch with isolation: \"worktree\", or make the first line of the prompt '"'"'ISOLATION-EXEMPT: <reason>'"'"' (the reviewer will stay read-only agent-side).")}}'

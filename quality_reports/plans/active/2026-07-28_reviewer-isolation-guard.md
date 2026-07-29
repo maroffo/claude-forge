@@ -63,14 +63,20 @@
 | 1 | Policy deny | `*-reviewer` launch, no/empty/wrong `isolation`, no marker | deny JSON, reason contains both verbatim remedies | 3★ (missing key, `""`, `"remote"`) |
 | 2 | Policy allow | `isolation: "worktree"` present | exit 0, no output | 2★ |
 | 3 | Scope | non-reviewer types (`software-engineer`, `Explore`, `general-purpose`) without isolation | allow silently | 2★ |
-| 4 | Exemption | line-anchored `ISOLATION-EXEMPT: reason` → allow + stderr note; mid-sentence `…is ISOLATION-EXEMPT because…` → still deny | anchor is load-bearing | 3★ (both directions + marker in middle line of multi-line prompt) |
+| 4 | Exemption | **first-line** `ISOLATION-EXEMPT: reason` → allow + stderr note; mid-sentence `…is ISOLATION-EXEMPT because…`, a marker on any later line, a bare marker with no reason, and a wrong-case marker → still deny | the FIRST line is load-bearing (amended by decision 14; the original row read "line-anchored … any line", which the code and the suite now treat as a deny) | 3★ (exempt + mid-sentence deny + non-first-line deny + wrong-case deny) |
 | 5 | Env failures | jq absent (PATH stripped), malformed JSON, missing `subagent_type` | allow + one stderr warning each (fail-open per decision 3) | 3★ |
 | 6 | Non-git cwd | payload fine, cwd outside any repo | allow | 2★ |
 | 7 | Live dogfood | register hook locally, launch one real reviewer WITH isolation (silent pass) and one deliberate omission (observed deny in-session), then relaunch per the reason | the deny message is actionable end-to-end | 2★ |
 
+| 8 | Exemption-note output | reason carrying terminal escapes and a carriage return; reason carrying a tab and non-ASCII text | escapes and CR stripped before printing (CWE-117), tab and non-ASCII preserved: the strip must not silently mangle a legitimate reason | 2★ |
+| 9 | Undecidable spelling | `subagent_type` with a non-ASCII hyphen (U+2011) or in fullwidth latin, no isolation | deny: the tool's resolver folds Unicode compatibility forms to the real reviewer, so a byte-level matcher cannot follow it and the conservative branch is free (every registered type is ASCII) | 2★ |
+
+Rows 8 and 9 were added in fix round 2 (findings G1 and G7): both pin behaviour the hook actually ships,
+which the original matrix did not describe. Rows are appended, never renumbered.
+
 Depth: 3★ = behavior + edge + error, 2★ = happy path, 1★ = smoke.
 
-COVERAGE: 7/7 paths (100%)
+COVERAGE: 9/9 paths (100%)
 
 ### Exhaustiveness note
 The union is: the four verdict classes the hook can emit (deny, policy allow, scope allow, exempt allow), the two failure ladders (environment, non-git), and one live launch proving the registration + message loop. Workflow-bypass is deliberately NOT a row: the hook cannot see those launches by construction (decision 8), and pinning a test to its blindness would imply coverage it does not have. Combinatorial padding (every agent type × every isolation value) is forbidden; the suffix rule and the three isolation variants in row 1 cover the input classes.
@@ -97,6 +103,7 @@ The union is: the four verdict classes the hook can emit (deny, policy allow, sc
 - [x] W3.3 follow-up issue: https://github.com/maroffo/claude-forge/issues/118 (label `documentation`), the pr-review Phase 4b vs #115 read-only tension of decision 10.
 - [x] Review round 1 (2026-07-29): security + architecture + test, all three launched with `isolation: "worktree"` and background, all three returned `completed`. Consolidated 0 Critical / 5 Major / 6 Minor, artifact `quality_reports/reviews/2026-07-28_reviewer-isolation-guard/001-findings.md` (gitignored).
 - [x] Fix round 1 (2026-07-29): F1 (normalised match key), F2 (first-line-only exemption, decisions 14/17), F3 (`skills/adr/SKILL.md` Step 8 exempted), F5 (false trailing-newline claim deleted from hook and test), F6 (CWE-117 control-byte strip), F7 (`remote` rationale documented), F9/F10/F11 (test assertions made distinguishing). F4 closed by the row-7 dogfood evidence, F8 accepted (decision 16). Re-verified: `make check` + `make test-e2e` exit 0, `shellcheck` clean; three independent mutants (revert first-line narrowing, revert normalisation, drop control-byte strip) each killed by the intended assertion, hook restored. BLAST-RADIUS clean over 8 files.
+- [x] Review round 2 + fix round 2 (2026-07-29): security + test on the fix diff, 0 Critical / 2 Major / 5 Minor, artifact `002-findings.md`. G1 (Unicode compatibility spellings bypassed the ASCII normaliser; a live `security-reviewer` was launched spelled with U+2011) closed by treating a non-ASCII `subagent_type` as undecidable and routing it into the policy branch, decision 18. G2 (the round-1 fix for F11 was itself unreachable) closed. G3 locale pin, G4 `head`/`grep` removed from the exemption path (decision 19), G5/G6 test coverage, G7 matrix rows 8 and 9 added. Evidence: `make check` + `make test-e2e` exit 0, `shellcheck` clean, `/bin/bash -n` OK on bash 3.2; six independent mutants (drop the undecidable branch, fully case-insensitive marker, strip tab, strip non-ASCII, echo the matched line, drop first-line narrowing) each killed by the intended assertion; fail-open matrix with `head`, `grep`, `tr`, `jq` removed from PATH in turn shows no deny ever caused by a missing binary; row 7 dogfood re-walked live against the final code (deny observed with the updated wording, first-line exemption honoured).
 - [ ] W3.4 install note + PR + SCORE
 - [ ] PR + SCORE
 
@@ -117,6 +124,8 @@ The union is: the four verdict classes the hook can emit (deny, policy allow, sc
 | 15 | `subagent_type` matching | Normalise (lowercase, strip whitespace) into a match key before the `-reviewer` suffix test; keep the raw value for the deny message | Round-1 F1: the Agent tool resolves `subagent_type` case-insensitively, proven by launching a live agent as `Security-Reviewer`, so a byte-exact match was a silent bypass leaving nothing greppable. Normalisation can only widen the deny set | - |
 | 16 | Round-1 F8 (no check that the brief carries the isolation assertion) | **Accepted, not fixed.** Recorded as residual risk and tech debt | A launch that passes the parameter but whose brief omits the assertion sentence yields a silently degraded read-only review, which the change contract itself names as unobservable at launch time. Fixing it means new hook behaviour plus its own E2E row, outside the approved plan; Hold Scope applies | A degraded read-only review is actually observed, at which point it earns its own contract |
 | 17 | Deny message wording | The exemption clause becomes `or make the first line of the prompt 'ISOLATION-EXEMPT: <reason>' (the reviewer will stay read-only agent-side)`; the other remedy stays byte-identical | Forced by decision 14: W1.1 locked the old clause verbatim, and leaving it would tell a denied launcher to do something that no longer works. The plan's verbatim requirement is honoured in substance (both remedies present, copy-pasteable) with the semantics it now has | - |
+| 18 | Undecidable `subagent_type` spellings | A `subagent_type` carrying any byte outside printable ASCII is routed into the policy branch (deny), on top of the round-1 ASCII normalisation | Round-2 G1: the Agent tool's resolver folds Unicode compatibility forms, proven by launching a real `security-reviewer` spelled with U+2011, so a byte-level normaliser cannot follow it. Every registered agent type is ASCII, so the conservative branch costs no legitimate launch and only widens the deny set | A non-ASCII agent type is ever registered |
+| 19 | External binaries on the exemption path | `head` and `grep` replaced by shell parameter expansion plus a `case` glob | Round-2 G4: with either binary absent the exemption could not match and the launch was DENIED, which contradicts the hook's own fail-open contract. A `case` glob is also case-sensitive by construction, which is what G6 wanted pinned | - |
 
 ## Outcomes & Retrospective
 (fill at close)

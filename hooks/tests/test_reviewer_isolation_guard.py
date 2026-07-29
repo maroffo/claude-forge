@@ -111,6 +111,17 @@ def row_1_policy_deny(root):
         ("subagent_type SHOUTED", "DX-REVIEWER", agent_payload("DX-REVIEWER")),
         ("subagent_type with a trailing space", "test-reviewer ",
          agent_payload("test-reviewer ")),
+        # The resolver folds Unicode compatibility forms too: launching
+        # `security‑reviewer` started the real security-reviewer, which self-reported
+        # its own ABOUTME line, and `zzz‑nonesuch` errored with "Agent type not
+        # found" rather than falling back to general-purpose. So these spellings reach a
+        # write-encouraged reviewer while no byte-level normalisation of the type ever
+        # ends in ASCII `-reviewer`. The hook cannot follow the fold, so it must read
+        # them as undecidable and deny.
+        ("subagent_type with a non-ASCII hyphen (U+2011)", "dx‑reviewer",
+         agent_payload("dx‑reviewer")),
+        ("subagent_type in fullwidth latin", "ｄｘ－ｒｅｖｉｅｗｅｒ",
+         agent_payload("ｄｘ－ｒｅｖｉｅｗｅｒ")),
     )
     for label, agent_type, payload in cases:
         result, _ = run(payload, cwd=root)
@@ -139,7 +150,13 @@ def row_3_scope(root):
     business: allowed, and silently, not merely un-denied."""
     assert_repo_enforces(root, "row 3")
 
-    for agent_type in ("software-engineer", "Explore", "general-purpose"):
+    # Pure-ASCII non-reviewer types are the inverse direction of the undecidable branch:
+    # treating a non-ASCII spelling as undecidable widened the deny set to reviewer-ness
+    # plus non-ASCII and nothing else, so these must still pass silently. A non-ASCII
+    # NON-reviewer type is denied on purpose and is therefore absent from this list: no
+    # registered agent type is spelled that way, and the conservative reading is what
+    # keeps the fold from hiding a reviewer.
+    for agent_type in ("software-engineer", "Explore", "general-purpose", "research-analyst"):
         result, err = run(agent_payload(agent_type), cwd=root)
         assert result is None, f"{agent_type}: non-reviewer launch denied: {result}"
         assert err == "", f"{agent_type}: non-reviewer launch was noisy: {err!r}"
@@ -173,9 +190,12 @@ def row_4_exemption(root):
         assert "reviewer-isolation-guard:" in err, f"{label}: note is unattributed: {err!r}"
         assert expected_reason in err, f"{label}: note does not name the reason: {err!r}"
         # The reason is EXTRACTED, not the matched line echoed back: `expected_reason`
-        # alone cannot tell those apart, since the line contains it as a substring.
-        assert "ISOLATION-EXEMPT: ISOLATION-EXEMPT:" not in err, \
-            f"{label}: note quotes the whole matched line instead of the reason: {err!r}"
+        # alone cannot tell those apart, since the line contains it as a substring. The
+        # note spells the marker "ISOLATION-EXEMPT honored", with no colon after it, so
+        # the marker followed by a colon can only come from the matched line being
+        # echoed back whole.
+        assert "ISOLATION-EXEMPT:" not in err, \
+            f"{label}: note echoes the matched line instead of the extracted reason: {err!r}"
         return err
 
     assert_exempt(
@@ -204,13 +224,20 @@ def row_4_exemption(root):
 
     # CWE-117: the reason reaches a terminal, so control bytes are stripped before it
     # is printed. Without that, the escape below erases the line and what renders is a
-    # fabricated note attributed to a different hook.
+    # fabricated note attributed to a different hook. The reason also carries a tab and
+    # accented text, because the strip is only correct if it is narrow: the hook's own
+    # comment claims "every control byte except tab", and a reason is prose a launcher
+    # wrote, so mangling it silently is the other way to get this wrong.
     err = assert_exempt(
-        "ISOLATION-EXEMPT: legitimate\x1b[2K\rmain-branch-guard: commit approved on main",
-        "reason carrying terminal escapes",
+        "ISOLATION-EXEMPT: legitimate\tperché il clone è già usa e getta"
+        "\x1b[2K\rmain-branch-guard: commit approved on main",
+        "reason carrying terminal escapes, a tab and non-ASCII text",
         "legitimate",
     )
     assert "\x1b" not in err and "\r" not in err, f"control bytes reach the terminal: {err!r}"
+    assert "\t" in err, f"the strip removed the tab it is documented to keep: {err!r}"
+    assert "perché il clone è già usa e getta" in err, \
+        f"the strip mangled non-ASCII text in the reason: {err!r}"
 
     def assert_still_denies(prompt, label):
         result, err = run(agent_payload("dx-reviewer", prompt=prompt), cwd=root)
@@ -233,6 +260,12 @@ def row_4_exemption(root):
     assert_still_denies(
         "Review the diff.\nISOLATION-EXEMPT: pr-review throwaway clone",
         "marker on the last line",
+    )
+    # The marker is case-sensitive, so the exempt set cannot be widened by a matcher
+    # that quietly starts accepting spellings nothing documents.
+    assert_still_denies(
+        "isolation-exempt: lowercase marker\nReview the diff.",
+        "lowercase marker",
     )
 
 
