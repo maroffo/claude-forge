@@ -90,17 +90,25 @@ The union is: the four verdict classes the hook can emit (deny, policy allow, sc
 
 ## Progress
 - [x] Analysis + second opinion (Claude FAILED 401; Gemini + DeepSeek OK) + plan (2026-07-28)
-- [ ] W1 hook + registration
+- [x] W1 hook + registration (2026-07-29): `hooks/reviewer-isolation-guard.sh` (10-step ladder, deny JSON carrying both remedies verbatim), `hooks/settings.example.json` PreToolUse `Agent` block. Evidence: `shellcheck` clean, six hand-driven smoke payloads exercising deny / worktree-allow / anchored-exempt / mid-sentence-deny / non-reviewer / malformed-JSON.
 - [ ] W2 docs made true again
 - [ ] W3 test + contract + follow-up + close
 - [ ] Review round + fixes
 - [ ] PR + SCORE
 
 ## Surprises & Discoveries
+- (W1) **`make check` does not shellcheck `hooks/*.sh`.** DoD row 2 says "shellcheck covers the new sh"; `Makefile:38` runs it over `install.sh get.sh scripts/pi-exec scripts/score-log.sh` only, so every hook in `hooks/` is unlinted today. The new hook was shellchecked by hand instead (`shellcheck hooks/reviewer-isolation-guard.sh` -> clean, no output). Decision 13 keeps the Makefile untouched and files the gap as tech debt.
+- (W1) **The plan contradicts itself on missing `subagent_type`:** W1.1 says "allow silently", E2E row 5 groups it with the environment failures that must warn. Resolved as decision 11 (silent), because `subagent_type` is optional on the Agent tool: a warning there fires on ordinary general-purpose launches.
 - (planning) pr-review Phase 4b (`skills/pr-review/SKILL.md:118`) expects reviewers to WRITE red-green tests in `$PR_REVIEW_DIR`, but the #115 agent-side gate already self-downgrades clone-launched reviewers to read-only (`--git-dir` == `--git-common-dir` in a clone). Pre-existing tension, discovered while scoping the exemption; decision 10 defers it to a follow-up issue.
 
 ## Decisions
 (append-only)
+
+| # | Decision | Choice | Rationale | Revisit if |
+|---|----------|--------|-----------|------------|
+| 11 | Missing `subagent_type` on an `Agent` payload | Allow **silently** (W1.1 wording), NOT allow+warn (E2E row 5 wording). The plan contradicts itself on this one input class; silence wins | `subagent_type` is optional on the Agent tool and defaults to `general-purpose`, so its absence is an ordinary non-reviewer launch, not an environment failure. Warning there would print on every general-purpose launch, which is stderr noise, not a fail-open signal. Row 5 keeps its warning assertions for jq-missing and malformed JSON | A launch path is observed where an `Agent` payload legitimately loses a `subagent_type` it did carry |
+| 12 | `README.md` hook inventory | Add a `reviewer-isolation-guard.sh` row in W2 (extra file vs the plan's file list) | `README.md:105-120` enumerates every hook with its trigger and fail direction. A shipped hook absent from it is exactly the "doc references old behavior" staleness the quality gates score as Minor. Same "docs made true again" class as W2.1/W2.2, not scope expansion | - |
+| 13 | shellcheck coverage of the new hook | Run `shellcheck hooks/reviewer-isolation-guard.sh` by hand; do NOT widen `Makefile` `lint-shell` | DoD row 2 assumes `make check` shellchecks the new file; it does not (`lint-shell` covers `install.sh get.sh scripts/pi-exec scripts/score-log.sh` only). Widening it to `hooks/*.sh` would pull ~20 pre-existing scripts into this PR's gate: unrelated diff, unbounded outcome. Filed as tech debt at close | The hooks suite grows a second unlinted shell hook, i.e. the gap starts costing real defects |
 
 ## Outcomes & Retrospective
 (fill at close)

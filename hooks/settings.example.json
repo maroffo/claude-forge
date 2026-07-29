@@ -90,6 +90,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/reviewer-isolation-guard.sh",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PostToolUse": [
