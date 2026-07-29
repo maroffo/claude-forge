@@ -57,15 +57,21 @@ subagent_type=$(printf '%s' "$payload" | jq -r '.tool_input.subagent_type // emp
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || exit 0
 
 # Suffix match, never a hardcoded list: a future eighth reviewer is covered at birth.
-# Matched on a normalised key because the Agent tool resolves subagent_type
-# case-insensitively, so `Security-Reviewer` and a trailing space name the same real
-# reviewer; normalising can only widen the deny set, so the fail direction holds.
+# Matched on a normalised key because the Agent tool's resolver is far looser than a
+# byte comparison: it folds case AND separators, so `Security-Reviewer`,
+# `security_reviewer`, `security reviewer` and `securityreviewer` all start the same
+# real reviewer. Dropping the hyphen from the SUFFIX is what closes those three; the
+# key then folds to bare alphanumerics so no separator a future spelling invents can
+# narrow the match again, which is the one direction this matcher may never move.
 # The RAW value stays for the message, which must name what the launcher typed.
-# LC_ALL=C keeps every class below byte-scoped: under a UTF-8 locale `[:space:]` and
-# bracket ranges follow the collation table, so the same spelling could decide
-# differently on two machines.
+# Only `*-reviewer` agent types end in `reviewer`, so folding the separators away
+# cannot pull a non-reviewer type into the policy: the whole roster was walked through
+# this hook, 7 reviewers plus 4 alias spellings deny, 12 non-reviewers allow.
+# LC_ALL=C keeps every class below byte-scoped: under a UTF-8 locale the character
+# classes and bracket ranges follow the collation table, so the same spelling could
+# decide differently on two machines.
 LC_ALL=C
-match_key=$(printf '%s' "$subagent_type" | LC_ALL=C tr '[:upper:]' '[:lower:]' | LC_ALL=C tr -d '[:space:]')
+match_key=$(printf '%s' "$subagent_type" | LC_ALL=C tr '[:upper:]' '[:lower:]' | LC_ALL=C tr -cd 'a-z0-9')
 
 # The tool's resolver also folds Unicode compatibility forms, so `dx-reviewer` spelled
 # with U+2011 instead of the ASCII hyphen, or entirely in fullwidth latin, starts the
@@ -84,7 +90,7 @@ case "$subagent_type" in
 esac
 
 case "$match_key" in
-  *-reviewer) ;;
+  *reviewer) ;;
   *) [ -n "$undecidable" ] || exit 0 ;;
 esac
 

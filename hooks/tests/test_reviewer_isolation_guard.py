@@ -122,6 +122,18 @@ def row_1_policy_deny(root):
          agent_payload("dx‑reviewer")),
         ("subagent_type in fullwidth latin", "ｄｘ－ｒｅｖｉｅｗｅｒ",
          agent_payload("ｄｘ－ｒｅｖｉｅｗｅｒ")),
+        # The resolver folds SEPARATORS too, not only case: each of these launched the
+        # real security-reviewer (its transcript carries
+        # `"attributionAgent":"security-reviewer"`), so a key that keeps `_` or that
+        # deletes the interior space and then looks for a literal `-reviewer` suffix
+        # lets a real reviewer through. This is why the key folds to bare alphanumerics
+        # and the suffix drops the hyphen with them.
+        ("subagent_type with an underscore", "security_reviewer",
+         agent_payload("security_reviewer")),
+        ("subagent_type with no separator", "securityreviewer",
+         agent_payload("securityreviewer")),
+        ("subagent_type with a space separator", "security reviewer",
+         agent_payload("security reviewer")),
     )
     for label, agent_type, payload in cases:
         result, _ = run(payload, cwd=root)
@@ -156,7 +168,11 @@ def row_3_scope(root):
     # NON-reviewer type is denied on purpose and is therefore absent from this list: no
     # registered agent type is spelled that way, and the conservative reading is what
     # keeps the fold from hiding a reviewer.
-    for agent_type in ("software-engineer", "Explore", "general-purpose", "research-analyst"):
+    # The last two carry separators the match key folds away: only `*-reviewer` agent
+    # types end in `reviewer` once the separators are gone, so the fold cannot pull a
+    # non-reviewer into the policy.
+    for agent_type in ("software-engineer", "Explore", "general-purpose", "research-analyst",
+                       "software_engineer", "project analyzer"):
         result, err = run(agent_payload(agent_type), cwd=root)
         assert result is None, f"{agent_type}: non-reviewer launch denied: {result}"
         assert err == "", f"{agent_type}: non-reviewer launch was noisy: {err!r}"
