@@ -12,7 +12,7 @@ import sys
 CONVENTIONAL_RE = re.compile(r"^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\([^)]+\))?!?: .+")
 
 # Files where "TODO" etc. can legitimately appear as documentation or data, not stubs
-STUB_SCAN_SKIP_SUFFIXES = (".md", ".txt", ".rst", ".adoc")
+STUB_SCAN_SKIP_SUFFIXES = (".md", ".txt", ".rst", ".adoc", ".jsonl", ".ndjson")
 STUB_SCAN_SKIP_PATHS = ("/docs/", "/examples/", "/fixtures/", "/testdata/")
 
 COMMENT_PATTERNS = [
