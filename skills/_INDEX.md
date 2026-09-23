@@ -47,21 +47,15 @@
 | Mine cross-repo failure modes | `learning-loop` | `learning-docs`, `harness-mechanic` |
 | Optimize a prompt via evals | `autoresearch-prompt` | - |
 | Sync vault knowledge to skills | `knowledge-sync` | `_VAULT_CONTEXT.md`, `learning-docs` |
-| Task management | `clickup` | `source-control` |
-| Bullet Journal (daily/weekly/monthly) | `bujo` | `obsidian`, `bujo-sync` |
-| Sync BuJo with ClickUp/Linear | `bujo-sync` | `bujo`, `clickup` |
 | AWS/GCP infra | `cloud-infrastructure` | `terraform` |
 | Obsidian vault ops | `obsidian` | `_OBSIDIAN.md`, `_SECOND_BRAIN.md` |
 | Save project artifacts | vault (see plan-first-workflow) | `_OBSIDIAN.md` |
-| Check email | `inbox-triage` | private repo, symlinked locally |
 | Process newsletters | `newsletter-digest` | private repo, symlinked locally |
 | Process clippings | `process-clippings` | `_OBSIDIAN.md`, `_SECOND_BRAIN.md` |
 | Process bookmarks | `process-email-bookmarks` | private repo, symlinked locally |
-| Clean up email | `email-cleanup` | private repo, symlinked locally |
 | Generate cover image | `cover-image` | `_generate_image.py` |
 | Edit/review text for AI patterns | `humanizer` | - |
 | Write blog posts (Max) | `blog-writer` | `humanizer`, `cover-image`, `_SECOND_BRAIN.md` |
-| Write emails (Max) | `mail-writer` | `humanizer` |
 | Write blog posts (Mauro Medda) | `mauro-blogger` | private repo, symlinked locally like `advanced-review` |
 | Publish LinkedIn post | `linkedin-post` | private repo, symlinked locally |
 | Create/improve skills | `skill-forge` | `_INDEX.md`, `CLAUDE.md.example` |

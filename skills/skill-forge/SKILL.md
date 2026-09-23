@@ -133,5 +133,5 @@ Start at 100, subtract per finding:
 
 ## Quality Notes
 
-- Compare against existing high-quality skills (rails, source-control, clickup)
+- Compare against existing high-quality skills (rails, source-control)
 - Propose concrete diffs, not vague suggestions

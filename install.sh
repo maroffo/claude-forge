@@ -44,7 +44,7 @@ CAT_SKILLS_0="commit source-control refine-requirements releasing-software score
 CAT_SKILLS_1="golang python apple-swift android-kotlin rails ruby react-nextjs terraform cloud-infrastructure ios-debugger"
 CAT_SKILLS_2="gemini-review verify-frontend second-opinion test-design-reviewer skill-forge project-analyzer harness-trace harness-mechanic"
 CAT_SKILLS_3="obsidian knowledge-sync learning-docs learning-loop"
-CAT_SKILLS_4="process-clippings bujo bujo-sync clickup"
+CAT_SKILLS_4="process-clippings"
 CAT_SKILLS_5="blog-writer humanizer cover-image"
 CAT_SKILLS_6="adr"
 

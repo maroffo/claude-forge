@@ -14,7 +14,7 @@
 {"id": 15, "prompt": "nel vault ho un sacco di roba su questo tema, portala dentro le skill", "expected": "knowledge-sync", "cluster": "knowledge"}
 {"id": 16, "prompt": "questo pezzo suona finto, troppo lucidato", "expected": "humanizer", "cluster": "writing"}
 {"id": 17, "prompt": "voglio raccontare questa esperienza sul mio sito", "expected": "blog-writer", "cluster": "writing"}
-{"id": 18, "prompt": "devo rispondere al cliente che si lamenta del ritardo, sii diretto", "expected": "mail-writer", "cluster": "writing"}
+{"id": 18, "prompt": "devo rispondere al cliente che si lamenta del ritardo, sii diretto", "expected": "none", "cluster": "negative", "note": "mail-writer removed 2026-09-23; humanizer and blog-writer must not take it"}
 {"id": 20, "prompt": "ho venti articoli salvati da settimane, falli diventare qualcosa di utile", "expected": "process-clippings", "cluster": "vault"}
 {"id": 22, "prompt": "la versione e' pronta, mettiamola fuori", "expected": "releasing-software", "cluster": "ops"}
 {"id": 23, "prompt": "il branch e' pieno di commit sporchi, sistemiamolo prima di aprire la PR", "expected": "source-control", "cluster": "ops", "note": "workflow git, non un singolo commit"}
