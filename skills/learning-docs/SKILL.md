@@ -10,7 +10,6 @@ description: "Create and update LEARNING.md project retrospectives. Use when use
 
 ## Quality Notes
 
-- Take your time reviewing recent work thoroughly before writing
 - Quality of insights matters more than covering every change
 - Re-read what you wrote: is it useful to a future reader, or just filler?
 
@@ -41,6 +40,8 @@ Sections: **Project Overview**, **Architecture** (mermaid diagrams), **Tech Stac
 | Honest about mistakes | Sanitized corporate-speak |
 
 ## Examples
+
+Illustrative only: every fact in a lesson (durations, numbers, causes, fixes) comes from the session, the git history, or the user. When a detail is unknown, leave it out or ask; never invent one to make the story vivid.
 
 **Good:**
 > We spent 2 hours debugging why webhooks weren't firing. Turns out Redis was silently dropping messages when memory hit 80%. Added `maxmemory-policy volatile-lru` and monitoring. Lesson: always monitor your message queues, silence is not golden.
@@ -103,11 +104,9 @@ Each solution file:
 
 Analyze past sessions to identify improvement opportunities. Session files live in `~/.claude/projects/` (project paths: slashes→dashes).
 
-### CRITICAL Rules
+### Extraction
 
-- **NEVER read raw session files** (100k+ lines, token killer)
-- **ALWAYS use jq** to extract summaries
-- Focus on patterns, not individual messages
+Session files run to 100k+ lines, so extract summaries with jq instead of reading them raw, and look for patterns rather than individual messages.
 
 ### What to Look For
 
@@ -121,11 +120,11 @@ Analyze past sessions to identify improvement opportunities. Session files live 
 
 ### Key jq Commands
 
-Sessions live in `~/.claude/projects/PROJECT_NAME/session_*.json`.
+Sessions live in `~/.claude/projects/PROJECT_NAME/<session-id>.jsonl`, one event per line; message content sits under `.message.content`.
 
-- **Tool call counts:** `jq '[.messages[].content[]? | select(.type=="tool_use") | .name] | group_by(.) | map({tool: .[0], count: length}) | sort_by(-.count)'`
-- **Repeated reads:** `jq -r '... | select(.name=="Read") | .input.file_path' | sort | uniq -c | sort -rn | head -20`
-- **Error patterns:** `jq -r '... | select(.type=="tool_result" and (.content | tostring | test("error"))) | .content' | head -50`
+- **Tool call counts:** `jq -r 'select(.type=="assistant") | .message.content[]? | select(.type=="tool_use") | .name' SESSION.jsonl | sort | uniq -c | sort -rn`
+- **Repeated reads:** `jq -r 'select(.type=="assistant") | .message.content[]? | select(.type=="tool_use" and .name=="Read") | .input.file_path' SESSION.jsonl | sort | uniq -c | sort -rn | head -20`
+- **Error patterns:** `jq -r 'select(.type=="user") | .message.content | arrays | .[] | select(.type=="tool_result" and .is_error==true) | .content | tostring' SESSION.jsonl | head -50`
 
 ### Propose Improvements As
 

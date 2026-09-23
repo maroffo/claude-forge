@@ -23,7 +23,7 @@ An *Evolution Agent* (paper §3.5.2 of arxiv 2605.18747 "Code as Agent Harness")
 | 1 | **Observe** | Read trace JSONL (`quality_reports/traces/`, schema v2; see `harness-trace`). Read token baseline TSV. Read prior change contracts (`quality_reports/harness_changes/`) for context on what's already been tried. |
 | 2 | **Diagnose** | Attribute cost/latency/invalid-actions/test-failures/permission-denials to specific harness components. Cluster across sessions: a failure mode in 1 trace is anecdote; in 5+, it's a pattern. |
 | 3 | **Propose** | Concrete edit: rewrite tool description, change context-packing rule, add a linter, modify retry limit, insert HITL gate, adjust routing pattern. Every proposal must carry a draft *change contract* (see `quality_reports/harness_changes/TEMPLATE.md`). |
-| 4 | **Evaluate** | Replay against held-out traces if available; otherwise propose the smallest measurement that would falsify (matches the contract's Falsification field). DO NOT promote unverified mutations. |
+| 4 | **Evaluate** | Replay against held-out traces if available; otherwise propose the smallest measurement that would falsify (matches the contract's Falsification field). A mutation no measurement has checked is still a hypothesis, so it does not reach Promote. |
 | 5 | **Promote** | Only after user approval AND a populated change contract. Apply via standard skill edit flow. The contract's Result section gets filled in 10–20 sessions later. |
 
 ## Quality bar

@@ -43,7 +43,7 @@ Static sub-components: short names (<3 chars), abbreviation density, single-char
 With LLM assessment: `D4 = 0.60 * D4_static + 0.40 * llm_score`
 Without LLM: fallback formula adds dictionary coverage (10% weight).
 
-LLM reproducibility: temperature 0, 20 identifiers/file via SHA-256 deterministic selection, score 0.0 (clear) to 1.0 (cryptic).
+LLM reproducibility: 20 identifiers/file via SHA-256 deterministic selection, score 0.0 (clear) to 1.0 (cryptic). The LLM score is not bit-reproducible across runs (no sampling parameter makes it so); the fixed identifier sample and the 60% static weight bound the variance.
 
 ## D5 Coupling
 

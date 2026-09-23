@@ -1,6 +1,6 @@
 ---
 name: cognitive-load-analyzer
-description: "Calculate a Cognitive Load Index (CLI) score (0-1000) for a codebase. Measures 8 dimensions of cognitive load using static analysis and LLM-based naming assessment."
+description: "Calculate a Cognitive Load Index (CLI) score (0-1000) for a codebase. Measures 8 dimensions of cognitive load using static analysis and LLM-based naming assessment. Use when user asks how hard a codebase is to understand, wants a complexity or cognitive-load score, or is planning a major refactor, onboarding to an unfamiliar codebase, running an architecture review, or tracking complexity over time."
 allowed-tools: [Read, Grep, Glob, Bash, Write, AskUserQuestion]
 ---
 
@@ -47,13 +47,13 @@ Per-dimension sub-weights, the sigmoid definition, P90 weighting, and the aggreg
 
 ## Workflow
 
-### Phase 1: Discovery (2-3 turns)
+### Phase 1: Discovery
 1. Detect language(s) from file extensions
 2. Count files, directories, LOC
 3. Probe tools: `command -v lizard radon jscpd gocyclo`
 4. If >100K LOC, activate deterministic sampling (SHA-256 hash mod 100 < 30, plus all files >200 LOC)
 
-### Phase 2: Dimension Collection (8-12 turns)
+### Phase 2: Dimension Collection
 For each D1-D8:
 1. Run tool or fallback command to collect raw metrics
 2. Invoke calculator: `uv run --no-project python3 <skill_dir>/lib/cli_calculator.py normalize-d<N> '<json>'`
@@ -61,7 +61,7 @@ For each D1-D8:
 
 **Tool priority:** lizard (30+ languages) > language-specific (radon, gocyclo, eslint) > grep/awk/find heuristics.
 
-### Phase 3: Aggregation (2-3 turns)
+### Phase 3: Aggregation
 1. Pass all scores: `uv run --no-project python3 <skill_dir>/lib/cli_calculator.py aggregate '{"D1": ..., "D8": ...}'`
 2. Identify top 3 dimensions and top 5 worst offenders
 3. Produce report

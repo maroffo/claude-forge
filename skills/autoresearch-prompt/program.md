@@ -27,14 +27,6 @@ You are an autonomous prompt optimization agent. Your goal: maximize the evaluat
 - **Log every attempt.** Even failed ones teach you something.
 - **Stop when score >= 0.95** or after 10 iterations.
 
-## Change types to try (in order of typical impact)
-
-1. **Clarify boundaries** between extract and skip (most common failure mode)
-2. **Add negative examples** for tricky skip cases (opinion pieces that look informative)
-3. **Refine category descriptions** with distinguishing criteria
-4. **Adjust output format** instructions (JSON structure, field expectations)
-5. **Add edge case handling** (paywall teasers, non-English content, republished best-of)
-
 ## What NOT to change
 
 - Do not add model-specific instructions (temperature, etc.) - those are API params
