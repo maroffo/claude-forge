@@ -1,6 +1,6 @@
 ---
 name: obsidian
-description: "Obsidian vault operations via CLI. Use for note management, search, daily notes, knowledge graph analysis, tasks, properties. Not for Notion sync (use notion-sync)."
+description: "Obsidian vault operations via CLI. Use for note management, search, daily notes, knowledge graph analysis, tasks, properties."
 compatibility: "Requires Obsidian 1.12+ with CLI support and app running. macOS: /Applications/Obsidian.app/Contents/MacOS/obsidian"
 ---
 

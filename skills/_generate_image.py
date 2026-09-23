@@ -1,4 +1,4 @@
-# ABOUTME: Shared Gemini image generation script for cover-image and table-image skills
+# ABOUTME: Shared Gemini image generation script for the cover-image skill
 # ABOUTME: Invoked via uv run --with google-genai,Pillow; supports prompt, --ar, --size, -o args
 #
 # /// script

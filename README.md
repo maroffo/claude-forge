@@ -192,7 +192,6 @@ Skills are markdown files that teach Claude domain-specific patterns. They load 
 | `react-nextjs/` | React + Next.js App Router, Server Components (version via `npm view`) |
 | `android-kotlin/` | Kotlin, Jetpack Compose, Clean Architecture (version via `./gradlew`) |
 | `apple-swift/` | Swift, SwiftUI, async/await, concurrency (version via `swift --version`) |
-| `swiftui-liquid-glass/` | iOS 26+ Liquid Glass API |
 | `ios-debugger/` | Build, run, debug iOS apps via CLI (Xcode + Simulator) |
 | `cloud-infrastructure/` | AWS/GCP Well-Architected, security, cost, observability |
 
@@ -208,7 +207,7 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | `_OBSIDIAN.md` | Obsidian CLI config, vault commands |
 | `_SECOND_BRAIN.md` | Category routing, content templates, rules |
 | `_VAULT_CONTEXT.md` | Vault context injection, token budget, breadcrumbs |
-| `_generate_image.py` | Gemini image generation (used by cover-image, table-image) |
+| `_generate_image.py` | Gemini image generation (used by cover-image) |
 
 ### Support & Integrations
 
@@ -232,20 +231,16 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | `verify-frontend/` | End-to-end UI verification in a real browser (console gate, before/after screenshots, Lighthouse) |
 | `second-opinion/` | Second opinion from Gemini CLI on complex problems (auto-triggers for debugging, architecture, stuck reviews) |
 | `test-design-reviewer/` | Test quality assessment (Farley's 8 Properties, weighted scoring, Python calculator) |
-| `cognitive-load-analyzer/` | 8-dimension code complexity scoring (0-1000), sigmoid normalization, Python calculator |
-| `legacy-code-expert/` | Feathers' dependency-breaking techniques, seam identification, characterization tests |
 | `adr/` | Architecture Decision Records: refine, research, write, vault storage, review |
 | `skill-forge/` | Create new skills or review/improve existing ones against quality checklist |
 | `harness-trace/` | Execution trace capture from session JSONL, token baselining (tiktoken). Tracks 14 step types including atomic skill metrics (localization precision, reproduction confirmation, review validity). |
 | `harness-mechanic/` | Automated harness optimization via trace analysis (Meta-Harness pattern). Includes atomic skill composition map and cascade analysis for diagnosing root skill deficiencies. |
-| `notion-sync/` | Notion workspace to Obsidian vault sync (pull, push, AI summaries) |
 
 ### Content & Images
 
 | Skill | Description |
 |-------|-------------|
 | `cover-image/` | Generate editorial cover images via Gemini |
-| `table-image/` | Render tables/diagrams as hand-drawn sketch images |
 | `humanizer/` | Remove AI writing patterns (inflated symbolism, rule of three, etc.) |
 | `blog-writer/` | Write blog posts from Second Brain, IDEAS.md, or free prompts |
 | `mail-writer/` | Write short, direct emails: Castonguay rules + Max's distilled voice + humanizer pass |

@@ -267,7 +267,7 @@ wc -l $(git ls-files '*.go' '*.py' '*.rb' '*.ts') | sort -rn | head -20
 
 ## Cognitive Load Dimensions
 
-8 dimensions for assessing codebase complexity (adapted from cognitive-load-analyzer). Useful for "should we refactor?" decisions.
+8 dimensions for assessing codebase complexity. Useful for "should we refactor?" decisions.
 
 | Dimension | What to measure | High-load signal |
 |-----------|----------------|------------------|
