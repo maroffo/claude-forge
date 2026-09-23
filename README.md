@@ -201,7 +201,7 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 
 | File | Description |
 |------|-------------|
-| `_AST_GREP.md` | Structural code search (mandates ast-grep over grep) |
+| `_AST_GREP.md` | Structural code search: ast-grep as the default for code, rg for text, paths and patterns sg cannot express |
 | `_INDEX.md` | Quick skill lookup by language/task |
 | `_PATTERNS.md` | Cross-language patterns (DI, errors, testing, jobs) |
 | `_OBSIDIAN.md` | Obsidian CLI config, vault commands |
@@ -228,7 +228,7 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | `orchestrator/` | Full contractor-mode loop, loaded on demand before step 1: sub-protocols (LOCALIZE, BENCH-BASELINE, REPRODUCE, DRIFT), review routing, finding consolidation, review artifacts (local findings + committed approval), blast radius, UAT, parallelism and effort caps, escalation, goal-backed runs |
 | `gemini-review/` | Local code review with Gemini CLI |
 | `verify-frontend/` | End-to-end UI verification in a real browser (console gate, before/after screenshots, Lighthouse) |
-| `second-opinion/` | Second opinion from Gemini CLI on complex problems (auto-triggers for debugging, architecture, stuck reviews) |
+| `second-opinion/` | Three isolated second opinions (Claude, Gemini, DeepSeek in Docker) on complex problems (auto-triggers for debugging, architecture, stuck reviews) |
 | `test-design-reviewer/` | Test quality assessment (Farley's 8 Properties, weighted scoring, Python calculator) |
 | `adr/` | Architecture Decision Records: refine, research, write, vault storage, review |
 | `skill-forge/` | Create new skills or review/improve existing ones against quality checklist |
@@ -240,7 +240,7 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | Skill | Description |
 |-------|-------------|
 | `cover-image/` | Generate editorial cover images via Gemini |
-| `humanizer/` | Remove AI writing patterns (inflated symbolism, rule of three, etc.) |
+| `humanizer/` | Remove AI writing patterns while keeping every fact; voice matched to the input's register (opinion pieces get the author's voice, READMEs and formal email stay neutral) |
 | `blog-writer/` | Write blog posts from Second Brain, IDEAS.md, or free prompts |
 
 ### Personal Workflows
