@@ -47,31 +47,6 @@ npm audit --omit=dev # Dependency CVEs
 
 ---
 
-## Core Patterns
-
-```tsx
-// Server Component (default)
-async function Page() {
-  const data = await fetchData()
-  return <Component data={data} />
-}
-
-// Client Component
-'use client'
-function Interactive() {
-  const [state, setState] = useState()
-  return <button onClick={() => setState(x => x + 1)} />
-}
-
-// Server Action
-async function submit(formData: FormData) {
-  'use server'
-  await db.insert(formData)
-}
-```
-
----
-
 ## Project Structure
 
 ```

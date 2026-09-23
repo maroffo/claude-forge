@@ -51,7 +51,7 @@ export const useAuthStore = create<AuthState>()(
 ```tsx
 <Image src={src} alt={alt} width={w} height={h} priority={isAboveFold} />
 const Heavy = dynamic(() => import('@/components/heavy'), { loading: () => <Skeleton /> })
-experimental: { reactCompiler: true }  // Auto-memoization
+reactCompiler: true  // next.config, auto-memoization (top-level since Next 16; experimental.reactCompiler before)
 ```
 
 ---

@@ -57,13 +57,15 @@ bundle audit check --update     # Dependency CVEs
 
 ---
 
-## Sacred Rules (NON-NEGOTIABLE)
+## House Architecture Rules
 
-1. **NO LOGIC IN CONTROLLERS**: HTTP layer only
-2. **ALL LOGIC IN SERVICES/FORMS/FILTERS**
-3. **NO ACTIVERECORD VALIDATIONS**: Dry-validation contracts only
-4. **MINIMUM MODEL LOGIC**: Data structures + associations
-5. **NO MODEL CALLBACKS**: Exception: attachment destruction
+These deliberately depart from Rails defaults, so apply them even where idiomatic Rails would put the code in the model:
+
+1. Controllers are the HTTP layer only
+2. All business logic lives in services, forms and filters
+3. Validation lives in Dry-validation contracts, not ActiveRecord validations
+4. Models hold data structure and associations, minimal logic
+5. No model callbacks, except for attachment destruction
 
 ---
 

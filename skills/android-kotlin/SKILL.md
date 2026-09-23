@@ -60,7 +60,7 @@ feature/
 ```
 
 ### Use Cases and ViewModels
-Use cases: single responsibility, orchestration here (NOT in ViewModel). ViewModels expose immutable `StateFlow` UI state and one-time events via `Channel`/`SharedFlow` (never StateFlow). For the full `SignInUseCase` + `FeedViewModel` + `UiState`/`SideEffect` code, see `references/compose-patterns.md`.
+Use cases: single responsibility, orchestration here (NOT in ViewModel). ViewModels expose immutable `StateFlow` UI state and one-time events via `Channel`/`SharedFlow` (never StateFlow).
 
 ---
 
@@ -82,13 +82,6 @@ See `references/compose-patterns.md` for setup examples.
 ---
 
 ## Compose Essentials
-
-**State hoisting:** lift state to the caller, pass callbacks down.
-
-**State APIs:**
-- `remember { mutableStateOf() }`, lost on config change
-- `rememberSaveable { mutableStateOf() }`, survives config change
-- `derivedStateOf`, computed state
 
 **Side effects:** `LaunchedEffect(key)`, `DisposableEffect`. Collect flows with `collectAsStateWithLifecycle()` (not `collectAsState`).
 

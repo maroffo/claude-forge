@@ -23,12 +23,12 @@ async def fetch_limited(urls: list[str], max_concurrent: int = 10):
 ## Docker
 
 ```dockerfile
-FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS builder
+FROM ghcr.io/astral-sh/uv:python<X.Y>-bookworm-slim AS builder   # <X.Y> = project Python, see .python-version
 WORKDIR /app
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-cache --no-dev
 
-FROM python:3.13-slim-bookworm
+FROM python:<X.Y>-slim-bookworm
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 RUN useradd --create-home --uid 1000 app
 WORKDIR /app
@@ -53,7 +53,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
         with: { enable-cache: true }
-      - run: uv python install 3.13
+      - run: uv python install   # reads .python-version
       - run: uv sync --locked
       - run: uv run ruff format --check . && uv run ruff check . && uvx ty check && uv run pytest --cov
 ```

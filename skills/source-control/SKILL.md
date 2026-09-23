@@ -22,21 +22,7 @@ git stash && git stash pop
 
 ## Conventional Commits
 
-**Format:** `<type>(<scope>): <subject>` (scope/body/footer optional)
-
-| Type | Use |
-|------|-----|
-| `feat` | New feature |
-| `fix` | Bug fix |
-| `docs` | Documentation |
-| `style` | Formatting |
-| `refactor` | Code restructure |
-| `perf` | Performance |
-| `test` | Tests |
-| `chore` | Maintenance |
-| `ci` | CI/CD |
-| `build` | Build system |
-| `revert` | Revert commit |
+**Format:** `<type>(<scope>): <subject>` (scope/body/footer optional), standard Conventional Commits types.
 
 **Rules:** Imperative mood, present tense, lowercase, no period, max 50 chars
 
@@ -85,19 +71,6 @@ git commit -m "Feat: Add thing"  # Capital letter
 ---
 
 ## Workflow
-
-```bash
-# Start feature
-git checkout main && git pull origin main
-git checkout -b feat/user-auth
-
-# Keep up to date
-git fetch origin && git rebase origin/main
-
-# After PR merged
-git checkout main && git pull
-git branch -d feat/user-auth
-```
 
 | Use | When |
 |-----|------|

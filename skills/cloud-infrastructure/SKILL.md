@@ -29,19 +29,6 @@ trivy config . && checkov -d .
 
 ---
 
-## AWS Well-Architected (6 Pillars)
-
-| Pillar | Key Practices |
-|--------|---------------|
-| **Operational Excellence** | IaC, runbooks, observability, chaos engineering |
-| **Security** | Least privilege IAM, GuardDuty/Security Hub, KMS encryption, SCPs |
-| **Reliability** | Multi-AZ, auto-scaling, RTO/RPO backups |
-| **Performance** | Right-size, caching, serverless, read replicas |
-| **Cost** | Reserved/Savings Plans, Spot, tagging |
-| **Sustainability** | Optimize utilization, Graviton |
-
----
-
 ## AWS ECS vs EKS
 
 | Factor | ECS | EKS |
@@ -80,7 +67,7 @@ spec:
     spec:
       containerConcurrency: 80
       containers:
-        - image: gcr.io/project/image
+        - image: REGION-docker.pkg.dev/PROJECT_ID/REPO/IMAGE   # Artifact Registry
           resources: { limits: { cpu: "1", memory: "512Mi" } }
 ```
 
