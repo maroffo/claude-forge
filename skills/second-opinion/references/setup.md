@@ -24,4 +24,4 @@ Images built and auth configured:
 | DeepSeek "No API key found" | Check `~/.config/deepseek-api-key` exists and is valid; it is passed as `DEEPSEEK_API_KEY` |
 | DeepSeek image not found | Build it: `docker/isolated-deepseek/isolated-deepseek-review.sh --build` |
 | Timeout | Reduce context size; focus on the most relevant files |
-| Both reviewers agree you're wrong | You're probably wrong. Reconsider. |
+| The isolated reviewers agree you're wrong | You're probably wrong. Reconsider. |

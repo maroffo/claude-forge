@@ -34,7 +34,9 @@ class UserService
   def initialize(repo:, logger:)
     @repo, @logger = repo, logger
   end
-  def call = # use @repo, @logger
+  def call
+    # use @repo, @logger
+  end
 end
 ```
 
@@ -208,10 +210,13 @@ type UserRepository interface {
 
 ### Transactions
 ```go
-tx, _ := db.Begin()
-defer tx.Rollback()
+tx, err := db.BeginTx(ctx, nil)
+if err != nil {
+    return err
+}
+defer tx.Rollback() // no-op after a successful Commit
 // ops...
-tx.Commit()
+return tx.Commit()
 ```
 
 ```python

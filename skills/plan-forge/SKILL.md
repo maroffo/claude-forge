@@ -9,7 +9,7 @@ compatibility: "Needs gh CLI (issue mode); step 2 relies on the second-opinion s
 
 # Plan Forge
 
-Codifies the delivery-prep playbook proven on hikma-mirsad#576 (verify-after-rewrite) and the model-manifest task: the planning session (main loop, typically Fable) does analysis and planning; implementation is delegated to a FRESH session driving opus-4.8 software-engineer subagents in a separate worktree, held to the plan by a /goal line.
+The planning session (main loop) does analysis and planning; implementation is delegated to a FRESH session driving opus software-engineer subagents in a separate worktree, held to the plan by a /goal line.
 
 ## Quality Notes
 
@@ -54,7 +54,7 @@ Mirror to vault if Obsidian is up (`obsidian create name="Plans/YYYY-MM-DD - <de
 
 Fill `references/impl-prompt-template.md` from the plan (repo, branch, plan path, hot-path yes/no, verify commands, reproduce clause). Present BOTH blocks to the user: the prompt to paste into a fresh session, and the `/goal` line they type immediately after (only the user can set /goal).
 
-The prompt must carry, verbatim from the template: worktree from updated origin/<integration-branch>; plan copied + committed FIRST; bench-baseline pre-edit on a quiet machine when hot-path; REPRODUCE red before fix code; subagents = software-engineer, model opus-4.8; shared-worktree git guards; review fleet + fix + re-verify + canonical SCORE; follow-up issues filed; PR opened, never merged by the agent.
+The prompt must carry, verbatim from the template: worktree from updated origin/<integration-branch>; plan copied + committed FIRST; bench-baseline pre-edit on a quiet machine when hot-path; REPRODUCE red before fix code; subagents = software-engineer, model opus; shared-worktree git guards; review fleet + fix + re-verify + canonical SCORE; follow-up issues filed; PR opened, never merged by the agent.
 
 ## Common Issues
 

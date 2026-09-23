@@ -25,7 +25,7 @@ Regole di esecuzione:
 - <the one or two load-bearing implementation constraints from the locked decisions,
   stated imperatively, e.g. "il verify DEVE usare la catena completa X->Y->Z con lo
   snapshot armato, MAI un fresh config load">.
-- Subagent: software-engineer, model opus-4.8. Il subagent condivide il worktree: nel suo
+- Subagent: software-engineer, model opus. Il subagent condivide il worktree: nel suo
   brief vieta git checkout/switch/pull e git commit --amend; prima di OGNI commit verifica
   `git branch --show-current` nella stessa call; stage per path espliciti, mai `git add -A`;
   mai --no-verify.
