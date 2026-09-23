@@ -50,6 +50,8 @@ Report the saved file path and suggest reviewing the image.
 
 ## Example
 
+Illustrative only: keep the style prefix and suffix fixed, and find the metaphor in each article's own tension rather than reusing this one.
+
 **Article about**: "Why we migrated from monolith to microservices"
 
 **Prompt**:

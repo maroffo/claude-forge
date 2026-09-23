@@ -37,7 +37,7 @@ Daily notes contain sync zones delimited by HTML comments:
 <!-- bujo-sync:linear:end -->
 ```
 
-**CRITICAL:** Only modify content BETWEEN the start/end markers. Never touch anything outside.
+Only modify content between the start/end markers: everything outside them is Max's own journal text.
 
 ## Pull Flow (`bujo sync pull` or `bujo sync`)
 

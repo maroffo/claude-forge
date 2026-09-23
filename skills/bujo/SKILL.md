@@ -139,7 +139,7 @@ Show today's daily note with highlights on overdue/blocked items.
 
 Task sync is handled by the `bujo-sync` skill. This skill only manages note creation, migration, and review.
 
-Sync markers in daily notes (HTML comments) delimit zones where `bujo-sync` writes. This skill NEVER modifies content between sync markers.
+Sync markers in daily notes (HTML comments) delimit zones where `bujo-sync` writes. This skill leaves content between sync markers untouched: that zone belongs to `bujo-sync`.
 
 ```
 <!-- bujo-sync:clickup:start -->

@@ -1,4 +1,4 @@
-# ABOUTME: Max's blog voice reference: structure, tone, endings, anti-patterns, length, language
+# ABOUTME: Max's blog voice reference: structure, tone, endings, length, language
 # ABOUTME: Loaded by the blog-writer skill during the Write Draft step and when debugging common issues
 
 # Style Guide (Max's Voice)
@@ -12,6 +12,7 @@
 - **Code blocks**: with language identifiers, real examples from production
 - **Bold**: key concepts and definitions only, not mechanical emphasis
 - **Links**: `{{< ref "YYYY-MM-DD-slug" >}}` for internal, standard markdown for external
+- **Narrative thread**: every section advances one argument; a list of disconnected tips is not a post
 
 ## Tone
 - First person throughout ("I wrote", "I realized", "we shipped")
@@ -19,6 +20,7 @@
 - Opinionated with evidence ("This works because..." not "This might work")
 - Self-aware humor and irony ("This is what happens when you have an AI that doesn't complain about scope creep")
 - Honest about limitations ("I don't have this figured out", "Here's where it broke")
+- Anecdotes, numbers, and production examples come from the gathered sources (vault notes, project logs, what Max told you); where the material has none, leave a `[TODO: Max]` placeholder instead of inventing one
 
 ## Endings
 - Reflection on what was learned (not generic "bright future")
@@ -26,13 +28,6 @@
 - `***` separator then methodology note if AI assisted
 - Acknowledgments section if citing influences
 - Author context (brief, contextual)
-
-## Anti-patterns (never do)
-- Generic introductions ("In today's fast-paced world...")
-- Listicle-style without narrative thread
-- Neutral reporting without opinion
-- Padding sections to hit word count
-- Concluding with "In conclusion" or summarizing what was just said
 
 ## Length
 - Technical deep-dives: 2500-4000 words

@@ -52,12 +52,7 @@ After human approval for each candidate:
 2. Add source backlink as HTML comment: `<!-- vault: [[Second Brain - Development#Pattern Name]] -->`
 3. Update the Skill Candidates table: change signal from `strong` to `applied`
 
-```bash
-# Example: update signal in vault
-obsidian read file="Second Brain - Development"
-# Find the row, replace "strong" with "applied" in the table
-obsidian append file="Second Brain - Development" content="..."
-```
+The Obsidian CLI only appends or prepends, so it cannot change a table row in place. Read the note with `obsidian read`, then change the row's signal with the Edit tool on the note's file under the vault root (path in `../_OBSIDIAN.md`, Path fallback).
 
 ## Presentation Format
 
@@ -100,10 +95,7 @@ Caveats:
 
 ## Quality Notes
 
-- Take your time scanning every Skill Candidates table thoroughly
 - Read the target skill file before proposing additions (avoid duplicates)
-- Quality of proposals matters more than quantity
-- Do not skip validation steps
 
 ## Rules
 

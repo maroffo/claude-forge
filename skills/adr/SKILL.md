@@ -10,7 +10,6 @@ description: "Write Architecture Decision Records following HikmaAI format. Use 
 
 ## Quality Notes
 
-- Take your time with research before writing
 - ADRs are permanent records; accuracy matters more than speed
 - Every claim should be backed by evidence (code, docs, benchmarks)
 - Do not skip the refinement step for ambiguous topics
@@ -88,7 +87,7 @@ Add a row to the ADR Index table in `hikma-system-design/README.md`:
 | {NNN} | {project} | {Title} | Drafting |
 ```
 
-Also update the naming convention if it still references the old format.
+If the README's Conventions section gives an ADR filename pattern other than `ADR-NNN-kebab-title.md`, update it to match.
 
 ### Step 7: Store in Vault
 

@@ -10,9 +10,9 @@ compatibility: "Requires ClickUp MCP server connected and authenticated."
 
 # ClickUp MCP Integration
 
-## Critical Rules
+## Rules
 
-1. **ALL content in English** - task names, descriptions, comments
+1. **All content in English** - task names, descriptions, comments
 2. **Never guess IDs** - always search or ask
 3. **Read before update** - understand current state
 4. **Check comments** - automation adds branch names, CI links
@@ -34,7 +34,7 @@ clickup_create_task_comment → task_id, comment_text: "..."
 
 All tools available via MCP: `clickup_*` prefix. See tool schemas for parameters.
 
-**Key:** Always search before creating. Never guess IDs. `create_task` requires `list_id` - ask user.
+**Key:** Search before creating, so the task is not duplicated. `create_task` requires `list_id` - ask user.
 
 ---
 
