@@ -22,8 +22,8 @@
 
 # Git
 - Never `--no-verify`, `--no-hooks` or `--no-pre-commit-hook`. When a hook fails, fix the cause: pressure is not a justification
-- Push only when I ask; I push manually otherwise
 - Not on main/master unless I explicitly authorize it: feature branch, then PR to the repo's integration branch (`dev` where it exists)
+- Committing, pushing the feature branch and opening the PR are normal work: do them without asking. Merging is mine: never merge a PR (`gh pr merge`, a local merge into the integration branch or main, auto-merge), because the merge is where I review and accept the change
 - Fix pre-existing CI failures: if the pipeline fails on issues your MR did not cause (vulnerable deps, outdated tools), fix them in the same MR or a dedicated one. A green pipeline is everyone's responsibility.
 
 # Code Search

@@ -116,7 +116,7 @@ After a PR is opened, CI failures and review comments arrive asynchronously. Ins
 
 Rules for the loop:
 
-- **Push authorization:** Max starting the `/loop` on a PR **is** the explicit push authorization, scoped to that PR branch and that loop session only. Outside a PR loop, the NEVER-push rule stands unchanged.
+- **Push scope:** the loop pushes fixes to the PR branch only; merging the PR stays with Max, even when CI is green and every comment is addressed.
 - Never force-push inside a loop; `--force-with-lease` only, and only for rebase-on-main conflicts Max asked for.
 - Commits inside the loop follow the same conventional format and pre-commit gate (`make check && make test-e2e`); hooks are never bypassed under loop time pressure.
 - Match the interval to the external system: CI that takes ~10 minutes doesn't need a 2-minute loop.
@@ -126,7 +126,7 @@ Rules for the loop:
 
 ## Rules
 
-- NEVER push automatically (Max pushes manually; sole exception: an active Post-PR Loop, scoped to its PR branch, see above)
+- Commit, push the feature branch and open the PR without asking; never merge a PR (no `gh pr merge`, no auto-merge, no local merge into the integration branch or main): the merge is Max's review gate
 - NEVER work on `main`/`master` unless explicitly authorized
 - Small, logical commits; no huge unrelated changes
 - `--force-with-lease`, never bare `--force` on shared branches
