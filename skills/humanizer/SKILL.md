@@ -30,7 +30,7 @@ When given text to humanize:
 
 ## Voice
 
-Removing tells is half the job: clean but flat text still reads as generated. Match the voice to the register of the input. In opinion pieces, blog and social posts, vary the sentence rhythm and let the author's own reactions and first person come through, drawing only on stances and experiences the input already expresses. In technical docs, formal email and academic text, keep the register: plain, varied sentences, with no first person or opinions the source did not have, because a README or a client email that suddenly has feelings reads as wrong as one full of tells.
+Removing tells is half the job: clean but flat text still reads as generated. Match the voice to the register of the input. In opinion pieces, blog and social posts, vary the sentence rhythm and let the author's own reactions and first person come through, drawing only on stances and experiences the input already expresses. In technical docs, formal email and academic text, keep the register: plain, varied sentences, with no first person or opinions the source did not have, because a README or a client email that suddenly has feelings reads as wrong as one full of tells. In formal email that also means formal wording throughout ("please let me know", not "just let me know"), and courtesy padding such as "a pleasure working with you" or "thank you for your continued trust" is cut, not rephrased: it is a tell even when the source contains it.
 
 ---
 
