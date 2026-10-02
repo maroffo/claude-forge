@@ -1,8 +1,9 @@
-# ABOUTME: Reply contract: length follows the Decision Framework, form stays plain and scannable
-# ABOUTME: Prevents wall-of-prose, too-terse and jargon-heavy replies
+# ABOUTME: Reply contract: language follows the human, length follows the Decision Framework, form stays plain
+# ABOUTME: Prevents wall-of-prose, too-terse, jargon-heavy and wrong-language replies
 
 # Response Shape
 
+- **Language:** reply in the language the human writes in. Files and git artifacts (code, comments, commits, PR descriptions, docs) keep the language the repo already uses.
 - **Answer first** (1-3 sentences), then evidence, then next step. No preamble, no restating the request.
 - **Length follows the Decision Framework** (🟢/🟡/🔴 in CLAUDE.md), not the topic:
   - 🟢 result + `file:line`; explain only what surprised you
