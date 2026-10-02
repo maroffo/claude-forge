@@ -42,19 +42,9 @@ compatibility: "Only if external deps needed"
 
 # Skill Title
 
-## Quality Notes (if multi-step workflow)
-
-- Take your time with each step
-- Quality over speed
-- Do not skip validation
-
 ## [Core Instructions]
 
-### Step 1: ...
-[Specific, actionable instructions with examples]
-
-### Step 2: ...
-[Clear expected output]
+[Outcomes, constraints with their reasons, and how to verify the result. Numbered steps only where order truly matters; exact commands only for fragile operations.]
 
 ## Common Issues
 
@@ -97,11 +87,11 @@ For detailed patterns, consult `references/<topic>.md`
 
 | Check | Rule |
 |-------|------|
-| Specific | Actionable commands, not "validate the data" |
-| Examples | Concrete code/commands, not abstract descriptions |
+| Specificity matches fragility | Exact commands for fragile or destructive operations; outcomes, constraints and reasons for judgment calls |
+| Examples | Only where the output shape is format-sensitive: several varied examples, labeled illustrative; none for judgment the model already owns |
 | Error handling | Common issues table for workflow skills |
 | Progressive disclosure | SKILL.md <150 lines core; detailed content in references/ |
-| Quality notes | Multi-step workflows get anti-laziness section |
+| Register | Instructions at normal volume with the reason attached; no anti-laziness notes or capitalized emphasis, which current models over-apply |
 
 ### Optional Fields (minor)
 
@@ -122,7 +112,7 @@ Start at 100, subtract per finding:
 |----------|-----------|----------|
 | Critical | -25 | No frontmatter, no description, wrong file name |
 | Major | -10 | No trigger phrases, vague instructions, no ABOUTME |
-| Minor | -3 | Missing compatibility, no error handling, no examples |
+| Minor | -3 | Missing compatibility, no error handling, a single unlabeled gold example |
 
 | Score | Verdict |
 |-------|---------|
@@ -138,11 +128,10 @@ Start at 100, subtract per finding:
 - **Cross-references**: link to `_AST_GREP.md`, `_PATTERNS.md`, `source-control` where relevant
 - **_INDEX.md**: register new skills in the routing table
 - **CLAUDE.md**: nothing to add. The harness injects every skill's name and description, so the file carries no skill catalog; discovery lives in your `description:` field, which is why it must state when to use the skill and when not to
-- **Token budget**: every word in SKILL.md costs context; be ruthless
+- **Token budget**: every word in SKILL.md costs context on every trigger; cut what the model already knows, keep what only the author knows (reasons, environment facts, quality bar)
 - **No em dashes**: use commas, colons, semicolons, or parentheses
 
 ## Quality Notes
 
-- Read each skill file thoroughly before scoring
-- Compare against existing high-quality skills (rails, source-control, clickup)
+- Compare against existing high-quality skills (rails, source-control)
 - Propose concrete diffs, not vague suggestions

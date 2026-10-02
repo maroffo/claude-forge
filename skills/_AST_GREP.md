@@ -1,11 +1,11 @@
 # ABOUTME: ast-grep universal guide for AST-aware code search across all languages
-# ABOUTME: ALWAYS use ast-grep instead of grep/ripgrep for code analysis
+# ABOUTME: Use ast-grep instead of grep/ripgrep when searching code
 
 # ast-grep (sg) - Universal Code Search
 
-## Critical Rule
+## Default for code search
 
-**ALWAYS use `ast-grep` (sg) via `mcp__acp__Bash` for code analysis. NEVER use grep or ripgrep.**
+Use `ast-grep` (`sg`) to search code: it matches syntax, so hits inside comments and strings do not show up as false positives. For non-code files, paths, and prose, use grep or ripgrep (see When NOT to use ast-grep).
 
 ## Why ast-grep?
 
@@ -84,11 +84,11 @@ sg --pattern 'class $NAME($BASE): $$$' --lang python
 # Type hints
 sg --pattern 'def $NAME($$$) -> $TYPE: $$$' --lang python
 
-# Decorators
-sg --pattern '@$DECORATOR\ndef $NAME($$$): $$$' --lang python
+# Decorators (multi-line patterns need real newlines: bash $'...' quoting)
+sg --pattern $'@$DECORATOR\ndef $NAME($$$):\n    $$$' --lang python
 
 # Exception handling
-sg --pattern 'try: $$$ except $EXC: $$$' --lang python
+sg --pattern $'try:\n    $$$\nexcept $EXC:\n    $$$' --lang python
 
 # Imports
 sg --pattern 'from $MODULE import $$$' --lang python
@@ -98,8 +98,7 @@ sg --pattern 'import $MODULE' --lang python
 ## Ruby Patterns
 
 ```bash
-# Classes
-sg --pattern 'class $NAME < $PARENT' --lang ruby
+# Classes (also matches subclasses)
 sg --pattern 'class $NAME' --lang ruby
 
 # Modules
@@ -143,10 +142,9 @@ sg --pattern 'module "$NAME" { $$$ }' --lang hcl
 ## Common Workflows
 
 ### Find all TODOs
+ast-grep does not match comments, so use ripgrep:
 ```bash
-sg --pattern '// TODO: $$$' --lang go
-sg --pattern '# TODO: $$$' --lang python
-sg --pattern '# TODO: $$$' --lang ruby
+rg -n 'TODO' --type go --type py --type ruby
 ```
 
 ### Find security issues

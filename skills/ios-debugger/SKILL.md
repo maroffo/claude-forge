@@ -26,7 +26,6 @@ compatibility: "Requires Xcode and iOS Simulator. Optionally XcodeBuildMCP for e
 ## Prerequisites
 
 ```bash
-# Ensure XcodeBuildMCP is available
 # Check if simulator is booted (pick <booted device> from this list, do not hardcode a model)
 xcrun simctl list devices | grep Booted
 
@@ -72,7 +71,7 @@ idb ui text "Hello World"
 idb ui swipe 200 600 200 200 --duration 0.5
 ```
 
-If a command shape is not listed here, verify with `xcrun simctl help io` before using it (this file once shipped invented `simctl io tap/type/swipe` subcommands).
+If a command shape is not listed here, verify with `xcrun simctl help io` before using it: plausible-looking subcommands such as `simctl io tap` do not exist.
 
 ## Log Capture
 

@@ -57,9 +57,7 @@ golangci-lint run             # Lint
 
 ## Code Conventions
 
-**Formatting:** `gofmt`/`goimports`: NON-NEGOTIABLE.
-
-**Naming:** Short vars in funcs (`i`, `c`), descriptive at pkg level (`ErrNotFound`). Receivers 1-2 letter (`c *Client`). Initialisms all-caps or all-lower (`ServeHTTP`, `appID`). Packages lowercase singular.
+**Formatting:** `gofmt`/`goimports` on every change (`make check` fails on unformatted files).
 
 **Errors:** Always handle (never `_`). Wrap: `fmt.Errorf("decompress %v: %w", name, err)`. Lowercase, no punctuation, guard clauses. Never wrap `io.EOF` (callers use `==`).
 
@@ -100,9 +98,7 @@ Organize by **feature/domain**, not technical layer. Avoid `/src`, `/utils`, `/c
 
 **Constructor Injection:** Accept interfaces, return structs. **No global mutable state**: pass deps explicitly.
 
-**Interfaces:** Small (1-3 methods), accept interfaces, return structs.
-
-**Useful Zero Values:** Uninitialized struct = safe to use or obviously invalid. Stdlib examples: `sync.Mutex`, `bytes.Buffer`.
+**Interfaces:** Small (1-3 methods).
 
 ---
 

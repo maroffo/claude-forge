@@ -8,12 +8,6 @@ description: "Assess test suite quality using Farley's 8 Properties and Tautolog
 
 # Test Design Reviewer
 
-## Quality Notes
-
-- Read every test file thoroughly before scoring
-- Quality over speed: analyze what each test actually verifies
-- Do not skip the Tautology Theatre check
-
 ## Process
 
 ### Step 1: Collect test files

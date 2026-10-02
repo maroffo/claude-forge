@@ -10,10 +10,7 @@ compatibility: "Requires Gemini CLI installed and GEMINI_API_KEY in environment.
 
 # Gemini Review - Local Code Review
 
-**MANDATORY: Always use `--model gemini-3.1-pro-preview`. No other model. No fallback. No substitution.**
-
-## Trigger
-Activate when user says: "gemini review", "review with gemini", "local review", or `/gemini-review`.
+Every `gemini` call uses `--model gemini-3.1-pro-preview`, as in the commands below; do not substitute or fall back to another model.
 
 ## Options
 
@@ -93,9 +90,8 @@ Gemini's output will appear in the terminal. Summarize key findings for the user
 
 ## Quality Notes
 
-- Review the full diff carefully before sending to Gemini
-- Summarize findings thoughtfully; do not just relay raw output
-- Flag false positives rather than forwarding everything
+- Read the diff yourself before sending it, so you can judge Gemini's findings against it
+- Summarize the findings instead of relaying raw output, and mark the false positives you spot
 
 ## Important Notes
 

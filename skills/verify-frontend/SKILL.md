@@ -19,7 +19,7 @@ A successful edit and green unit tests do NOT verify a UI change: they can encod
 
 ## Protocol
 
-Run every step. A failure at any step means: fix, then rerun **from step 1**. Never hand back partially verified work.
+Run every step that applies. A failure at any step means: fix, then rerun **from step 1**. Work that has not passed every applicable step is reported as NOT verified (see Report format), never as done.
 
 If the chrome-devtools MCP tools are deferred, load the needed set in ONE ToolSearch call first (`new_page`, `navigate_page`, `take_screenshot`, `list_console_messages`, `list_network_requests`, `resize_page`, `lighthouse_audit`).
 
@@ -33,7 +33,7 @@ If the chrome-devtools MCP tools are deferred, load the needed set in ONE ToolSe
 
 ## Report format
 
-State results per step, with numbers:
+State results per step, with the numbers this run measured. The block below shows the shape only; its values are illustrative:
 
 ```
 UI verification: PASS

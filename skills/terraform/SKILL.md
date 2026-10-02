@@ -10,22 +10,13 @@ allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
 
 # Terraform & Terragrunt
 
-## What's New (2025-2026)
-
-| Feature | Description |
-|---------|-------------|
-| Import blocks | Declarative imports without CLI |
-| Check blocks | Continuous validation assertions |
-| Moved blocks | Refactor without state surgery |
-| Ephemeral (OpenTofu) | Resources not stored in state |
-
-**OpenTofu**: CNCF fork, 100% compatible, recommended for new projects (BSL licensing).
+**OpenTofu**: open-source (MPL) fork, recommended for new projects because Terraform is BSL-licensed. The two have diverged since the fork, so check feature parity against the version the project runs.
 
 ## Quick Reference
 
 ```bash
 terraform init|plan|apply|destroy
-terragrunt run-all apply
+terragrunt run --all apply
 terraform fmt -recursive && terraform validate
 terraform state list|show|rm|mv <resource>
 ```
@@ -84,18 +75,8 @@ inputs = { vpc_id = dependency.vpc.outputs.vpc_id }
 **Split by:** env, region, component, blast radius
 
 ```hcl
-backend "s3" { bucket = "my-state"; key = "prod/terraform.tfstate"; encrypt = true; dynamodb_table = "terraform-locks" }
+backend "s3" { bucket = "my-state"; key = "prod/terraform.tfstate"; encrypt = true; use_lockfile = true }  # S3-native locking; dynamodb_table only on versions without it
 ```
-
----
-
-## Best Practices
-
-| DO | DON'T |
-|----|-------|
-| Modules for reusable components | Hardcode values |
-| Version modules | Commit .tfstate to git |
-| `sensitive = true` for secrets | Share state across envs |
 
 ---
 

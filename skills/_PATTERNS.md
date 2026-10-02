@@ -34,7 +34,9 @@ class UserService
   def initialize(repo:, logger:)
     @repo, @logger = repo, logger
   end
-  def call = # use @repo, @logger
+  def call
+    # use @repo, @logger
+  end
 end
 ```
 
@@ -208,10 +210,13 @@ type UserRepository interface {
 
 ### Transactions
 ```go
-tx, _ := db.Begin()
-defer tx.Rollback()
+tx, err := db.BeginTx(ctx, nil)
+if err != nil {
+    return err
+}
+defer tx.Rollback() // no-op after a successful Commit
 // ops...
-tx.Commit()
+return tx.Commit()
 ```
 
 ```python
@@ -262,7 +267,7 @@ wc -l $(git ls-files '*.go' '*.py' '*.rb' '*.ts') | sort -rn | head -20
 
 ## Cognitive Load Dimensions
 
-8 dimensions for assessing codebase complexity (adapted from cognitive-load-analyzer). Useful for "should we refactor?" decisions.
+8 dimensions for assessing codebase complexity. Useful for "should we refactor?" decisions.
 
 | Dimension | What to measure | High-load signal |
 |-----------|----------------|------------------|

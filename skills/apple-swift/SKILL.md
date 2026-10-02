@@ -2,7 +2,7 @@
 name: apple-swift
 description: "Apple platform development with Swift, SwiftUI, async/await, and performance. Use when working with .swift files, Package.swift, Xcode projects, or building for iOS/macOS/watchOS/visionOS."
 compatibility: "Requires Xcode and platform SDKs. Optional: SwiftLint."
-allowed-tools: [mcp__acp__Read, mcp__acp__Edit, mcp__acp__Write, mcp__acp__Bash]
+allowed-tools: [Read, Edit, Write, Bash]
 ---
 
 # ABOUTME: Apple platform guide, Swift, SwiftUI, concurrency, testing, performance
@@ -105,7 +105,7 @@ For NavigationStack, SwiftData, MVVM, and DI patterns, see `references/swiftui-p
 | Real-time streams | Combine / AsyncStream |
 | UI events, debounce | Combine |
 
-**NON-NEGOTIABLE:** UI updates always on `@MainActor`. Cross-actor value types must be `Sendable`. Respect task cancellation: check `Task.isCancelled` in long-running work.
+UI updates run on `@MainActor`, cross-actor value types are `Sendable`, and long-running work checks `Task.isCancelled`: under Swift 6 strict concurrency the first two are compile errors, the third is wasted work that nothing reports.
 
 For MainActor, parallel execution, and actor patterns, see `references/concurrency-patterns.md`.
 
@@ -131,9 +131,9 @@ For full code examples, see `references/swiftui-patterns.md` and `references/swi
 
 **SwiftUI:** @Observable over ObservableObject where available, NavigationStack over NavigationView, `.task` over `.onAppear + Task`, LazyVStack for long lists
 
-**CRITICAL:** Force unwrap without safety, UI updates off MainActor, data races, retain cycles
+**Critical:** Force unwrap without safety, UI updates off MainActor, data races, retain cycles
 
-**HIGH:** Legacy ObservableObject when @Observable fits, NavigationView in new code
+**Major:** Legacy ObservableObject when @Observable fits, NavigationView in new code
 
 ---
 

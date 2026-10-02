@@ -192,23 +192,22 @@ Skills are markdown files that teach Claude domain-specific patterns. They load 
 | `react-nextjs/` | React + Next.js App Router, Server Components (version via `npm view`) |
 | `android-kotlin/` | Kotlin, Jetpack Compose, Clean Architecture (version via `./gradlew`) |
 | `apple-swift/` | Swift, SwiftUI, async/await, concurrency (version via `swift --version`) |
-| `swiftui-liquid-glass/` | iOS 26+ Liquid Glass API |
 | `ios-debugger/` | Build, run, debug iOS apps via CLI (Xcode + Simulator) |
 | `cloud-infrastructure/` | AWS/GCP Well-Architected, security, cost, observability |
 
-Large skills use a `references/` subdirectory for detailed patterns (progressive disclosure: core in SKILL.md, details on demand). Currently: `android-kotlin/`, `apple-swift/`, `bujo-sync/`, `golang/`, `humanizer/`, `mail-writer/`, `python/`, `rails/`, `react-nextjs/`, `ruby/`.
+Large skills use a `references/` subdirectory for detailed patterns (progressive disclosure: core in SKILL.md, details on demand). Currently: `android-kotlin/`, `apple-swift/`, `golang/`, `humanizer/`, `python/`, `rails/`, `react-nextjs/`, `ruby/`.
 
 ### Shared Reference Files
 
 | File | Description |
 |------|-------------|
-| `_AST_GREP.md` | Structural code search (mandates ast-grep over grep) |
+| `_AST_GREP.md` | Structural code search: ast-grep as the default for code, rg for text, paths and patterns sg cannot express |
 | `_INDEX.md` | Quick skill lookup by language/task |
 | `_PATTERNS.md` | Cross-language patterns (DI, errors, testing, jobs) |
 | `_OBSIDIAN.md` | Obsidian CLI config, vault commands |
 | `_SECOND_BRAIN.md` | Category routing, content templates, rules |
 | `_VAULT_CONTEXT.md` | Vault context injection, token budget, breadcrumbs |
-| `_generate_image.py` | Gemini image generation (used by cover-image, table-image) |
+| `_generate_image.py` | Gemini image generation (used by cover-image) |
 
 ### Support & Integrations
 
@@ -227,35 +226,27 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | `refine-requirements/` | Structured requirements gathering before planning |
 | `plan-forge/` | Issue or in-session analysis to locked ExecPlan on disk + paste-ready implementation prompt + /goal line (deep code analysis, second opinion, REPRODUCE-first, exhaustive E2E, opus subagents in a worktree) |
 | `orchestrator/` | Full contractor-mode loop, loaded on demand before step 1: sub-protocols (LOCALIZE, BENCH-BASELINE, REPRODUCE, DRIFT), review routing, finding consolidation, review artifacts (local findings + committed approval), blast radius, UAT, parallelism and effort caps, escalation, goal-backed runs |
-| `clickup/` | Task management via MCP |
 | `gemini-review/` | Local code review with Gemini CLI |
 | `verify-frontend/` | End-to-end UI verification in a real browser (console gate, before/after screenshots, Lighthouse) |
-| `second-opinion/` | Second opinion from Gemini CLI on complex problems (auto-triggers for debugging, architecture, stuck reviews) |
+| `second-opinion/` | Three isolated second opinions (Claude, Gemini, DeepSeek in Docker) on complex problems (auto-triggers for debugging, architecture, stuck reviews) |
 | `test-design-reviewer/` | Test quality assessment (Farley's 8 Properties, weighted scoring, Python calculator) |
-| `cognitive-load-analyzer/` | 8-dimension code complexity scoring (0-1000), sigmoid normalization, Python calculator |
-| `legacy-code-expert/` | Feathers' dependency-breaking techniques, seam identification, characterization tests |
 | `adr/` | Architecture Decision Records: refine, research, write, vault storage, review |
 | `skill-forge/` | Create new skills or review/improve existing ones against quality checklist |
 | `harness-trace/` | Execution trace capture from session JSONL, token baselining (tiktoken). Tracks 14 step types including atomic skill metrics (localization precision, reproduction confirmation, review validity). |
 | `harness-mechanic/` | Automated harness optimization via trace analysis (Meta-Harness pattern). Includes atomic skill composition map and cascade analysis for diagnosing root skill deficiencies. |
-| `notion-sync/` | Notion workspace to Obsidian vault sync (pull, push, AI summaries) |
 
 ### Content & Images
 
 | Skill | Description |
 |-------|-------------|
 | `cover-image/` | Generate editorial cover images via Gemini |
-| `table-image/` | Render tables/diagrams as hand-drawn sketch images |
-| `humanizer/` | Remove AI writing patterns (inflated symbolism, rule of three, etc.) |
+| `humanizer/` | Remove AI writing patterns while keeping every fact; voice matched to the input's register (opinion pieces get the author's voice, READMEs and formal email stay neutral) |
 | `blog-writer/` | Write blog posts from Second Brain, IDEAS.md, or free prompts |
-| `mail-writer/` | Write short, direct emails: Castonguay rules + Max's distilled voice + humanizer pass |
 
 ### Personal Workflows
 
 | Skill | Description |
 |-------|-------------|
-| `bujo/` | Bullet Journal: daily/weekly/monthly logs, task migration, reviews |
-| `bujo-sync/` | Bidirectional task sync between Bullet Journal and ClickUp/Linear |
 | `process-clippings/` | Web clippings to Second Brain (via Obsidian CLI) |
 
 ### Private Skills (pattern)

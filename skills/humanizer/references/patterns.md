@@ -15,7 +15,7 @@
 > The Statistical Institute of Catalonia was officially established in 1989, marking a pivotal moment in the evolution of regional statistics in Spain.
 
 **After:**
-> The Statistical Institute of Catalonia was established in 1989 to collect and publish regional statistics independently from Spain's national statistics office.
+> The Statistical Institute of Catalonia was established in 1989.
 
 ### 2. Undue emphasis on notability and media coverage
 
@@ -25,7 +25,9 @@
 > Her views have been cited in The New York Times, BBC, Financial Times, and The Hindu. She maintains an active social media presence with over 500,000 followers.
 
 **After:**
-> In a 2024 New York Times interview, she argued that AI regulation should focus on outcomes rather than methods.
+> Her views have been cited in The New York Times, the BBC, the Financial Times, and The Hindu, and she has over 500,000 followers on social media.
+
+(If the input names a specific article, cite that one; never invent it.)
 
 ### 3. Superficial analyses with -ing endings
 
@@ -37,7 +39,7 @@
 > The temple's color palette of blue, green, and gold resonates with the region's natural beauty, symbolizing Texas bluebonnets, the Gulf of Mexico, and the diverse Texan landscapes, reflecting the community's deep connection to the land.
 
 **After:**
-> The temple uses blue, green, and gold colors. The architect said these were chosen to reference local bluebonnets and the Gulf coast.
+> The temple uses blue, green, and gold, colors meant to evoke Texas bluebonnets and the Gulf of Mexico.
 
 ### 4. Promotional and advertisement-like language
 
@@ -47,7 +49,7 @@
 > Nestled within the breathtaking region of Gonder in Ethiopia, Alamata Raya Kobo stands as a vibrant town with a rich cultural heritage and stunning natural beauty.
 
 **After:**
-> Alamata Raya Kobo is a town in the Gonder region of Ethiopia, known for its weekly market and 18th-century church.
+> Alamata Raya Kobo is a town in the Gonder region of Ethiopia.
 
 ### 5. Vague attributions and weasel words
 
@@ -57,7 +59,9 @@
 > Due to its unique characteristics, the Haolai River is of interest to researchers and conservationists. Experts believe it plays a crucial role in the regional ecosystem.
 
 **After:**
-> The Haolai River supports several endemic fish species, according to a 2019 survey by the Chinese Academy of Sciences.
+> The Haolai River is studied by researchers and conservationists.
+
+(Keep a named source only if the input gives one.)
 
 ### 6. Outline-like "Challenges and Future Prospects" sections
 
@@ -67,7 +71,7 @@
 > Despite its industrial prosperity, Korattur faces challenges typical of urban areas, including traffic congestion and water scarcity. Despite these challenges, with its strategic location and ongoing initiatives, Korattur continues to thrive.
 
 **After:**
-> Traffic congestion increased after 2015 when three new IT parks opened. The municipal corporation began a stormwater drainage project in 2022 to address recurring floods.
+> Korattur is an industrial area with traffic congestion and water shortages.
 
 ---
 
@@ -83,7 +87,7 @@ These words appear far more frequently in post-2023 text. They often co-occur.
 > Additionally, a distinctive feature of Somali cuisine is the incorporation of camel meat. An enduring testament to Italian colonial influence is the widespread adoption of pasta in the local culinary landscape, showcasing how these dishes have integrated into the traditional diet.
 
 **After:**
-> Somali cuisine also includes camel meat, which is considered a delicacy. Pasta dishes, introduced during Italian colonization, remain common, especially in the south.
+> Somali cuisine includes camel meat. Pasta, introduced during Italian colonization, is widely eaten.
 
 ### 8. Avoidance of "is"/"are" (copula avoidance)
 
@@ -139,9 +143,9 @@ LLMs use "from X to Y" constructions where X and Y aren't on a meaningful scale.
 
 ## Style Patterns
 
-### 13. Em dash ban (HARD RULE)
+### 13. Em and en dashes
 
-**NEVER use em dashes or en dashes in output.** Always replace with Italian punctuation: commas, colons, semicolons, or parentheses.
+House style (the user's writing rules ban them): no em or en dashes in output. Use commas, colons, semicolons, or parentheses instead.
 
 **Before:**
 > The term is primarily promoted by Dutch institutions—not by the people themselves. You don't say "Netherlands, Europe" as an address—yet this mislabeling continues—even in official documents.
@@ -243,4 +247,4 @@ Overly positive, people-pleasing language. "Great question! You're absolutely ri
 > The future looks bright for the company. Exciting times lie ahead as they continue their journey toward excellence.
 
 **After:**
-> The company plans to open two more locations next year.
+> *(Delete the sentence. If the input states a concrete plan, end on that instead.)*

@@ -24,7 +24,7 @@ Update the discovery note in-place with new findings. Skip full vault scan.
 
 ```bash
 # Recent additions
-obsidian search query="added: 2026" path="Second Brain"
+obsidian search query="added: $(date +%Y)" path="Second Brain"
 
 # Timeline for volume signals
 obsidian read path="Second Brain/Second Brain - Timeline.md"

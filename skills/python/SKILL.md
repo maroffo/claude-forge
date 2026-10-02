@@ -53,17 +53,17 @@ uv run pytest --cov=myproject
 
 ## Package Management (uv)
 
-**UV is the ONLY way. Do NOT use pip/poetry/pipenv.** Universal lockfile, fast resolver.
+**Use uv for all dependency management and execution, not pip, poetry or pipenv:** universal lockfile, fast resolver.
 
 ### pyproject.toml
 ```toml
 [project]
 name = "myproject"
-requires-python = ">=3.13"
-dependencies = ["httpx>=0.27.0", "pydantic>=2.10.0"]
+requires-python = ">=<project floor>"   # from .python-version / endoflife.date, do not hardcode from memory
+dependencies = ["httpx", "pydantic"]     # `uv add` writes the resolved lower bounds
 
 [dependency-groups]
-dev = ["pytest>=8.0.0", "ruff>=0.8.0"]
+dev = ["pytest", "ruff"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -177,7 +177,7 @@ xctrace list templates
 ## Best Practices
 
 1. **Always profile Release builds** - Debug builds have optimizations disabled
-2. **Warm up the app** - First run is always slower (JIT, caching)
+2. **Warm up the app** - First run is always slower (cold caches, dyld loading, lazy initialization)
 3. **Use `--time-limit`** - Auto-stop profiling after set duration
 4. **Profile on real devices** - Simulators are faster than actual hardware
 5. **Measure before and after** - Confirm optimizations actually help
@@ -234,27 +234,19 @@ class Child {
 ## Caching Computed Values
 
 ```swift
+// ❌ Recomputes every access
 @Observable final class ViewModel {
     var items: [Item] = []
+    var filteredItems: [Item] { items.filter { $0.isActive } }
+}
 
-    // ❌ Recomputes every access
-    var filteredItems: [Item] {
-        items.filter { $0.isActive }
+// ✅ Recomputed once per change, and still observed: views that read
+// filteredItems re-render when it is reassigned
+@Observable final class ViewModel {
+    var items: [Item] = [] {
+        didSet { filteredItems = items.filter { $0.isActive } }
     }
-
-    // ✅ Cached until items changes
-    private var _filteredItemsCache: [Item]?
-    var filteredItems: [Item] {
-        if let cached = _filteredItemsCache { return cached }
-        let filtered = items.filter { $0.isActive }
-        _filteredItemsCache = filtered
-        return filtered
-    }
-
-    func updateItems(_ newItems: [Item]) {
-        items = newItems
-        _filteredItemsCache = nil  // Invalidate cache
-    }
+    private(set) var filteredItems: [Item] = []
 }
 ```
 

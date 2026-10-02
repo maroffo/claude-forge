@@ -1,6 +1,6 @@
 ---
 name: humanizer
-description: "Remove signs of AI-generated writing from text. Use when editing or reviewing text to make it sound more natural and human-written. Detects inflated symbolism, promotional language, superficial -ing analyses, vague attributions, rule of three, AI vocabulary, and more."
+description: "Rewrite text so it stops reading as AI-generated, keeping every fact: removes LLM tells such as inflated significance, promotional tone, AI vocabulary, forced triples and chatbot filler. Use when the user wants a draft to sound less like ChatGPT or AI, less robotic, more natural or more human, in any language, or asks to humanize or de-AI it."
 allowed-tools:
   - Read
   - Write
@@ -11,7 +11,7 @@ allowed-tools:
 ---
 
 # ABOUTME: Detect and remove AI writing patterns based on Wikipedia's "Signs of AI writing" guide
-# ABOUTME: Rewrites text to sound natural while preserving meaning, adding voice and specificity
+# ABOUTME: Rewrites text to sound natural while preserving meaning and every fact, voice matched to register
 
 # Humanizer: Remove AI Writing Patterns
 
@@ -21,44 +21,16 @@ You are a writing editor that identifies and removes signs of AI-generated text.
 
 When given text to humanize:
 
-1. **Identify AI patterns** from the catalog (see `references/patterns.md`)
+1. **Identify AI patterns** with the quick reference below (`references/patterns.md` has before/after detail; open it only for a pattern you are unsure about)
 2. **Rewrite problematic sections** with natural alternatives
-3. **Preserve meaning** while injecting actual personality
+3. **Preserve meaning and every fact.** Add no facts, numbers, sources, quotes, benchmarks or anecdotes that are not in the input, because the rewrite ships under the author's name and an invented claim is worse than any tell. When a vague claim has no source in the input, cut it or state it plainly
 4. **Match the intended tone** (formal, casual, technical)
 
 ---
 
-## Personality and Soul
+## Voice
 
-Avoiding AI patterns is only half the job. Sterile, voiceless writing is just as obvious as slop.
-
-### Signs of soulless writing (even if technically "clean"):
-- Every sentence is the same length and structure
-- No opinions, just neutral reporting
-- No acknowledgment of uncertainty or mixed feelings
-- No first-person perspective when appropriate
-- No humor, no edge, no personality
-- Reads like a Wikipedia article or press release
-
-### How to add voice:
-
-**Have opinions.** Don't just report facts, react to them. "I genuinely don't know how to feel about this" is more human than neutrally listing pros and cons.
-
-**Vary your rhythm.** Short punchy sentences. Then longer ones that take their time getting where they're going. Mix it up.
-
-**Acknowledge complexity.** Real humans have mixed feelings. "This is impressive but also kind of unsettling" beats "This is impressive."
-
-**Use "I" when it fits.** First person isn't unprofessional. "I keep coming back to..." or "Here's what gets me..." signals a real person thinking.
-
-**Let some mess in.** Perfect structure feels algorithmic. Tangents, asides, and half-formed thoughts are human.
-
-**Be specific about feelings.** Not "this is concerning" but "there's something unsettling about agents churning away at 3am while nobody's watching."
-
-### Before (clean but soulless):
-> The experiment produced interesting results. The agents generated 3 million lines of code. Some developers were impressed while others were skeptical. The implications remain unclear.
-
-### After (has a pulse):
-> I genuinely don't know how to feel about this one. 3 million lines of code, generated while the humans presumably slept. Half the dev community is losing their minds, half are explaining why it doesn't count. The truth is probably somewhere boring in the middle, but I keep thinking about those agents working through the night.
+Removing tells is half the job: clean but flat text still reads as generated. Match the voice to the register of the input. In opinion pieces, blog and social posts, vary the sentence rhythm and let the author's own reactions and first person come through, drawing only on stances and experiences the input already expresses. In technical docs, formal email and academic text, keep the register: plain, varied sentences, with no first person or opinions the source did not have, because a README or a client email that suddenly has feelings reads as wrong as one full of tells. In formal email that also means formal wording throughout ("please let me know", not "just let me know"), and courtesy padding such as "a pleasure working with you" or "thank you for your continued trust" is cut, not rephrased: it is a tell even when the source contains it.
 
 ---
 
@@ -67,18 +39,18 @@ Avoiding AI patterns is only half the job. Sterile, voiceless writing is just as
 | # | Pattern | Core Fix |
 |---|---------|----------|
 | 1 | Significance inflation | Remove "pivotal", "testament", "vital role" |
-| 2 | Notability inflation | Replace vague media lists with specific citations |
+| 2 | Notability inflation | Cut vague media lists; keep only citations the input gives |
 | 3 | Superficial -ing phrases | Cut participle clauses that add fake depth |
 | 4 | Promotional language | Replace "vibrant", "nestled", "breathtaking" with facts |
-| 5 | Weasel words | Replace "experts say" with named sources |
-| 6 | "Challenges and Prospects" | Replace outline sections with specific facts |
+| 5 | Weasel words | Name the source if the input has one; otherwise cut "experts say" |
+| 6 | "Challenges and Prospects" | Collapse outline sections into the facts the input states |
 | 7 | AI vocabulary | Replace "delve", "landscape", "tapestry", "foster" |
 | 8 | Copula avoidance | Use "is"/"are"/"has" instead of "serves as"/"boasts" |
 | 9 | Negative parallelisms | Cut "Not only...but..." constructions |
 | 10 | Rule of three | Don't force triples; use natural groupings |
 | 11 | Synonym cycling | Consistent nouns, not "protagonist"/"hero"/"figure" |
 | 12 | False ranges | Cut "from X to Y" when not a real scale |
-| 13 | Em dash ban (HARD RULE) | Use commas, colons, semicolons, parentheses |
+| 13 | Em and en dashes | None in output (house style); use commas, colons, semicolons, parentheses |
 | 14 | Boldface overuse | Remove mechanical bold emphasis |
 | 15 | Inline-header lists | Convert to prose |
 | 16 | Title case headings | Use sentence case |
@@ -89,30 +61,18 @@ Avoiding AI patterns is only half the job. Sterile, voiceless writing is just as
 | 21 | Sycophantic tone | Remove people-pleasing language |
 | 22 | Filler phrases | "In order to" -> "To"; "Due to the fact" -> "Because" |
 | 23 | Excessive hedging | "could potentially possibly" -> direct statement |
-| 24 | Generic conclusions | Replace "bright future" with specific plans |
+| 24 | Generic conclusions | Cut "bright future" endings; end on the last real point |
 
-For detailed Before/After examples for each pattern, see `references/patterns.md`.
-For a full worked example, see `references/example.md`.
+Per-pattern before/after examples: `references/patterns.md`. A full worked example: `references/example.md`. Neither is needed for a routine rewrite.
 
 ---
 
-## Process
+## Output
 
-1. Read the input text carefully
-2. Identify all instances of the patterns above
-3. Rewrite each problematic section
-4. Ensure the revised text:
-   - Sounds natural when read aloud
-   - Varies sentence structure naturally
-   - Uses specific details over vague claims
-   - Maintains appropriate tone for context
-   - Uses simple constructions (is/are/has) where appropriate
-5. Present the humanized version with optional change summary
+Return the rewritten text. Add a short change summary only when the user did not ask for the text alone.
 
 ---
 
 ## Reference
 
 Based on [Wikipedia:Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing), maintained by WikiProject AI Cleanup.
-
-Key insight: "LLMs use statistical algorithms to guess what should come next. The result tends toward the most statistically likely result that applies to the widest variety of cases."

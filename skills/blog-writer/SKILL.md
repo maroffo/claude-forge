@@ -16,7 +16,7 @@ Write blog posts for Max's Hugo blog (PaperMod theme). Four entry points: discov
 
 ## Quality Notes
 
-- Take your time with each step. A blog post is public, permanent content.
+- A blog post is public, permanent content.
 - Quality over speed. Better to write 2500 sharp words than 4000 padded ones.
 - Do not skip the humanizer pass. Max's voice is direct, opinionated, evidence-backed.
 - Do not skip outline approval. The structure determines the post's quality.
@@ -113,7 +113,7 @@ Present the outline to Max:
 3. [Section N] - ...
 4. [Practical examples] - code, metrics, real data
 5. [Reflection] - what was learned, what's next
-6. Methodology note + acknowledgments
+6. [Methodology note / acknowledgments] - only when they apply (see style guide, Endings)
 
 **Series context**: [links to previous posts if part of a thread]
 ```
@@ -132,7 +132,7 @@ Use today's date. Slug: lowercase, hyphens, descriptive (match existing conventi
 
 ### Step 4: Second Opinion (mandatory)
 
-Run `/second-opinion` on the draft. Ask Gemini to review for:
+Run `/second-opinion` on the draft. Ask the reviewers to check:
 - Factual accuracy of cited studies
 - Argument coherence and logical gaps
 - Tone consistency (personal narrative vs literature review)
@@ -140,7 +140,7 @@ Run `/second-opinion` on the draft. Ask Gemini to review for:
 - Missing angles and counterarguments
 - AI writing artifacts that survived the humanizer
 
-Apply Gemini's feedback before proceeding.
+Apply the synthesized feedback before proceeding.
 
 ### Step 5: Humanize
 
@@ -167,4 +167,4 @@ Post written:
 
 ## Style Guide and Common Issues
 
-Max's voice (structure, tone, endings, anti-patterns, length, language) and the troubleshooting table live in `references/style-guide.md`. Read it during Step 3 (Write Draft) and when debugging output.
+Max's voice (structure, tone, endings, length, language) and the troubleshooting table live in `references/style-guide.md`. Read it during Step 3 (Write Draft) and when debugging output.

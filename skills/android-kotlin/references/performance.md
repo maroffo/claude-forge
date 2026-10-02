@@ -1,6 +1,6 @@
 # Performance
 
-## R8 (MUST ENABLE)
+## R8 (enable in release builds)
 ```kotlin
 release {
     isMinifyEnabled = true; isShrinkResources = true

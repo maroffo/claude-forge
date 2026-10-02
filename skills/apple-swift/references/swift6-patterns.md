@@ -27,7 +27,8 @@ class UserManager { var users: [User] = [] }
 ## 6.2 - Approachable Concurrency (2025)
 
 ```swift
-// Main-actor by default: SWIFT_STRICT_CONCURRENCY=default_isolation
+// Main-actor by default: .defaultIsolation(MainActor.self) in Package.swift swiftSettings,
+// or Xcode "Default Actor Isolation" = MainActor (SWIFT_DEFAULT_ACTOR_ISOLATION)
 // No @MainActor needed for UI code
 
 // @concurrent for explicit parallelism
@@ -42,8 +43,8 @@ class UserManager { var users: [User] = [] }
 }
 
 // Isolated conformances - MainActor types can conform to protocols
-@MainActor final class UserVM: Equatable {
-    var name = ""
+@MainActor final class UserVM { var name = "" }
+extension UserVM: @MainActor Equatable {
     static func == (lhs: UserVM, rhs: UserVM) -> Bool { lhs.name == rhs.name }
 }
 ```

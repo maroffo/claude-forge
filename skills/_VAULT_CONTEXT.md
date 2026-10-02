@@ -5,7 +5,7 @@
 
 ## How It Works
 
-Project CLAUDE.md files may include a `## Vault Context` section with wikilinks to vault notes. At session start (or when context is needed), read linked notes via `obsidian read`.
+Project CLAUDE.md files may include a `## Vault Context` section with wikilinks to vault notes. When the task needs that context, read the linked notes via `obsidian read`.
 
 ```markdown
 ## Vault Context

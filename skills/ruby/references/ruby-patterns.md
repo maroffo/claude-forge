@@ -15,14 +15,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
-        with: { ruby-version: "3.3", bundler-cache: true }
+        with: { ruby-version: "<latest stable minor>", bundler-cache: true }
       - run: bundle exec rubocop
 
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby-version: ["3.3", "3.4"]
+        ruby-version: ["<previous stable minor>", "<latest stable minor>"]  # check endoflife.date, do not hardcode
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1

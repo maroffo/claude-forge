@@ -9,10 +9,8 @@ compatibility: "Requires gh CLI. Optional: goreleaser."
 
 # Releasing Software
 
-## Iron Law
-**NO TAG WITHOUT GREEN CI**
-
-Run full verification locally → Fix everything → THEN tag. Never tag before CI passes.
+## Rule
+Tag only after CI is green on the release commit. Run full verification locally, fix everything, then tag: a tag cut before CI passes gets deleted and recut when CI fails, and every retag breaks whoever already pulled it.
 
 ## Pre-Release Checklist
 
@@ -35,7 +33,7 @@ Run full verification locally → Fix everything → THEN tag. Never tag before 
 5. **Only after green:** `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z`
 6. Verify release workflow triggered
 
-## Red Flags - STOP IMMEDIATELY
+## Stop and reassess if you catch yourself
 - Tagging before CI completes
 - "CI will probably pass"
 - Deleting/recreating tags
@@ -47,13 +45,8 @@ Run full verification locally → Fix everything → THEN tag. Never tag before 
 |---------|------------|-----|
 | "couldn't find main file" | Wrong goreleaser path | Set `main: .` if main.go at root |
 | "no such tool 'covdata'" | Package without tests | Add `_test.go` with placeholder |
-| Had to retag | Tagged before CI passed | **WAIT FOR GREEN CI** |
+| Had to retag | Tagged before CI passed | Tag only after CI is green |
 | Build fails but tests pass | Wrong build path | Check Makefile/goreleaser match |
-
-## Semver Quick Ref
-- **Patch** (0.0.X): Bug fixes only
-- **Minor** (0.X.0): New features, backwards compatible
-- **Major** (X.0.0): Breaking changes
 
 ## Troubleshooting
 ```bash
@@ -66,6 +59,3 @@ goreleaser release --snapshot --clean
 # Check for packages without tests
 find . -type d -not -path "*/.*" -exec sh -c 'ls {}/*_test.go 2>/dev/null || echo "No tests: {}"' \;
 ```
-
-## Remember
-Every retag erodes trust. Fix problems before tagging, not after.

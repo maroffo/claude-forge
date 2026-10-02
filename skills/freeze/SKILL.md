@@ -16,8 +16,7 @@ single file, `.freeze-boundary`, at the git root, holding one absolute physical 
 ## What this is not
 
 - **Not a security boundary.** `Bash` is not gated: `sed -i`, `cat >`, `git checkout` and any
-  other shell write go straight through. gstack, where this idea comes from, says the same thing
-  about its own version. Treat it as a focus aid that makes an out-of-scope edit loud, not as
+  other shell write go straight through. Treat it as a focus aid that makes an out-of-scope edit loud, not as
   containment.
 - **Not per-agent.** The boundary is session-wide and repo-local. Parallel subagents share the
   process and therefore the boundary; it does **not** give each of them its own scope.

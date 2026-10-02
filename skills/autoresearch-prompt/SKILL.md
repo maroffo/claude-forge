@@ -24,8 +24,8 @@ uv run -- autoresearch-prompt evaluate
 # Run with custom prompt/eval set
 uv run -- autoresearch-prompt evaluate --prompt /path/to/prompt.md --eval-set /path/to/eval.jsonl
 
-# Run with a different model
-uv run -- autoresearch-prompt evaluate --model claude-sonnet-4-6
+# Run with a different model (any id with a [pricing] row in models.toml)
+uv run -- autoresearch-prompt evaluate --model <model-id>
 ```
 
 The default model and per-token pricing live in `src/autoresearch_prompt/models.toml`. Override the default at runtime with the `AUTORESEARCH_MODEL` env var.

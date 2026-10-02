@@ -17,13 +17,9 @@
 > In conclusion, the future looks bright. Exciting times lie ahead as we continue this journey toward excellence. Let me know if you'd like me to expand on any section!
 
 ## After (humanized):
-> AI coding assistants speed up some tasks. In a 2024 study by Google, developers using Codex completed simple functions 55% faster than a control group, but showed no improvement on debugging or architectural decisions.
+> AI coding assistants are changing how engineers write software. They generate code faster, the quality of what they produce has improved, and more teams use them every year.
 >
-> The tools are good at boilerplate: config files, test scaffolding, repetitive refactors. They are bad at knowing when they are wrong. I have mass-accepted suggestions that compiled, passed lint, and still did the wrong thing because I stopped paying attention.
->
-> The productivity claims are hard to verify. GitHub says Copilot users "accept 30% of suggestions," but acceptance is not correctness, and correctness is not value. The 2024 Uplevel study found no statistically significant difference in pull-request throughput between teams with and without AI assistants.
->
-> None of this means the tools are useless. It means they are tools. They do not replace judgment, and they do not eliminate the need for tests.
+> The useful part is less typing, not the "unlocking creativity" pitch. Whether that speed holds up in review and in production is a separate question, and the input above makes no claim about it.
 
 ## Changes made:
 - Removed chatbot artifacts ("Great question!", "I hope this helps!", "Let me know if...")
@@ -36,4 +32,4 @@
 - Removed copula avoidance ("serves as") in favor of "is"/"are"
 - Removed filler phrases ("At its core", "In order to")
 - Removed generic positive conclusion ("the future looks bright")
-- Replaced vague claims with specific sources
+- Kept every claim the original makes and added none: no invented studies, numbers or anecdotes

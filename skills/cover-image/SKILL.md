@@ -1,6 +1,6 @@
 ---
 name: cover-image
-description: "Generate editorial cover images from article context. Use when user wants a cover image, hero image, or editorial illustration for an article or blog post. Not for table/diagram images (use table-image)."
+description: "Generate editorial cover images from article context. Use when user wants a cover image, hero image, or editorial illustration for an article or blog post."
 allowed-tools: [Bash, Read]
 compatibility: "Requires GEMINI_API_KEY or GOOGLE_API_KEY in environment. Uses ~/.claude/skills/_generate_image.py"
 ---
@@ -49,6 +49,8 @@ uv run ~/.claude/skills/_generate_image.py "<approved prompt>" --ar 16:9 -o cove
 Report the saved file path and suggest reviewing the image.
 
 ## Example
+
+Illustrative only: keep the style prefix and suffix fixed, and find the metaphor in each article's own tension rather than reusing this one.
 
 **Article about**: "Why we migrated from monolith to microservices"
 

@@ -60,7 +60,7 @@ Paste the `--trend` output verbatim under the report. Values come from the break
 
 ## Rules
 
-- **Be honest.** If the output is ambiguous, report "inconclusive" and say why. Do not inflate.
+- **Ambiguous output is `inconclusive`.** Report it as such and say why; the score reflects only what the gates showed.
 - **CRITICAL trumps all.** A failing `make check`/`test-e2e` yields score 0 regardless of other factors.
 - **Missing gate = not zero.** If `make check` or `make test-e2e` targets don't exist in the project, do NOT claim score 100. Report "gate missing, run `/project-checks` to scaffold" and refuse to score.
 - **Review integration is optional.** If the user didn't ask for a full review, report the static gate result only and note that a rubric-based score requires a review agent pass.

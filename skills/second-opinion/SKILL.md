@@ -50,7 +50,7 @@ Compose a `FULL_PROMPT` combining the template with a `## Problem Context` secti
 - All gathered context (code, errors, docs)
 - The specific question for the reviewer
 
-The FULL_PROMPT must be identical for both reviewers. Write it to a temp file:
+The FULL_PROMPT must be identical for all three reviewers. Write it to a temp file:
 
 ```bash
 PROMPT_FILE=$(mktemp)
