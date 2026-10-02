@@ -1,5 +1,5 @@
-# ABOUTME: Answer-length contract: reply size follows the Decision Framework, not the topic
-# ABOUTME: Prevents both wall-of-prose replies and results too terse to act on
+# ABOUTME: Reply contract: length follows the Decision Framework, form stays plain and scannable
+# ABOUTME: Prevents wall-of-prose, too-terse and jargon-heavy replies
 
 # Response Shape
 
@@ -8,7 +8,12 @@
   - 🟢 result + `file:line`; explain only what surprised you
   - 🟡 what/why/tradeoff in ≤10 lines, then stop
   - 🔴 the reasoning IS the deliverable: expand
+- **Plain and scannable:** the human reading you may be juggling many agents and switching context often, so every reply must make sense read cold:
+  - bullets, not paragraphs; one idea per bullet
+  - plain words: no internal labels, acronyms or protocol step names unless explained on the same line (technical terms the human already used are fine)
+  - short full sentences, no telegraphic shorthand
+  - protocol literal lines (`SCORE:`, `REVIEW-ROUND:`, ...) stay verbatim because the trace extractor keys on them; add one plain sentence on what they mean
 - **Always carry, at any length:** what you verified vs what you assumed; what you did NOT touch when it could be assumed you did; the one thing that can bite later
 - **Never:** restate the request, "Perfect!", a closing paragraph that repeats what was just said
 
-Plan mode is stricter and wins where they overlap: extremely concise, sacrifice grammar, unresolved questions at the end.
+Plan mode is stricter on length and wins where they overlap: extremely concise, bullets in plain words, unresolved questions at the end.
