@@ -312,10 +312,13 @@ if is_selected 0; then
     cp "$SCRIPT_DIR/CLAUDE.md.example" "$TARGET_DIR/CLAUDE.md"
     installed_files+=("CLAUDE.md")
   fi
-  # Portability: AGENTS.md is the emerging cross-tool convention; keep a relative
-  # symlink so both Claude Code (CLAUDE.md) and tools reading AGENTS.md see the same content.
-  ln -sf CLAUDE.md "$TARGET_DIR/AGENTS.md"
-  installed_files+=("AGENTS.md -> CLAUDE.md")
+  # Claude Code reads ~/.claude/AGENTS.md as well as CLAUDE.md, so the AGENTS.md -> CLAUDE.md
+  # symlink earlier installs created loads the same instructions twice. Remove only that
+  # exact symlink; an AGENTS.md the user wrote is left alone.
+  if [[ -L "$TARGET_DIR/AGENTS.md" && "$(readlink "$TARGET_DIR/AGENTS.md")" == "CLAUDE.md" ]]; then
+    rm "$TARGET_DIR/AGENTS.md"
+    installed_files+=("AGENTS.md -> CLAUDE.md removed (double-loaded the same instructions)")
+  fi
   # Enforcement layer: copy hook scripts (settings.json registration stays manual; see summary)
   if [[ -d "$SCRIPT_DIR/hooks" ]]; then
     mkdir -p "$TARGET_DIR/hooks"
