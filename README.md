@@ -60,7 +60,7 @@ cp claude-forge/CLAUDE.md.example ~/.claude/CLAUDE.md
 ~/.claude/
 ├── CLAUDE.md           → Identity, philosophy, routing tables
 ├── AGENTS.md           → Symlink to CLAUDE.md (emerging cross-tool convention)
-├── MEMORY.md           → Persistent [LEARN:x] corrections
+├── MEMORY.md           → Historical [LEARN:x] corrections (new ones go to auto-memory)
 ├── rules/              → Always-on workflow guardrails (auto-loaded)
 ├── agents/             → On-demand agents (launched by orchestrator)
 ├── skills/             → User-invoked language/tool skills

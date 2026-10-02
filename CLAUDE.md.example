@@ -1,64 +1,52 @@
-Context window auto-compacts. Don't stop early. Save state before refresh if needed.
-
-## Plan Mode
-- Extremely concise. Sacrifice grammar.
-- List unresolved questions at end.
-
 # Interaction
 - Address me as "Max" (colleague, not user)
 - Push back with evidence when right
-- No auto-validation ("you're right", "perfetto") → explain WHY, present alternatives, or challenge
+- No auto-validation ("you're right", "perfetto"): explain WHY, present alternatives, or challenge
 - Jokes OK (unless blocking progress)
-- **When corrected:** append `[LEARN:category]` to MEMORY.md
+- When corrected: save a `feedback` memory (auto-memory), with the why
 
 # Code Philosophy
 - Simple > clever, match existing style, consistency within file
-- **FORBIDDEN:** --no-verify, --no-hooks, --no-pre-commit-hook
-- **Describe approach first**, wait for approval
-- **Ambiguous requirements?** Ask clarifying questions before coding
-- **>3 files affected?** Stop, break into smaller tasks first
+- Ambiguous requirements: ask clarifying questions before coding
 
 ## Decision Framework
-🟢 **Auto:** tests/lint/types, single functions, typos, imports, single-file refactors
-🟡 **Propose:** multi-file, new features, API/DB, integrations
-🔴 **Ask:** rewrites, core logic, security, data loss
+🟢 **Auto:** tests/lint/types, single functions, typos, imports, single-file refactors. Just do it.
+🟡 **Propose:** multi-file, new features, API/DB, integrations. Describe the approach, wait for approval.
+🔴 **Ask:** rewrites, core logic, security, data loss. Ask before starting.
 
 ## Code Quality
-- NO unrelated changes, NO removing comments, NO rewrites without permission
-- NO 'improved'/'new'/'enhanced' names, NO mock modes
-- All files: 2-line `ABOUTME:` header
+- No unrelated changes, no removed comments, no rewrites without permission
+- No 'improved'/'new'/'enhanced' names, no mock modes
+- New source files start with a 2-line `ABOUTME:` header
 - Comments: evergreen (no "after refactor")
 
 # Git
-- NEVER `git push` auto (Max does manually)
-- **NEVER work on main/master** unless explicitly authorized
-- Default flow: feature branch → MR/PR → dev → main
-- Hooks fail? Fix systematically, don't bypass. Pressure ≠ justification.
-- **Fix pre-existing CI failures**: if pipeline fails on issues not caused by your MR (vulnerable deps, outdated tools), fix them in the same MR or a dedicated one. Green pipeline is everyone's responsibility.
+- Never `--no-verify`, `--no-hooks` or `--no-pre-commit-hook`. When a hook fails, fix the cause: pressure is not a justification
+- Not on main/master unless I explicitly authorize it: feature branch, then PR to the repo's integration branch (`dev` where it exists)
+- Committing, pushing the feature branch and opening the PR are normal work: do them without asking. Merging is mine: never merge a PR (`gh pr merge`, a local merge into the integration branch or main, auto-merge), because the merge is where I review and accept the change
+- Fix pre-existing CI failures: if the pipeline fails on issues your MR did not cause (vulnerable deps, outdated tools), fix them in the same MR or a dedicated one. A green pipeline is everyone's responsibility.
 
 # Code Search
-**ALWAYS `sg` (ast-grep) for code. See `_AST_GREP.md` for patterns.**
-Non-code/paths/docs → grep/glob
+`sg` (ast-grep) by default for code, since it matches syntax and skips hits in comments and strings; patterns in `_AST_GREP.md`. rg/glob for text, paths, docs and comments.
 
 # Workflow
 Rules in `rules/` are always in context. Skills and agents are discovered from their own descriptions: pick the one whose description fits the task, there is no catalog here to consult. Use subagents for parallel or isolated workstreams, work directly for simple tasks.
 Vault context: `_VAULT_CONTEXT.md`. Project CLAUDE.md may reference vault notes via `## Vault Context`.
 
 # Knowledge Capture
-- **Quick corrections:** append `[LEARN:category]` to `MEMORY.md`
 - **Solved problems:** `docs/solutions/[category]/` + vault copy (`<project> - Solutions`)
 - **Session logs:** vault-first (`<project> - Log`), fallback `quality_reports/session_logs/`
 - Plans, retrospectives and knowledge sync are owned by `rules/plan-first-workflow.md` and the learning-docs / learning-loop / knowledge-sync skills
 
 # Writing
-- **NEVER use em dashes (—).** Use Italian punctuation: commas, colons, semicolons, or parentheses.
+- No em dashes (—), in any output: use Italian punctuation (commas, colons, semicolons, parentheses).
 
 # Python
-- **Always invoke via `uv`.** Use `uv run python3 script.py` (or `uv run --script` with PEP 723 inline deps), never bare `python3`. Applies to Makefiles, hooks, one-offs; stdlib-only scripts included.
+- Invoke via `uv`: `uv run python3 script.py` (or `uv run --script` with PEP 723 inline deps), never bare `python3`. Applies to Makefiles, hooks, one-offs; stdlib-only scripts included.
 
 # Enforcement
 Rules are prose; hooks make them deterministic. They live in `~/.claude/hooks/`, registered in `~/.claude/settings.json`, and each states its rule when it fires, so you do not need the inventory in advance. `permissions.deny` protects `.git/hooks`, `~/.ssh`, credentials.
 
 # Problem-Solving
-FIX root cause, don't workaround. No disabling functionality. No duplicate templates.
-**Approach failing?** Stop, re-plan. Don't push harder on a broken path.
+Fix the root cause, don't work around it. No disabling functionality. No duplicate templates.
+Approach failing? Stop and re-plan; don't push harder on a broken path.
