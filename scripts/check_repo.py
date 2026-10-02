@@ -5,6 +5,7 @@
 import sys
 import re
 import argparse
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -21,17 +22,17 @@ INLINE_CODE_RE = re.compile(r"`[^`\n]*`")
 FENCED_CODE_RE = re.compile(r"```.*?```", re.DOTALL)
 
 
-def collect_md():
-    files = []
-    for d in SCOPE_DIRS:
-        p = ROOT / d
-        if p.is_dir():
-            files.extend(sorted(p.rglob("*.md")))
-    for name in EXTRA_FILES:
-        p = ROOT / name
-        if p.is_file():
-            files.append(p)
-    return files
+def collect_md(root=ROOT):
+    # Ask git, not the filesystem: ~/.claude/skills and ~/.claude/rules point at this
+    # checkout, so other tools drop machine-local files here (claude.ai synced skills,
+    # argent). Tracked plus untracked-but-not-ignored keeps a draft checked before `git add`.
+    out = subprocess.run(
+        ["git", "-C", str(root), "ls-files", "-z", "--cached", "--others", "--exclude-standard",
+         "--", *SCOPE_DIRS, *EXTRA_FILES],
+        capture_output=True, text=True, check=True,
+    ).stdout
+    rels = sorted({r for r in out.split("\0") if r.endswith(".md") or r in EXTRA_FILES})
+    return [root / r for r in rels if (root / r).is_file()]
 
 
 def strip_frontmatter(text):
