@@ -54,3 +54,9 @@ quality_reports/reviews/
 
 # /score history (local: branch names next to low scores corroborate gitignored findings)
 quality_reports/score-history.jsonl
+
+# Machine-local installs by other tools: ~/.claude/skills and ~/.claude/rules point at this
+# checkout, so claude.ai skill sync and argent write here. No trailing slash on argent-*: symlinks.
+/skills/synced/
+/skills/argent-*
+/rules/argent.md
