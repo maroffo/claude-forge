@@ -26,6 +26,13 @@ def collect_md(root=ROOT):
     # Ask git, not the filesystem: ~/.claude/skills and ~/.claude/rules point at this
     # checkout, so other tools drop machine-local files here (claude.ai synced skills,
     # argent). Tracked plus untracked-but-not-ignored keeps a draft checked before `git add`.
+    top = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "--show-toplevel"],
+        capture_output=True, text=True, check=True,
+    ).stdout.strip()
+    if Path(top).resolve() != Path(root).resolve():
+        # A copy nested in another repo: git would answer for the parent and list nothing.
+        sys.exit(f"check_repo: {root} is not the top of a git checkout (git answers for {top})")
     out = subprocess.run(
         ["git", "-C", str(root), "ls-files", "-z", "--cached", "--others", "--exclude-standard",
          "--", *SCOPE_DIRS, *EXTRA_FILES],

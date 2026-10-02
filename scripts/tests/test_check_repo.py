@@ -65,6 +65,14 @@ class CollectMdTest(unittest.TestCase):
         p.unlink()
         self.assertEqual(self._collected(), set())
 
+    def test_copy_inside_another_repo_fails_instead_of_scanning_nothing(self):
+        # A non-git copy nested in a repo that ignores it: git answers for the parent,
+        # lists nothing, and the gate would pass having checked no file at all.
+        self._write(".gitignore", "/forge/\n")
+        self._write("forge/skills/x/SKILL.md", "no frontmatter\n")
+        with self.assertRaises(SystemExit):
+            check_repo.collect_md(self.root / "forge")
+
     def test_files_outside_scope_are_not_scanned(self):
         self._write("docs/notes.md")
         self._write("skills/kept/notes.txt")
