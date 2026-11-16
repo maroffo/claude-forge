@@ -8,8 +8,7 @@ REPO="${2:-${PR_WATCH_REPO:-Wishew/wishew-monorepo}}"
 
 # Same env the bot exports, so the composed sub-steps can run.
 [ -f "$HOME/.config/gemini-api-key" ]   && export GEMINI_API_KEY="$(cat "$HOME/.config/gemini-api-key")"
-[ -f "$HOME/.config/deepseek-api-key" ] && export DEEPSEEK_API_KEY="$(cat "$HOME/.config/deepseek-api-key")"
-export GEMINI_CLI_TRUST_WORKSPACE=1
+export GEMINI_CLI_TRUST_WORKSPACE=true   # "1" is ignored by the gemini CLI
 
 prompt="Invoke the /pr-review skill on $REPO#$PR. CONTROLLED TEST: do NOT post any PR comment; print the review to stdout instead. Use /gemini-review as the /pr-review flow prescribes, and /second-opinion only if a finding is contested. End with exactly one line: SUBSTEPS: pr-review-skill=<yes|no> gemini-review=<yes|no> second-opinion=<yes|no|na>."
 
