@@ -5,7 +5,7 @@ compatibility: "Needs gh CLI (issue mode); step 2 relies on the second-opinion s
 ---
 
 # ABOUTME: Issue or in-session analysis to locked ExecPlan + implementation prompt + /goal line
-# ABOUTME: Deep code analysis, 3-lab second opinion, plan on disk, delegation prompt for opus subagents in a worktree
+# ABOUTME: Deep code analysis, isolated Gemini second opinion, plan on disk, delegation prompt for opus subagents in a worktree
 
 # Plan Forge
 

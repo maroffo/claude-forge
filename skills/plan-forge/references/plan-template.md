@@ -12,7 +12,7 @@ Path: `quality_reports/plans/active/YYYY-MM-DD_<slug>.md`. Every section below a
 # <Title> (<issue ref or origin>)
 
 **Repo:** <repo>, branch `<branch>` off `<integration-branch>` | **Issue:** <org/repo#N or "in-session analysis"> | **Refs:** <ADRs, prior PRs>
-**Origin:** <who asked, when; one line of intent. If second opinion ran: "Analysis + 3-lab second opinion (Claude/Gemini/DeepSeek), unanimous/split on X, YYYY-MM-DD">
+**Origin:** <who asked, when; one line of intent. If second opinion ran: "Analysis + second opinion (isolated Gemini, gemini-4-argon), agree/split on X, YYYY-MM-DD">
 
 ## Analysis (verified YYYY-MM-DD on <branch>, do not re-derive)
 
