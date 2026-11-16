@@ -24,13 +24,13 @@ mkdir -p "$STATE_DIR"; : >>"$REVIEWED"; : >>"$CONTEXT"
 log(){ echo "$(date -u +%FT%TZ) $*" >>"$LOG"; }
 
 # ---- credentials for the composed sub-steps, so they work headless ----
-# /gemini-review reads GEMINI_API_KEY from the env; /second-opinion reads the key
-# files directly (gemini + deepseek). $(cat) strips the trailing newline, which is
-# what an auth header expects. GEMINI_CLI_TRUST_WORKSPACE avoids the non-interactive
-# gemini CLI silently downgrading out of --yolo.
+# /gemini-review reads GEMINI_API_KEY from the env; /second-opinion (isolated Gemini)
+# reads the key file directly. $(cat) strips the trailing newline, which is what an
+# auth header expects. GEMINI_CLI_TRUST_WORKSPACE keeps the non-interactive gemini CLI
+# in --yolo inside the untrusted review clone: only "true" is accepted, "1" is ignored
+# and the CLI drops to default approval, so its file-reading tools never run.
 [ -f "$HOME/.config/gemini-api-key" ]   && export GEMINI_API_KEY="$(cat "$HOME/.config/gemini-api-key")"
-[ -f "$HOME/.config/deepseek-api-key" ] && export DEEPSEEK_API_KEY="$(cat "$HOME/.config/deepseek-api-key")"
-export GEMINI_CLI_TRUST_WORKSPACE=1
+export GEMINI_CLI_TRUST_WORKSPACE=true
 
 # ---- single-instance lock (mkdir is atomic; no flock dependency on macOS) ----
 # The lock survives a crash/SIGKILL (the trap never runs), so detect a stale
@@ -92,28 +92,28 @@ echo "$prs" | jq -c '.[]' | while read -r pr; do
   log "REVIEW #$num [$why] ($title)"
   if [ "$DRY_RUN" = "1" ]; then echo "$num" >>"$REVIEWED"; continue; fi
 
-  recent_ctx=$(tail -n 20 "$CONTEXT")             # cross-PR memory for the reviewer
+  recent_ctx=$(tail -n 5 "$CONTEXT")              # cross-PR memory for the reviewer
   prompt=$(cat <<EOF
 Invoke the /pr-review skill on $REPO#$num, then POST the resulting review as a PR comment via gh. Review it whether it is OPEN or already merged/closed.
 
 Environment for the composed sub-steps (all present, use them):
-- GEMINI_API_KEY is exported and ~/.config/gemini-api-key exists, so the /pr-review Phase-3 /gemini-review sub-step can run.
-- DEEPSEEK_API_KEY is exported and ~/.config/deepseek-api-key exists; with GEMINI_API_KEY this lets /second-opinion spin its isolated Docker panel (claude + gemini + deepseek). GEMINI_CLI_TRUST_WORKSPACE=1 is set for the headless gemini CLI.
-- Use /second-opinion ONLY when reviewer verdicts conflict or a Critical is contested (its gating rule), not on every PR.
+- GEMINI_API_KEY is exported and ~/.config/gemini-api-key exists, so the /pr-review Phase-3 /gemini-review sub-step (gemini-4-argon) can run. GEMINI_CLI_TRUST_WORKSPACE=true is set for the headless gemini CLI.
+- /second-opinion runs one isolated Gemini (gemini-4-argon) in Docker. Use it ONLY under its gating rule in /pr-review Phase 6, not on every PR.
 
 Rules:
 - Verify every claim against source at the PR head/merge SHA; the local checkout may be stale, so read files at the PR ref via gh, not the working tree.
+- Apply the /pr-review Finding Rules (Claim discipline, Test requests) to every finding: each one names its trigger, severity follows impact and likelihood rather than how many reviewers agree, and the comment carries no test code other than the red-green test of a demonstrated bug.
 - Score per the repo quality gates and END the posted comment with a line exactly: SCORE: <n>/100 (threshold: 90, gate: pr).
 
-One-line digests of recent related reviews for cross-reference (may be empty):
+One-line digests of the last few reviews, for cross-reference only (may be empty). They are about other PRs: never take a severity, precedent or finding from them, judge this PR on its own code.
 $recent_ctx
 
-After posting, print ONE final line to stdout in the form: DIGEST #$num <score> <one-sentence outcome>.
+After posting, print ONE final line to stdout in the form: DIGEST #$num <score> <outcome in at most 200 characters>.
 EOF
 )
 
   if out=$(cd "$REPO_DIR" && claude -p "$prompt" --model "$REVIEW_MODEL" --dangerously-skip-permissions 2>>"$LOG"); then
-    grep -E '^DIGEST ' <<<"$out" >>"$CONTEXT" || true
+    grep -E '^DIGEST ' <<<"$out" | tail -n 1 | cut -c1-300 >>"$CONTEXT" || true   # the model may echo it: keep the final one, bounded
     echo "$num" >>"$REVIEWED"
     log "DONE   #$num"
   else

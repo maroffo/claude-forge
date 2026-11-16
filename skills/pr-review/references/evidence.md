@@ -12,6 +12,7 @@ Pick the FIRST type that applies, top to bottom (same taxonomy as advanced-revie
 | Finding class | Required evidence |
 |---------------|-------------------|
 | Bug / correctness / security-exploitable | **Executable red-green test** (below) |
+| Bug fix shipped without a pinning test (SKILL.md, Test requests) | Fix hunk reverted in the clone, the PR's touched test files run and stay green: the command and its output |
 | Security, not locally executable (e.g. infra, secrets) | CWE id + exact source line + why it is reachable |
 | Performance | Big-O derivation or measured numbers from the clone, not adjectives |
 | Convention violation | Grep-able reference: the CLAUDE.md/lint rule + a counter-example line already in the repo |
@@ -34,6 +35,8 @@ While a claim is escalated, it does not count toward the Phase 5 score; the repo
 ## Deliverable
 
 Surviving red-green tests are part of the report: copy each test body into the finding's entry (collapsible block) BEFORE Phase 8 cleanup deletes the clone. The failing test is the repro contract for whoever fixes the PR: red today, green after the fix.
+
+Authors paste these blocks verbatim, so write each one as finished code: one test per bug (asserting both bounds when the bug is a cutoff), in the module's own style and test layout, with no review ids, mutant labels or casts that hide a wrong field. For a threshold or cutoff bug, pin both sides of the boundary (just before: refused; at the instant: served). These are the only tests a report may carry (SKILL.md, Test requests).
 
 ## Budget and skips
 

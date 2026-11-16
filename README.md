@@ -227,7 +227,7 @@ Large skills use a `references/` subdirectory for detailed patterns (progressive
 | `orchestrator/` | Full contractor-mode loop, loaded on demand before step 1: sub-protocols (LOCALIZE, BENCH-BASELINE, REPRODUCE, DRIFT), review routing, finding consolidation, review artifacts (local findings + committed approval), blast radius, UAT, parallelism and effort caps, escalation, goal-backed runs |
 | `gemini-review/` | Local code review with Gemini CLI |
 | `verify-frontend/` | End-to-end UI verification in a real browser (console gate, before/after screenshots, Lighthouse) |
-| `second-opinion/` | Three isolated second opinions (Claude, Gemini, DeepSeek in Docker) on complex problems (auto-triggers for debugging, architecture, stuck reviews) |
+| `second-opinion/` | Isolated Gemini (gemini-4-argon, Docker) second opinion on complex problems (auto-triggers for debugging, architecture, stuck reviews) |
 | `test-design-reviewer/` | Test quality assessment (Farley's 8 Properties, weighted scoring, Python calculator) |
 | `adr/` | Architecture Decision Records: refine, research, write, vault storage, review |
 | `skill-forge/` | Create new skills or review/improve existing ones against quality checklist |

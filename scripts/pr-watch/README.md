@@ -33,9 +33,10 @@ for cross-PR memory), `pr-watch.log` (decisions/activity).
 ## Requirements
 
 `gh` (authenticated), `jq`, `uv`, `claude`, and `docker` (for the `/second-opinion`
-panel) on PATH. The reviewer needs `GEMINI_API_KEY` and `DEEPSEEK_API_KEY`; the
-script exports them from `~/.config/{gemini,deepseek}-api-key` at runtime so the
-composed `/gemini-review` and `/second-opinion` sub-steps work headless.
+isolated Gemini) on PATH. The reviewer needs `GEMINI_API_KEY` with access to
+`gemini-4-argon`; the script exports it from `~/.config/gemini-api-key` at runtime,
+plus `GEMINI_CLI_TRUST_WORKSPACE=true`, so the composed `/gemini-review` and
+`/second-opinion` sub-steps work headless.
 
 ## Config (env, all optional)
 

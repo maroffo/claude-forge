@@ -23,7 +23,7 @@
 <Table: #, Finding, File:Line, Commit context, Evidence, Source>
 
 ## Minor
-<Summary count + notable items>
+<Summary count + notable items, one or two sentences each; no code blocks (SKILL.md, Test requests)>
 
 ## Reclassifications (commit context)
 <Table: Finding, Original severity, New severity, Reason>
