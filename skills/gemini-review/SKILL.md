@@ -10,7 +10,7 @@ compatibility: "Requires Gemini CLI installed and GEMINI_API_KEY in environment.
 
 # Gemini Review - Local Code Review
 
-Every `gemini` call uses `--model gemini-3.1-pro-preview`, as in the commands below; do not substitute or fall back to another model.
+Every `gemini` call uses `--model gemini-4-argon`, as in the commands below; do not substitute or fall back to another model.
 
 ## Options
 
@@ -59,7 +59,7 @@ Prompt templates are in `~/.claude/skills/gemini-review/prompts/`:
 **Option A - Using built-in extension (with `--extension` flag):**
 ```bash
 cd <project_root>
-gemini --model gemini-3.1-pro-preview --yolo "/code-review"
+gemini --model gemini-4-argon --yolo "/code-review"
 ```
 
 **Option B - Using custom prompt (default):**
@@ -73,7 +73,7 @@ DIFF=$(git diff --cached)
 PROMPT=$(cat ~/.claude/skills/gemini-review/prompts/default.md)
 
 # Invoke Gemini with prompt and diff
-gemini --model gemini-3.1-pro-preview --yolo <<EOF
+gemini --model gemini-4-argon --yolo <<EOF
 $PROMPT
 
 ## Code Changes to Review
