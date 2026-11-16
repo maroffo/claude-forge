@@ -43,6 +43,29 @@ A monolithic diff loses context. Each commit carries intent via its message:
 
 This lets the review reduce false positives (intent vs oversight), reveal the development narrative (feature to review to fix cycles), spot incomplete fixes, and catch regressions where a later commit breaks an earlier one.
 
+## Finding Rules
+
+These two rules bind every reviewer (delegated agents, Gemini segments, second-opinion) and the final report. Phase 3 pastes them into every agent brief, `prompts/gemini-segment.md` carries their Gemini form, and Phase 6 passes Claim discipline to second-opinion.
+
+### Claim discipline
+
+A finding is a claim about this PR's code at the reviewed head. It reaches the report only when it is:
+
+1. **Real.** The cited line was read at the reviewed head (`git show <sha>:<file>` or the clone), not recalled, inferred from the diff summary, or taken from another reviewer's paraphrase.
+2. **Reachable.** It names the trigger: the input, state or sequence that produces the wrong outcome, and how the deployed system gets there. "Could", "might" or "in theory" without a trigger is not a finding. When reaching it needs another fault first (a storage integrity failure, an operator misusing a tool, a compromised dependency), say so and size the severity for that.
+3. **Sized to impact, not to votes.** Severity = impact × likelihood on the real deployment. Reviewer agreement is not evidence: "two reviewers called it Major" never sets a severity. When your own reading says lower, report the lower severity and state why; keep the higher one only with the evidence that overrides your reading.
+4. **Worded within its evidence.** "Breaks", "data loss", "unsafe", "bypass", "race" only when demonstrated; otherwise state exactly what fails and when. The same holds for positive claims: "verified", "green", "reproduced" only for what you ran in this review, and say what you did not run.
+5. **Not padding.** No finding for code that is correct but could be more defensive, hypothetical future misuse, style already consistent with the file, or a trade-off the PR documents. A speculative concern either gets evidence or stays out of the report.
+
+### Test requests
+
+A PR review hunts defects, not coverage. Tests that pin guard clauses, wiring or implementation details cost maintenance and add no safety, and the test code a review supplies gets pasted into the codebase verbatim. For PR reviews this section overrides two parts of `rules/quality-gates.md`: the "Missing test coverage for new code" Major, and "a mutant that survives gremlins" as a form of evidence (it is evidence for no finding here).
+
+- **An uncovered line is not a finding.** Neither is a surviving mutant. Do not run mutation probes to hunt unpinned clauses, and do not ask for one test per guard, nil check, early return, error wrap, log line, constant or wiring call.
+- **Ask for a test only when all three hold:** the untested behavior has a concrete regression a likely future change would cause; that regression costs something real (money, user data, auth or permissions, erasure and compliance, a prod outage); and nothing else catches it (types, an existing integration or e2e test, a CI lane that runs on PRs). It is then a Minor: one sentence naming the scenario to cover, no code.
+- **Major only for an unpinned fix:** the PR fixes a bug and ships no test that fails without the fix. The one probe this rule allows, and needs as evidence: in the clone, revert only the fix hunk and run the PR's touched test files; all green means the fix is unpinned (`references/evidence.md`, taxonomy).
+- **No test code in the report except Phase 4b evidence.** The only test a review may carry is the red-green test that demonstrates a Critical/Major bug (`references/evidence.md`, Deliverable). Never supply killing-test suites, mutant tables or "K1/K2/K3" blocks.
+
 ## Execution Flow
 
 ### Phase 0: Gather PR metadata
@@ -93,9 +116,11 @@ Build a commit graph tracking `introduced_in[finding]`, `fixed_in[finding]`, and
 
 ### Phase 3: Delegate specialized review
 
-Route reviewers by file pattern using the **Review Routing table in the `orchestrator` skill (Step 3)**. Do not duplicate that table here; apply it as written. In parallel, run `/gemini-review` on the diff segmented by package (target < 3000 lines per segment) using `prompts/gemini-segment.md`.
+Route reviewers by file pattern using the **Review Routing table in the `orchestrator` skill (Step 3)**. Do not duplicate that table here; apply it as written. In parallel, run `/gemini-review` on the diff segmented by package (target < 3000 lines per segment) using `prompts/gemini-segment.md`, on the model `/gemini-review` mandates (`gemini-4-argon`), never a substitute.
 
 Each delegated reviewer receives a **domain slice**, not the full diff: only the hunks of files its routing pattern matched, within a soft budget of ~20k token per brief (drop whole out-of-domain files first; if still over, keep the hunks and cut surrounding context). The brief declares the cut per the page-fault rule in the `orchestrator` skill (Step 1): `excluded: <files>; read on demand from /tmp/pr<N>-diff.patch or $PR_REVIEW_DIR`. Simple PRs (< 300 lines) pass whole, slicing overhead is not worth it there. Every reviewer also gets the project CLAUDE.md conventions and `$PR_REVIEW_DIR` as the working directory, with instructions to read real source (never hallucinate) and classify each finding as Critical/Major/Minor with exact `file:line`. The review already runs in a throwaway clone, so these launches deliberately omit `isolation: "worktree"`; each brief therefore opens with the line `ISOLATION-EXEMPT: pr-review throwaway clone $PR_REVIEW_DIR`, verbatim and as the FIRST line of the prompt, which is the only place `reviewer-isolation-guard` reads it (a marker further down is quoted content, not an authored exemption, and does not exempt). That satisfies the launch guard only: the brief carries no isolation assertion, so the reviewer stays read-only agent-side.
+
+Every brief also carries the two Finding Rules sections (Claim discipline, Test requests) verbatim. The test reviewer's brief adds one line, since its agent definition encourages mutation runs: `PR review scope: no mutation runs and no killing-test suites; report test gaps only as the Test requests rule allows.`
 
 Gemini hallucination patterns to filter (cross-validate every Gemini Critical against source): language-feature availability by version, database-engine limits misattributed across engines, standard-library APIs that do not exist.
 
@@ -121,11 +146,11 @@ No Critical or Major finding reaches consolidation as a bare claim. Bug-class cl
 
 Deduplicate: when several reviewers find the same issue, keep one entry with cross-references, e.g. `[Security/Architecture]`. Order the report by severity (Critical first), then by component within each band.
 
-Score per `rules/quality-gates.md` (Critical = auto-fail, Major -10, Minor -3; commit >= 80, PR merge >= 90, excellence >= 95). Do not restate the rubric here. Only evidence-backed Critical/Major findings count toward the score; claims escalated as unproven (Phase 4b) are excluded until second-opinion resolves them.
+Score per `rules/quality-gates.md` (Critical = auto-fail, Major -10, Minor -3; commit >= 80, PR merge >= 90, excellence >= 95). Do not restate the rubric here. Only evidence-backed Critical/Major findings count toward the score; claims escalated as unproven (Phase 4b) are excluded until second-opinion resolves them. Test gaps are scored per the Test requests rule, not as the rubric's "Missing test coverage" Major. Before scoring, re-read every surviving finding against Claim discipline and drop or resize the ones that fail it.
 
 ### Phase 6: Second opinion (gated)
 
-Invoke `/second-opinion` **only when** reviewer verdicts conflict, a Critical finding is contested, or a Critical/Major claim came back **unproven** from the Phase 4b evidence gate (its red-green test did not fail). Otherwise skip it: it spins up isolated containers and is not free. When invoked, pass the disputed finding(s), the conflicting verdicts (for unproven claims: the test and its passing output), and ask which classification is correct and why. For unproven claims, keep only if second-opinion supplies new evidence; otherwise drop and count under "Hallucinations caught". Synthesize the answer into the final severities.
+Invoke `/second-opinion` **only when** reviewer verdicts conflict, a Critical finding is contested, or a Critical/Major claim came back **unproven** from the Phase 4b evidence gate (its red-green test did not fail). Otherwise skip it: it spins up an isolated container and is not free. When invoked, pass the disputed finding(s), the conflicting verdicts (for unproven claims: the test and its passing output) and the Claim discipline section, and ask for evidence on the trigger and the impact, not for a classification. Its answer moves a severity only when it brings new evidence (a line, a trigger, a failing case); a bare verdict is a vote and changes nothing. For unproven claims, keep only if second-opinion supplies new evidence; otherwise drop and count under "Hallucinations caught".
 
 ### Phase 7: Present report
 

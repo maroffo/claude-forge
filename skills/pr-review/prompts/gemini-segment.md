@@ -38,3 +38,7 @@ Severity levels:
 - Do NOT flag language features as errors without verifying the language version
 - Do NOT attribute database engine limitations across engines (e.g., MySQL limits are not PostgreSQL limits)
 - If unsure about a language feature or API, say "verify:" instead of marking CRITICAL
+- Read the source before claiming anything about it; quote the line you are flagging
+- Every issue names its trigger: the input or state that makes it fail. "Could" or "might" without a trigger is not an issue
+- Size severity by real impact and likelihood. When the issue needs another fault first (storage failure, operator misuse), name that fault and size the severity for it
+- Do not report missing tests or untested branches, and do not write tests
