@@ -73,6 +73,22 @@ def is_exempt(path):
     return False
 
 
+def is_markdown(path):
+    return os.path.splitext(os.path.basename(path))[1].lower() == ".md"
+
+
+# Markdown may carry the header as closed HTML comments: GitHub renders `# ABOUTME:`
+# lines as H1 headings, while `<!-- ABOUTME: ... -->` stays invisible.
+HTML_MARKER = "<!-- ABOUTME:"
+
+
+def has_html_aboutme(text):
+    lines = [l for l in text.splitlines() if l.strip()][:2]
+    return len(lines) == 2 and all(
+        l.startswith(HTML_MARKER) and l.rstrip().endswith("-->") for l in lines
+    )
+
+
 def has_aboutme(text, prefix):
     if not prefix:
         return False
@@ -140,6 +156,8 @@ def main():
             sys.exit(0)
         if is_frontmatter_doc(path, content):
             sys.exit(0)
+        if is_markdown(path) and has_html_aboutme(content):
+            sys.exit(0)
         if not has_aboutme(content, prefix):
             reason = (
                 "ABOUTME header missing. Non-trivial source files must start "
@@ -147,6 +165,11 @@ def main():
                 + prefix + " ABOUTME: <summary 2>`. Place them after any "
                 "shebang or YAML frontmatter."
             )
+            if is_markdown(path):
+                reason += (
+                    " Markdown may use `<!-- ABOUTME: <summary> -->` on both "
+                    "lines instead."
+                )
             print(json.dumps({
                 "hookSpecificOutput": {
                     "hookEventName": "PreToolUse",
@@ -160,6 +183,8 @@ def main():
         old = tool_input.get("old_string", "") or ""
         new = tool_input.get("new_string", "") or ""
         marker = prefix + " ABOUTME:"
+        if is_markdown(path) and HTML_MARKER in old and HTML_MARKER not in new:
+            marker = HTML_MARKER
         if marker in old and marker not in new:
             msg = (
                 "Warning: this edit removed the ABOUTME header from " + path
