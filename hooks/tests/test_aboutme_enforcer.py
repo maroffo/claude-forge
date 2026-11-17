@@ -60,7 +60,28 @@ def main():
     proc = subprocess.run([sys.executable, HOOK], input="not json", capture_output=True, text=True, timeout=30)
     assert proc.returncode == 0 and not proc.stdout.strip()
 
-    print("PASS  aboutme-enforcer (11 cases)")
+    # Markdown may carry the header as HTML comments, which GitHub does not render as H1s
+    md_body = "# Title\n\nbody line\nbody line 2\n"
+    md_html = "<!-- ABOUTME: does a thing -->\n<!-- ABOUTME: in a way -->\n" + md_body
+    assert run_hook("PreToolUse", "Write", file_path="/repo/docs/r.md", content=md_html) is None, "md-html-comment"
+    # The hash form stays valid for markdown
+    md_hash = "# ABOUTME: does a thing\n# ABOUTME: in a way\n" + md_body
+    assert run_hook("PreToolUse", "Write", file_path="/repo/docs/r.md", content=md_hash) is None, "md-hash"
+    # Both lines must use the same form
+    md_mixed = "<!-- ABOUTME: does a thing -->\n# ABOUTME: in a way\n" + md_body
+    assert is_deny(run_hook("PreToolUse", "Write", file_path="/repo/docs/r.md", content=md_mixed)), "md-mixed"
+    # An HTML comment left open would hide the document body: deny
+    md_open = "<!-- ABOUTME: does a thing\n<!-- ABOUTME: in a way\n" + md_body
+    assert is_deny(run_hook("PreToolUse", "Write", file_path="/repo/docs/r.md", content=md_open)), "md-unclosed"
+    # The HTML form is markdown-only
+    py_html = "<!-- ABOUTME: does a thing -->\n<!-- ABOUTME: in a way -->\nimport os\nprint(os.name)\n"
+    assert is_deny(run_hook("PreToolUse", "Write", file_path="/repo/app/x.py", content=py_html)), "html-not-for-py"
+    # Edit removing an HTML-form header from markdown: advisory warning
+    out = run_hook("PostToolUse", "Edit", file_path="/repo/docs/r.md",
+                   old_string="<!-- ABOUTME: does a thing -->", new_string="does a thing")
+    assert out and "ABOUTME" in out["hookSpecificOutput"]["additionalContext"], "md-html-edit-advisory"
+
+    print("PASS  aboutme-enforcer (17 cases)")
 
 
 if __name__ == "__main__":
